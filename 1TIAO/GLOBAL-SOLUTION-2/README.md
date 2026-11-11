@@ -2,77 +2,82 @@
 
 <p align="center">
 <a href="https://www.fiap.com.br/">
-  <img src="../../assets/logo-fiap.png" 
-       alt="FIAP - Faculdade de Informática e Administração Paulista" 
+  <img src="../../assets/logo-fiap.png"
+       alt="FIAP - Faculdade de Informática e Administração Paulista"
        width="40%">
 </a>
 </p>
 
 <br>
 
-# Nome do projeto/atividade
+# Via Segura SP — nós inteligentes de segurança viária para São Paulo
 
-## Nome do grupo
+**Global Solution 2026.2 — CitizenTech: tecnologia centrada no cidadão**
 
-## 👨‍🎓 Integrantes: 
-- <a href="Link do perfil no LinkedIn ou GitHub">Nome do integrante 1</a>
-- <a href="Link do perfil no LinkedIn ou GitHub">Nome do integrante 2</a>
-- <a href="Link do perfil no LinkedIn ou GitHub">Nome do integrante 3</a> 
-- <a href="Link do perfil no LinkedIn ou GitHub">Nome do integrante 4</a> 
-- <a href="Link do perfil no LinkedIn ou GitHub">Nome do integrante 5</a>
+## 👩‍🎓 Integrante
 
-## 👩‍🏫 Professores:
+- <a href="https://br.linkedin.com/in/tamiresvferreiras">Tamires Vitória Ferreira dos Santos</a> (entrega individual)
+
+## 👩‍🏫 Professores
 
 ### Tutor(a)
-- <a href="Link do perfil no LinkedIn">Nome do Tutor</a>
-  
+- <a href="#">Nome do Tutor</a>
+
 ### Coordenador(a)
 - <a href="https://www.linkedin.com/in/andregodoichiovato/">André Godoi Chiovato</a>
 
 ## 📜 Descrição
 
-*Descreva aqui seu projeto em detalhes de forma estruturada e organizada*
+São Paulo já tem semáforos adaptativos que otimizam o fluxo de carros. O **Via Segura SP** é uma camada de segurança e acessibilidade sobre essa infraestrutura: nós instalados em pontos críticos que veem a via, avisam motoristas e pedestres por placas inteligentes e ajustam o semáforo.
 
-## 📁 Estrutura de pastas 
+O projeto tem dois estudos:
 
-*‼️ OBSERVAÇÃO DO TUTOR -- favor remover antes de subir o trabalho -- não há a obrigação de usar todas as pasta propostas, use apenas o que fizer SENTIDO para a entrega. Também está permitido criar mais pastas conforme necessidade visando a melhor organização do projeto. ‼️*
+| | Estudo A — Perturbação urbana | Estudo B — Risco à vida |
+|---|---|---|
+| Problema | Tempo perdido no trânsito (132 h/ano no pico, TomTom 2025) | Atropelamentos, travessia de idosos e alagamentos |
+| Local | Zona sul (corredor a definir) | Av. Celso Garcia — Largo da Concórdia (Brás) |
+| Técnica | Simulação SUMO + aprendizado por reforço | DBSCAN + classificador de gravidade + YOLO + ESP32 |
 
-Abaixo encontra-se a descrição da organização da raiz do projeto e a finalidade de cada diretório e arquivo:
+ODS relacionados: 3, 9, 10, 11 e 13.
 
-* **`data/`** Armazena todas as bases de dados utilizadas no projeto, incluindo arquivos estruturados (como CSV, Excel, JSON), bases de dados sintéticas e outros formatos brutos ou processados.
+## 📁 Estrutura de pastas
 
-* **`docs/`** Centraliza a documentação técnica e de negócio do projeto.
-
-* **`notebooks/`** Destinado a cadernos interativos (como *Jupyter Notebooks* ou *Google Colab*) utilizados para análise exploratória de dados, experimentação de algoritmos, prototipagem de modelos, etc.
-
-* **`src/`** Contém todo o código-fonte desenvolvido para o projeto. Dependendo do âmbito da atividade, pode incluir arquivos como: scripts (Python, R, JS), ficheiros web (HTML), firmware para hardware (ESP32/Arduino), além de APIs, microsserviços e ficheiros de modelos e inferências.
-
-* **`README.md`** Este ficheiro. Funciona como o guia principal de introdução, configuração e contextualização do projeto.
+* **`data/raw/`** bases originais (Infosiga, GeoSampa, CGE). Arquivos grandes não vão para o Git; ver `data/README.md`.
+* **`data/processed/`** bases tratadas e o banco SQLite do projeto.
+* **`docs/`** documentação, diagramas e `evidencias/` (prints, métricas e vídeos dos testes).
+* **`notebooks/`** análise exploratória, agrupamento e modelos.
+* **`src/dados/`** carga e limpeza das bases.
+* **`src/risco/`** DBSCAN, índice de concentração e classificador de gravidade.
+* **`src/visao/`** detecção de pedestres e veículos com YOLO.
+* **`src/esp32/`** firmware do nó (Wokwi): semáforo, botão de travessia, buzzer e placa.
+* **`src/simulacao/`** cenários SUMO e agente de aprendizado por reforço (Estudo A).
+* **`src/central/`** integração: previsão de chuva, regras dos modos, MQTT e banco.
+* **`src/dashboard/`** painel em Streamlit.
 
 ## 📎 Links e Observações
 
 ### 🔗 Links do Projeto
 
-*Substitua ou duplique a estrutura abaixo para cada link relevante do projeto:*
-
-* **[Nome do Link (ex: Vídeo de Entrega no YouTube)]**(http://url-aqui) - Breve descrição.
+* **Vídeo de entrega (YouTube, não listado)** — a incluir.
 
 ### 🧠 Decisões Técnicas
 
-*Utilize este espaço para registar as principais escolhas tecnológicas do projeto e as suas justificações (ex: escolha de frameworks, banco de dados, arquitetura, etc.):*
-
-> Escreva aqui as observações e justificações técnicas do projeto...
+> A preencher ao longo do desenvolvimento.
 
 ### 📢 Observações Gerais
 
-*Indique obrigatoriamente no campo abaixo a decisão da equipe quanto à participação na competição:*
-
-* **Participação na Competição:** [ ] Sim, aceitamos participar / [ ] Não vamos participar.
-* *Outras observações gerais (opcional):* Escreva aqui...
+* **Participação na Competição:** [x] Sim, aceito participar / [ ] Não vou participar.
+* Bases simuladas e resultados esperados estão identificados como tal na documentação.
 
 ## 🔧 Como executar o código
 
-*Acrescentar as informações necessárias sobre pré-requisitos (IDEs, serviços, bibliotecas etc.) e instalação básica do projeto, descrevendo eventuais versões utilizadas. Colocar um passo a passo de como o leitor pode baixar o seu código e executá-lo a partir de sua máquina ou seu repositório.*
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Instruções de cada módulo ficam no README da respectiva pasta em `src/`.
 
 ---
 

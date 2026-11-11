@@ -1,0 +1,26 @@
+# Dados e modelos
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.4
+matplotlib>=3.8
+seaborn>=0.13
+jupyter>=1.0
+
+# Mapas
+folium>=0.16
+geopandas>=0.14
+
+# Visão computacional
+ultralytics>=8.2
+opencv-python>=4.9
+
+# Integração
+paho-mqtt>=2.0
+requests>=2.31
+
+# Dashboard
+streamlit>=1.35
+streamlit-folium>=0.20
+
+# Simulação (o SUMO é instalado à parte: https://sumo.dlr.de)
+sumo-rl>=1.4

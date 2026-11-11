@@ -1,0 +1,17 @@
+# Ambiente
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+
+# Dados brutos grandes (baixar conforme data/README.md)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*.db
+
+# Modelos e saídas pesadas
+*.pt
+runs/
+src/simulacao/saidas/
+*.mp4
