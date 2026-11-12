@@ -60,9 +60,40 @@ def _rad(lat, lon) -> np.ndarray:
     return np.radians(np.c_[np.asarray(lat, float), np.asarray(lon, float)])
 
 
-def _celula(lat, lon) -> list[tuple[int, int]]:
-    return list(zip(np.floor(np.asarray(lat, float) / CELULA_GRAUS).astype(int),
-                    np.floor(np.asarray(lon, float) / CELULA_GRAUS).astype(int)))
+def celula(lat, lon) -> list[tuple[int, int]]:
+    """Célula de ~500 m (grade de 0,005°) de cada ponto."""
+    return list(zip(np.floor(np.asarray(lat, float) / CELULA_GRAUS).astype(int).tolist(),
+                    np.floor(np.asarray(lon, float) / CELULA_GRAUS).astype(int).tolist()))
+
+
+_celula = celula
+
+
+# ------------------------------------------------------------------------------------------ risco de ocorrência
+def chuva_por_hora(serie: pd.Series) -> pd.Series:
+    """Série do Open-Meteo (carimbo = fim da hora) → índice = início da hora. Ex.: valor das 19h vale para 18h–19h."""
+    return pd.Series(serie.to_numpy(), index=pd.DatetimeIndex(serie.index) - pd.Timedelta(hours=1))
+
+
+def exposicao(chuva_hora: pd.Series, inicio: str, fim: str) -> pd.DataFrame:
+    """Horas existentes por hora do dia × fim de semana × chovendo, entre as datas inicio e fim (inclusivas).
+
+    Só conta horas que têm valor de chuva (a última hora da série, sem o valor seguinte, fica de fora).
+    """
+    idx = pd.DatetimeIndex(chuva_hora.index)
+    m = (idx >= pd.Timestamp(inicio)) & (idx < pd.Timestamp(fim) + pd.Timedelta(days=1)) & chuva_hora.notna().to_numpy()
+    d = pd.DataFrame({"hora": idx[m].hour, "fim_de_semana": (idx[m].day_of_week >= 5).astype(int),
+                      "chovendo": (chuva_hora.to_numpy()[m] >= LIMIAR_CHUVA_MM).astype(int)})
+    return d.groupby(["hora", "fim_de_semana", "chovendo"]).size().rename("horas").reset_index()
+
+
+def contagens(eventos: pd.DataFrame) -> pd.DataFrame:
+    """Atropelamentos por célula × hora × fim de semana × chovendo. `eventos`: latitude, longitude, quando, chuva_mm."""
+    q = pd.to_datetime(eventos["quando"])
+    d = pd.DataFrame({"celula": celula(eventos["latitude"], eventos["longitude"]), "hora": q.dt.hour.to_numpy(),
+                      "fim_de_semana": (q.dt.day_of_week >= 5).astype(int).to_numpy(),
+                      "chovendo": (eventos["chuva_mm"].to_numpy() >= LIMIAR_CHUVA_MM).astype(int)})
+    return d.groupby(["celula", "hora", "fim_de_semana", "chovendo"]).size().rename("n").reset_index()
 
 
 def construir_tabelas(treino: pd.DataFrame, eps_m: float = EPS_M, min_samples: int = MIN_SAMPLES) -> dict:

@@ -1,0 +1,40 @@
+"""Testes do modelo de risco de OCORRÊNCIA de atropelamento (notebook 06) e da parte nova da risco().
+
+Rodar a partir de 1TIAO/GLOBAL-SOLUTION-2/:  python -m pytest tests -v
+"""
+import pandas as pd
+
+import risco as rv
+
+
+# ---------------------------------------------------------------- exposição e contagens
+def test_chuva_por_hora_desloca_uma_hora():
+    s = pd.Series([0.0, 1.5], index=pd.to_datetime(["2024-01-01 01:00", "2024-01-01 02:00"]))
+    h = rv.chuva_por_hora(s)
+    assert h.index.tolist() == list(pd.to_datetime(["2024-01-01 00:00", "2024-01-01 01:00"]))
+    assert h.tolist() == [0.0, 1.5]
+
+
+def test_exposicao_conta_horas_por_combinacao():
+    # sábado 06/01/2024 23h (fds, seco), domingo 07/01 23h (fds, chuva 0,5), segunda 08/01 0h (útil, seco)
+    idx = pd.to_datetime(["2024-01-06 23:00", "2024-01-07 23:00", "2024-01-08 00:00"])
+    e = rv.exposicao(pd.Series([0.0, 0.5, 0.1], index=idx), "2024-01-06", "2024-01-08")
+    e = e.set_index(["hora", "fim_de_semana", "chovendo"])["horas"].to_dict()
+    assert e == {(23, 1, 0): 1, (23, 1, 1): 1, (0, 0, 0): 1}
+
+
+def test_exposicao_ignora_horas_sem_valor_de_chuva():
+    idx = pd.to_datetime(["2024-01-08 10:00"])  # 11h não tem valor
+    e = rv.exposicao(pd.Series([0.0], index=idx), "2024-01-08", "2024-01-08")
+    assert e["horas"].sum() == 1
+
+
+def test_contagens_agrupa_por_celula_e_combinacao():
+    ev = pd.DataFrame({"latitude": [-23.551, -23.551, -23.551, -23.701],
+                       "longitude": [-46.631, -46.631, -46.631, -46.701],
+                       "quando": pd.to_datetime(["2024-01-08 18:10", "2024-01-09 18:50", "2024-01-13 18:00",
+                                                 "2024-01-08 03:00"]),
+                       "chuva_mm": [0.0, 0.0, 0.0, 2.0]})
+    c = rv.contagens(ev).set_index(["celula", "hora", "fim_de_semana", "chovendo"])["n"].to_dict()
+    # -23.551/0.005 = -4710.2 → -4711 ; -46.631/0.005 = -9326.2 → -9327 ; -23.701 → -4741 ; -46.701 → -9341
+    assert c == {((-4711, -9327), 18, 0, 0): 2, ((-4711, -9327), 18, 1, 0): 1, ((-4741, -9341), 3, 0, 1): 1}
