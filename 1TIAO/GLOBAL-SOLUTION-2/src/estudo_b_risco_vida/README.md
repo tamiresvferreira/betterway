@@ -10,6 +10,21 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
 | 02 | `02_modelo_letalidade_atropelamentos_sp.ipynb` | Regressão logística: o que aumenta a chance de um pedestre atropelado morrer | razões de chances, probabilidades previstas |
 | 03 | `03_dbscan_pontos_criticos.ipynb` | DBSCAN (haversine, fatal com peso 3) + índice de concentração da CET, ranking, mapa e banco SQLite | `data/processed/seguranca_viaria.db`, `docs/evidencias/estudo_b/` |
 | 04 | `04_entorno_pontos_criticos.ipynb` | Escolas (300 m, GeoSampa) e semáforos/travessias (150 m, OSM como fonte principal e GeoSampa 2018 como comparação) em volta de cada grupo; grava as colunas na tabela `clusters`, gera a planilha de verificação manual e confirma o piloto | colunas novas em `clusters`, `mapa_entorno.html`, `verificacao_manual.csv` |
+| 05 | `05_classificador_gravidade.ipynb` | Chuva histórica (Open-Meteo) + classificador fatal × não fatal (logística, árvore, random forest; treino 2022–2023, teste 2024) | `models/modelo_gravidade.joblib`, coluna `chuva_mm` em `sinistros` |
+
+## Função `risco()` (central e ESP32)
+
+```python
+import sys; sys.path.insert(0, "1TIAO/GLOBAL-SOLUTION-2/src/estudo_b_risco_vida")
+from datetime import datetime
+from risco import risco
+risco(-23.5423, -46.6166, datetime(2026, 11, 10, 18, 30), chuva_mm=0.0)
+# {'probabilidade_fatal': 0.0457, 'nivel': 'baixo', 'cluster_id': 139, 'rank_prioridade': 41,
+#  'rank_urbano': 26, 'motivos': ['ponto crítico (DBSCAN)']}
+```
+
+Testes: a partir de `1TIAO/GLOBAL-SOLUTION-2/`, `python -m pytest tests -v` (15 testes; a saída fica em
+`docs/evidencias/estudo_b/05_testes_risco.txt`).
 
 ## Como rodar
 
@@ -47,6 +62,13 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
    modo "pedestre", atuando sobre semáforos que já existem. O modo "escola" entra como cenário de
    demonstração. No top 50 urbano, 20 grupos têm escola por perto e 7 não têm semáforo em nenhuma base. O
    foco Demas Zitto / Canal de Cocaia (Grajaú) junta as duas coisas e é o candidato a uma segunda fase.
+
+5. **Classificador de gravidade (plano B aplicado):** a random forest chega a PR-AUC de 0,162 no teste 2024,
+   contra 0,073 de quem chuta, e ROC-AUC de 0,62. No limiar de recall ~0,64, a precisão é de 0,10. Ordena o risco
+   (nível alto com 16% de fatais × baixo com 4,9%), mas é fraca como classificador, porque não pode usar a idade
+   da vítima. As variáveis que mais pesam são a madrugada, a rodovia e o histórico do local. **A chuva não
+   aumentou a letalidade** (7,4% com chuva × 8,5% sem). A prioridade dos pontos continua pelo índice do DBSCAN;
+   a `risco()` só modula o "quando".
 
 ## Pendências
 

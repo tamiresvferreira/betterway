@@ -1,0 +1,21 @@
+Testes da função risco() — 2026-11-11 — comando: python -m pytest tests -v
+
+collecting ... collected 15 items
+
+tests/test_risco.py::test_variaveis_tempo_codificam_hora_dia_e_mes PASSED [  6%]
+tests/test_risco.py::test_chovendo_comeca_em_0_2_mm PASSED               [ 13%]
+tests/test_risco.py::test_ponto_novo_no_grupo_usa_letalidade_suavizada_do_grupo PASSED [ 20%]
+tests/test_risco.py::test_linha_de_treino_nao_enxerga_o_proprio_rotulo PASSED [ 26%]
+tests/test_risco.py::test_ponto_isolado_fica_fora_de_grupo_e_cai_na_taxa_global PASSED [ 33%]
+tests/test_risco.py::test_tipo_de_via_do_local_vem_dos_atropelamentos_vizinhos PASSED [ 40%]
+tests/test_risco.py::test_largo_da_concordia_terca_18h30_sem_chuva_devolve_dict_valido PASSED [ 46%]
+tests/test_risco.py::test_mesmo_local_sabado_madrugada_com_chuva_tem_probabilidade_maior PASSED [ 53%]
+tests/test_risco.py::test_ponto_fora_de_sao_paulo_nao_quebra_e_fica_sem_grupo PASSED [ 60%]
+tests/test_risco.py::test_entradas_invalidas_levantam_value_error[-23.54--46.61--1.0] PASSED [ 66%]
+tests/test_risco.py::test_entradas_invalidas_levantam_value_error[95.0--46.61-0.0] PASSED [ 73%]
+tests/test_risco.py::test_entradas_invalidas_levantam_value_error[-23.54--200.0-0.0] PASSED [ 80%]
+tests/test_risco.py::test_entradas_invalidas_levantam_value_error[nan--46.61-0.0] PASSED [ 86%]
+tests/test_risco.py::test_entradas_invalidas_levantam_value_error[-23.54--46.61-inf] PASSED [ 93%]
+tests/test_risco.py::test_quando_precisa_ser_datetime PASSED             [100%]
+
+============================= 15 passed in 2.45s ==============================

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS sinistros (
     logradouro    TEXT,
     cluster_id    INTEGER REFERENCES clusters(cluster_id)   -- nulo = ruído ou sem coordenada
 );
+-- chuva_mm REAL: acrescentada pelo notebook 05 (ALTER TABLE); Open-Meteo, ponto único da cidade, hora do sinistro
 CREATE INDEX IF NOT EXISTS idx_sinistros_cluster ON sinistros(cluster_id);
 
 -- O que o nó viu ou fez (preenchida pela visão, pelo ESP32 e pela central)
