@@ -8,6 +8,7 @@ __pycache__/
 # Dados brutos grandes (baixar conforme data/README.md)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/Infosiga_dicionario_dados.zip
 data/processed/*.db
 
 # Modelos e saídas pesadas
