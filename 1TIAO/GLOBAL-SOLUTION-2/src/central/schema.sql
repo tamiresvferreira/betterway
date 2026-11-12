@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS clusters (
 -- Entorno (acrescentado pelo notebook 04 com ALTER TABLE; raios a partir do centróide do grupo):
 --   n_escolas_300m                  INTEGER   escolas públicas (EE, EMEF, EMEFM, EMEI, CEMEI, CEU) a até 300 m
 --   distancia_escola_mais_proxima_m REAL
+--   n_escolas_osm_300m              INTEGER   conferência: OSM amenity=school (inclui particulares) a até 300 m
 --   n_semaforos_150m                INTEGER   nós OSM highway=traffic_signals a até 150 m (fonte principal)
 --   n_travessias_semaforizadas_150m INTEGER   nós OSM crossing=traffic_signals / crossing:signals=yes a até 150 m
 --   tem_semaforo                    INTEGER   0/1: OSM ou GeoSampa 2018 (comum) a até 150 m

@@ -43,7 +43,7 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
 4. **Entorno (OSM + GeoSampa):** as bases de semáforos se cobrem só em parte (68% do cadastro de 2018 tem par
    no OSM a até 30 m; 76% do OSM tem par no cadastro), por isso `tem_semaforo` usa as duas. O grupo do Largo
    da Concórdia tem semáforo **nas duas bases** (6 nós OSM + 2 travessias semaforizadas; 4 cruzamentos no
-   cadastro) e **nenhuma escola pública a até 300 m** (EE Padre Anchieta a ~340 m). O piloto se confirma para o
+   cadastro) e **nenhuma escola a até 300 m em nenhuma das duas bases** (GeoSampa e OSM; EE Padre Anchieta a ~340 m). O piloto se confirma para o
    modo "pedestre", atuando sobre semáforos que já existem. O modo "escola" entra como cenário de
    demonstração. No top 50 urbano, 20 grupos têm escola por perto e 7 não têm semáforo em nenhuma base. O
    foco Demas Zitto / Canal de Cocaia (Grajaú) junta as duas coisas e é o candidato a uma segunda fase.
@@ -55,7 +55,9 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
   quando existir `data/processed/cet_concentracoes.csv` (`nome;rank_cet;lat;lon`).
 - **Verificação manual (Street View):** preencher `docs/evidencias/estudo_b/verificacao_manual.csv` (foco para
   pedestre, contagem regressiva, data da imagem) para o top 10 urbano e o Largo da Concórdia.
-- **Escolas do INEP:** o Catálogo de Escolas só existe num portal interativo; o download automático falhou.
-  As escolas vêm do GeoSampa, que não informa data.
+- **Escolas:** o INEP foi tentado duas vezes (o portal derrubou a conexão). A fonte é o GeoSampa, com data
+  de atualização não informada pela fonte. O OSM entra como conferência: 44% das escolas do GeoSampa têm par
+  no OSM a até 100 m, e 83% das escolas públicas do OSM têm par no GeoSampa. No foco do Grajaú (Demas Zitto /
+  Canal de Cocaia), o OSM não tem nenhuma das 5 escolas do GeoSampa: vale conferir pelo nome.
 - **Pontos de alagamento do CGE:** sem base aberta. Entram como trabalho futuro (pedido via LAI) ou como base
   simulada identificada como tal na tabela `pontos_alagamento` (notebook 04, seção 6).
