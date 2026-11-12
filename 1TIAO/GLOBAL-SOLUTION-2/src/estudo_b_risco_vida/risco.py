@@ -110,6 +110,13 @@ def variaveis_celula(tabelas: dict, anos: float = 1.0) -> pd.DataFrame:
     return g[_VARIAVEIS_CELULA]
 
 
+def tabela_celulas(eventos: pd.DataFrame, anos: int) -> pd.DataFrame:
+    """Variáveis por célula a partir de `anos` anos de histórico, com a MESMA régua para qualquer nº de anos:
+    o limiar do DBSCAN (min_samples, em peso) cresce com os anos, e histórico e peso são divididos pelos anos.
+    `eventos`: latitude, longitude, fatal, tipo_via."""
+    return variaveis_celula(construir_tabelas(eventos, eps_m=EPS_M, min_samples=MIN_SAMPLES * anos), anos=anos)
+
+
 def montar_variaveis_risco(celulas: list, hora, fim_de_semana, chovendo, tab_celula: pd.DataFrame) -> pd.DataFrame:
     """Variáveis do modelo de risco (RISCO_VARIAVEIS). Célula fora de tab_celula → variáveis de local zeradas."""
     h = np.asarray(hora, float)

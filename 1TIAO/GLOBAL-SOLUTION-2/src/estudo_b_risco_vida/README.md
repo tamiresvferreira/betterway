@@ -20,16 +20,16 @@ import sys; sys.path.insert(0, "1TIAO/GLOBAL-SOLUTION-2/src/estudo_b_risco_vida"
 from datetime import datetime
 from risco import risco
 risco(-23.54231, -46.61655, datetime(2026, 11, 10, 18, 30), chuva_mm=0.0)
-# {'probabilidade_atropelamento_1h': 0.001125,  # protagonista: chance de >= 1 atropelamento na célula na próxima hora
-#  'risco_relativo': 6.89,                      # 6,9 vezes a média das células da cidade
+# {'probabilidade_atropelamento_1h': 0.001313,  # protagonista: chance de >= 1 atropelamento na célula na próxima hora
+#  'risco_relativo': 8.0,                       # 8 vezes a média das células com atropelamento registrado
 #  'nivel': 'alto',                             # pelo risco de atropelamento (aciona os modos do nó)
 #  'probabilidade_fatal': 0.0457,               # coadjuvante: se acontecer, chance de ser fatal
-#  'probabilidade_atropelamento_fatal_1h': 5.1e-05,
+#  'probabilidade_atropelamento_fatal_1h': 6e-05,
 #  'cluster_id': 139, 'rank_prioridade': 41, 'rank_urbano': 26,
 #  'motivos': ['horário de pico', 'ponto crítico (DBSCAN)']}
 ```
 
-Testes: a partir de `1TIAO/GLOBAL-SOLUTION-2/`, `python -m pytest tests -v` (28 testes; a saída fica em
+Testes: a partir de `1TIAO/GLOBAL-SOLUTION-2/`, `python -m pytest tests -v` (29 testes; a saída fica em
 `docs/evidencias/estudo_b/06_testes_risco.txt`).
 
 ## Como rodar
@@ -76,10 +76,11 @@ Testes: a partir de `1TIAO/GLOBAL-SOLUTION-2/`, `python -m pytest tests -v` (28 
    aumentou a letalidade** (7,4% com chuva × 8,5% sem). A prioridade dos pontos continua pelo índice do DBSCAN;
    a `risco()` só modula o "quando".
 
-6. **Risco de ocorrência (notebook 06):** gradient boosting com perda de Poisson, **bem calibrado** (erro de −1,5%
-   no total de 2024) e melhor que o mapa histórico para dizer **quando** (ROC-AUC 0,83 × 0,80; D² 0,05). O nível
-   "alto" cobre 10% das célula-horas e concentrou **31,7% dos atropelamentos de 2024**. Para **onde**, empata com o
-   ranking histórico (17,3% no top 5% de células), que segue como critério de instalação. Medida por hora, a chuva
+6. **Risco de ocorrência (notebook 06):** gradient boosting com perda de Poisson, **bem calibrado** (erro de −0,9%
+   no total de 2024) e um pouco melhor que "histórico × perfil horário" para ordenar os momentos de risco (D² 0,05;
+   ROC-AUC pela taxa 0,74 × 0,71; PR-AUC empata). O nível "alto" cobre 10% das combinações célula × hora × tipo
+   de dia × chuva e concentrou **31,6% dos atropelamentos de 2024**. Para **onde**, empata com o ranking histórico
+   (~17% no top 5% de células), que segue como critério de instalação. Medida por hora, a chuva
    também **não aumenta** os atropelamentos registrados (×0,93; IC 0,85–1,02).
 
 ## Pendências

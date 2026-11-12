@@ -111,3 +111,15 @@ def test_chuva_muito_alta_nao_quebra():
     r = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 0), 300.0)
     assert 0.0 <= r["probabilidade_atropelamento_1h"] <= 1.0
     assert 0.0 <= r["probabilidade_fatal"] <= 1.0
+
+
+# ---------------------------------------------------------------- revisão final: mesma régua para 1 e 2 anos
+def test_tabela_celulas_com_dois_anos_usa_a_mesma_regua_de_um_ano():
+    # ponto C com 5 não fatais por ano: peso 5 < 8 → não é grupo com 1 ano. Com 2 anos (peso 10) também não pode
+    # virar grupo, senão "em_grupo" muda de sentido entre o treino (1 ano) e a produção (2 anos).
+    um_ano = pd.DataFrame([{"latitude": -23.60, "longitude": -46.60, "fatal": False, "tipo_via": "VIAS URBANAS"}] * 5)
+    dois_anos = pd.concat([um_ano, um_ano], ignore_index=True)
+    c = rv.celula([-23.60], [-46.60])[0]
+    t1, t2 = rv.tabela_celulas(um_ano, anos=1), rv.tabela_celulas(dois_anos, anos=2)
+    assert t1.loc[[c]].iloc[0].tolist() == pytest.approx(t2.loc[[c]].iloc[0].tolist())
+    assert t2.loc[[c], "em_grupo"].iloc[0] == 0
