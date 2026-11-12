@@ -1,28 +1,63 @@
--- Banco do projeto (SQLite): data/processed/via_segura.db
-
-CREATE TABLE IF NOT EXISTS sinistros (
-    id            INTEGER PRIMARY KEY,
-    data_hora     TEXT,
-    latitude      REAL,
-    longitude     REAL,
-    tipo          TEXT,      -- ex.: atropelamento, colisão
-    fatal         INTEGER,   -- 1 = fatal, 0 = não fatal
-    tipo_vitima   TEXT,
-    logradouro    TEXT,
-    cluster_id    INTEGER REFERENCES clusters(id)
-);
+-- Banco do projeto (SQLite): data/processed/seguranca_viaria.db
+-- As 4 primeiras tabelas são criadas e preenchidas por
+-- src/estudo_b_risco_vida/03_dbscan_pontos_criticos.ipynb (mesmo DDL; manter os dois iguais).
 
 CREATE TABLE IF NOT EXISTS clusters (
-    id              INTEGER PRIMARY KEY,
-    nome            TEXT,
-    lat_centro      REAL,
-    lon_centro      REAL,
-    n_nao_fatais    INTEGER,
-    n_fatais        INTEGER,
-    extensao_m      REAL,
-    indice_cet      REAL     -- extensão ÷ (não fatais + 3 × fatais); menor = mais crítico
+    cluster_id      INTEGER PRIMARY KEY,
+    lat_centro      REAL    NOT NULL,
+    lon_centro      REAL    NOT NULL,
+    n_fatais        INTEGER NOT NULL,
+    n_nao_fatais    INTEGER NOT NULL,
+    peso            INTEGER NOT NULL,             -- n_nao_fatais + 3 * n_fatais
+    extensao_m      REAL    NOT NULL,             -- maior distância entre 2 pontos do grupo (aproximação)
+    indice_cet      REAL    NOT NULL,             -- max(extensao_m, 20) / peso; menor = mais prioritário
+    rank_prioridade INTEGER NOT NULL UNIQUE,      -- ranking geral (todos os grupos)
+    rank_urbano     INTEGER UNIQUE,               -- nulo = rodovia ou pontos empilhados
+    n_coords_distintas INTEGER NOT NULL,
+    pct_via_urbana  REAL    NOT NULL,
+    via_principal   TEXT,
+    eps_m           REAL    NOT NULL,
+    min_samples     INTEGER NOT NULL,
+    criado_em       TEXT    NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS sinistros (
+    id_sinistro   INTEGER PRIMARY KEY,
+    data_sinistro TEXT    NOT NULL,               -- AAAA-MM-DD
+    hora          INTEGER,                        -- 0-23; nulo se não informado
+    latitude      REAL,
+    longitude     REAL,
+    coord_valida  INTEGER NOT NULL CHECK (coord_valida IN (0, 1)),
+    fatal         INTEGER NOT NULL CHECK (fatal IN (0, 1)),
+    tipo_via      TEXT,
+    logradouro    TEXT,
+    cluster_id    INTEGER REFERENCES clusters(cluster_id)   -- nulo = ruído ou sem coordenada
+);
+CREATE INDEX IF NOT EXISTS idx_sinistros_cluster ON sinistros(cluster_id);
+
+-- O que o nó viu ou fez (preenchida pela visão, pelo ESP32 e pela central)
+CREATE TABLE IF NOT EXISTS eventos (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp    TEXT    NOT NULL,
+    origem       TEXT    NOT NULL CHECK (origem IN ('yolo', 'esp32', 'central')),
+    cluster_id   INTEGER REFERENCES clusters(cluster_id),
+    tipo         TEXT    NOT NULL,
+    valor        REAL,
+    payload_json TEXT
+);
+
+-- Alertas e mudanças de modo decididos pela central (SIMULADOS)
+CREATE TABLE IF NOT EXISTS alertas (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp  TEXT    NOT NULL,
+    cluster_id INTEGER REFERENCES clusters(cluster_id),
+    modo       TEXT    NOT NULL CHECK (modo IN ('normal', 'pedestre', 'escola', 'chuva', 'ambulancia')),
+    motivo     TEXT,
+    risco      REAL,
+    enviado    INTEGER NOT NULL DEFAULT 0 CHECK (enviado IN (0, 1))
+);
+
+-- Ainda não criada pelo notebook 03 (base do CGE, etapa de chuva)
 CREATE TABLE IF NOT EXISTS pontos_alagamento (
     id          INTEGER PRIMARY KEY,
     nome        TEXT,
@@ -30,24 +65,4 @@ CREATE TABLE IF NOT EXISTS pontos_alagamento (
     longitude   REAL,
     ocorrencias_ultimo_ano INTEGER,
     fonte       TEXT
-);
-
--- O que o nó fez e por quê
-CREATE TABLE IF NOT EXISTS eventos (
-    id          INTEGER PRIMARY KEY,
-    data_hora   TEXT DEFAULT (datetime('now', 'localtime')),
-    no_id       TEXT,       -- ex.: celso-garcia-01
-    origem      TEXT,       -- yolo, botao, previsao, ambulancia
-    modo        TEXT,       -- normal, pedestre, escola, chuva, ambulancia
-    detalhe     TEXT
-);
-
--- Alertas enviados (SAMU, polícia, CET) — SIMULADOS
-CREATE TABLE IF NOT EXISTS alertas (
-    id          INTEGER PRIMARY KEY,
-    data_hora   TEXT DEFAULT (datetime('now', 'localtime')),
-    no_id       TEXT,
-    destino     TEXT,
-    mensagem    TEXT,
-    simulado    INTEGER DEFAULT 1
 );

@@ -1,0 +1,3538 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_deff4dd1452e3cc5af3b2731048fb8ea {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_deff4dd1452e3cc5af3b2731048fb8ea" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_deff4dd1452e3cc5af3b2731048fb8ea = L.map(
+                "map_deff4dd1452e3cc5af3b2731048fb8ea",
+                {
+                    center: [-23.58, -46.62],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 11,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_50ed47697d3c70bfa99f801a5e34e738 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_50ed47697d3c70bfa99f801a5e34e738.addTo(map_deff4dd1452e3cc5af3b2731048fb8ea);
+        
+    
+            var feature_group_198dc83b6434babfe6143a083c575e70 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_marker_95fb0e6e643f8158d5841e3a8d65b29f = L.circleMarker(
+                [-23.53546621948, -46.454555624710004],
+                {"bubblingMouseEvents": true, "color": "#2a78d6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#2a78d6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.542562584220407, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_e3b5a4f38874b0d3945714be2fddf4bf = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fd8b3bd33030ec43bea309062706b97b = $(`<div id="html_fd8b3bd33030ec43bea309062706b97b" style="width: 100.0%; height: 100.0%;"><b>Acesso Radial Leste Centro</b><br>rank urbano: #50 · rank geral: #66<br>vias: Acesso Radial Leste Centro | Rua Lagoa Salgada | Avenida Pires Do Rio<br>fatais: 1 · não fatais: 9 · peso: 12<br>extensão: 146 m · índice: 12.16</div>`)[0];
+                popup_e3b5a4f38874b0d3945714be2fddf4bf.setContent(html_fd8b3bd33030ec43bea309062706b97b);
+            
+        
+
+        circle_marker_95fb0e6e643f8158d5841e3a8d65b29f.bindPopup(popup_e3b5a4f38874b0d3945714be2fddf4bf)
+        ;
+
+        
+    
+    
+            circle_marker_95fb0e6e643f8158d5841e3a8d65b29f.bindTooltip(
+                `<div>
+                     #50 Acesso Radial Leste Centro
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_3d2f15570af8bbd52b0c669de8d66088 = L.circleMarker(
+                [-23.659985195625, -46.76752226687],
+                {"bubblingMouseEvents": true, "color": "#2e7ad5ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#2e7ad5ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.851727973000429, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_f2641d90afa0ee7ae8de685c6ffa8e4b = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_03223c410b1603e23707507ebb87b0be = $(`<div id="html_03223c410b1603e23707507ebb87b0be" style="width: 100.0%; height: 100.0%;"><b>Estrada De Itapecerica</b><br>rank urbano: #49 · rank geral: #65<br>vias: Estrada De Itapecerica | Avenida Ellis Maas | Avenida Carlos Caldeira Filho<br>fatais: 3 · não fatais: 37 · peso: 46<br>extensão: 553 m · índice: 12.01</div>`)[0];
+                popup_f2641d90afa0ee7ae8de685c6ffa8e4b.setContent(html_03223c410b1603e23707507ebb87b0be);
+            
+        
+
+        circle_marker_3d2f15570af8bbd52b0c669de8d66088.bindPopup(popup_f2641d90afa0ee7ae8de685c6ffa8e4b)
+        ;
+
+        
+    
+    
+            circle_marker_3d2f15570af8bbd52b0c669de8d66088.bindTooltip(
+                `<div>
+                     #49 Estrada De Itapecerica
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f7cbce4e4fe4102bc76605a24c5c4a7e = L.circleMarker(
+                [-23.538328402700003, -46.455706688822225],
+                {"bubblingMouseEvents": true, "color": "#317bd5ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#317bd5ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_d9acb76c3f88216394e04c27fed6dc2d = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8d3a254e684c82fbca55adceaa7f73ff = $(`<div id="html_8d3a254e684c82fbca55adceaa7f73ff" style="width: 100.0%; height: 100.0%;"><b>Avenida Itaquera</b><br>rank urbano: #48 · rank geral: #63<br>vias: Avenida Itaquera | Rua Gregorio Ramalho | Rua Flores Do Piaui<br>fatais: 1 · não fatais: 8 · peso: 11<br>extensão: 131 m · índice: 11.94</div>`)[0];
+                popup_d9acb76c3f88216394e04c27fed6dc2d.setContent(html_8d3a254e684c82fbca55adceaa7f73ff);
+            
+        
+
+        circle_marker_f7cbce4e4fe4102bc76605a24c5c4a7e.bindPopup(popup_d9acb76c3f88216394e04c27fed6dc2d)
+        ;
+
+        
+    
+    
+            circle_marker_f7cbce4e4fe4102bc76605a24c5c4a7e.bindTooltip(
+                `<div>
+                     #48 Avenida Itaquera
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7ac515f1a607cf38b5bc4077908a02be = L.circleMarker(
+                [-23.620295962259995, -46.50288922314],
+                {"bubblingMouseEvents": true, "color": "#327bd5ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#327bd5ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_e6c43d52c2f3ecb85c7c2211733f71b6 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ab611fd3fb3efaaba28717a1766bddb9 = $(`<div id="html_ab611fd3fb3efaaba28717a1766bddb9" style="width: 100.0%; height: 100.0%;"><b>Rua Antonio De Franca E Silva</b><br>rank urbano: #47 · rank geral: #62<br>vias: Rua Antonio De Franca E Silva | Rua Batista Fergusio<br>fatais: 2 · não fatais: 3 · peso: 9<br>extensão: 107 m · índice: 11.91</div>`)[0];
+                popup_e6c43d52c2f3ecb85c7c2211733f71b6.setContent(html_ab611fd3fb3efaaba28717a1766bddb9);
+            
+        
+
+        circle_marker_7ac515f1a607cf38b5bc4077908a02be.bindPopup(popup_e6c43d52c2f3ecb85c7c2211733f71b6)
+        ;
+
+        
+    
+    
+            circle_marker_7ac515f1a607cf38b5bc4077908a02be.bindTooltip(
+                `<div>
+                     #47 Rua Antonio De Franca E Silva
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b85ff8e55168fb001d3f9d98352ad725 = L.circleMarker(
+                [-23.632023456375, -46.771975183475],
+                {"bubblingMouseEvents": true, "color": "#347cd4ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#347cd4ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_9cb3b78d8222b8b237f1bf1deee78ae6 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_4921a5098b1aa4e06a5d4f098308fa8c = $(`<div id="html_4921a5098b1aa4e06a5d4f098308fa8c" style="width: 100.0%; height: 100.0%;"><b>Estrada Do Campo Limpo</b><br>rank urbano: #46 · rank geral: #61<br>vias: Estrada Do Campo Limpo | Es. Do Campo Limpo<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 95 m · índice: 11.84</div>`)[0];
+                popup_9cb3b78d8222b8b237f1bf1deee78ae6.setContent(html_4921a5098b1aa4e06a5d4f098308fa8c);
+            
+        
+
+        circle_marker_b85ff8e55168fb001d3f9d98352ad725.bindPopup(popup_9cb3b78d8222b8b237f1bf1deee78ae6)
+        ;
+
+        
+    
+    
+            circle_marker_b85ff8e55168fb001d3f9d98352ad725.bindTooltip(
+                `<div>
+                     #46 Estrada Do Campo Limpo
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7cb74d6258b71bc022f05ba1d9e51375 = L.circleMarker(
+                [-23.605510499287497, -46.5945474145],
+                {"bubblingMouseEvents": true, "color": "#357cd4ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#357cd4ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_257166ae138167865a30de732ca7fbf2 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_25cfe2d6816288c3d701c968d8cc6633 = $(`<div id="html_25cfe2d6816288c3d701c968d8cc6633" style="width: 100.0%; height: 100.0%;"><b>Avenida Almirante Delamare</b><br>rank urbano: #45 · rank geral: #60<br>vias: Avenida Almirante Delamare | Rua Comandante Taylor | Avenida Alm Delamare<br>fatais: 1 · não fatais: 7 · peso: 10<br>extensão: 118 m · índice: 11.81</div>`)[0];
+                popup_257166ae138167865a30de732ca7fbf2.setContent(html_25cfe2d6816288c3d701c968d8cc6633);
+            
+        
+
+        circle_marker_7cb74d6258b71bc022f05ba1d9e51375.bindPopup(popup_257166ae138167865a30de732ca7fbf2)
+        ;
+
+        
+    
+    
+            circle_marker_7cb74d6258b71bc022f05ba1d9e51375.bindTooltip(
+                `<div>
+                     #45 Avenida Almirante Delamare
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9a13e71d440e345468f7b97130a05be5 = L.circleMarker(
+                [-23.742380005799998, -46.66964773141667],
+                {"bubblingMouseEvents": true, "color": "#3a7ed3ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3a7ed3ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_7e7350f99846a12bec7bf9f38920c7ca = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_1b4bccc92ec4740130b05a8cec6fc3ad = $(`<div id="html_1b4bccc92ec4740130b05a8cec6fc3ad" style="width: 100.0%; height: 100.0%;"><b>Estrada Canal De Cocaia</b><br>rank urbano: #44 · rank geral: #59<br>vias: Estrada Canal De Cocaia | Travessa Arroio Irapuru | Acesso Canal De Cocaia<br>fatais: 2 · não fatais: 4 · peso: 10<br>extensão: 117 m · índice: 11.67</div>`)[0];
+                popup_7e7350f99846a12bec7bf9f38920c7ca.setContent(html_1b4bccc92ec4740130b05a8cec6fc3ad);
+            
+        
+
+        circle_marker_9a13e71d440e345468f7b97130a05be5.bindPopup(popup_7e7350f99846a12bec7bf9f38920c7ca)
+        ;
+
+        
+    
+    
+            circle_marker_9a13e71d440e345468f7b97130a05be5.bindTooltip(
+                `<div>
+                     #44 Estrada Canal De Cocaia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_77e76a320ea6472fa73770ef803e0aa7 = L.circleMarker(
+                [-23.504014544123812, -46.68837986482381],
+                {"bubblingMouseEvents": true, "color": "#3c7fd2ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#3c7fd2ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.0, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_23561d77545bc95ba0161dc35e68804a = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_14ab3f202e1f61a5b8fc08a690aad29c = $(`<div id="html_14ab3f202e1f61a5b8fc08a690aad29c" style="width: 100.0%; height: 100.0%;"><b>Avenida Inajar De Souza</b><br>rank urbano: #43 · rank geral: #58<br>vias: Avenida Inajar De Souza | Avenida Nossa Senhora Do O | Avenida Itaberaba<br>fatais: 2 · não fatais: 19 · peso: 25<br>extensão: 290 m · índice: 11.60</div>`)[0];
+                popup_23561d77545bc95ba0161dc35e68804a.setContent(html_14ab3f202e1f61a5b8fc08a690aad29c);
+            
+        
+
+        circle_marker_77e76a320ea6472fa73770ef803e0aa7.bindPopup(popup_23561d77545bc95ba0161dc35e68804a)
+        ;
+
+        
+    
+    
+            circle_marker_77e76a320ea6472fa73770ef803e0aa7.bindTooltip(
+                `<div>
+                     #43 Avenida Inajar De Souza
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7e20b7b947d1edf617002494853a2be6 = L.circleMarker(
+                [-23.518956007211113, -46.45601560467778],
+                {"bubblingMouseEvents": true, "color": "#4080d1ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4080d1ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_3d6186066fd8fce1334beca6a132b9db = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_37d4b9057f1826da033aa8ff03b91307 = $(`<div id="html_37d4b9057f1826da033aa8ff03b91307" style="width: 100.0%; height: 100.0%;"><b>Avenida Jacupessego</b><br>rank urbano: #42 · rank geral: #57<br>vias: Avenida Jacupessego | Avenida Jacu Pessego | Rua Barao De Cacela<br>fatais: 1 · não fatais: 8 · peso: 11<br>extensão: 126 m · índice: 11.48</div>`)[0];
+                popup_3d6186066fd8fce1334beca6a132b9db.setContent(html_37d4b9057f1826da033aa8ff03b91307);
+            
+        
+
+        circle_marker_7e20b7b947d1edf617002494853a2be6.bindPopup(popup_3d6186066fd8fce1334beca6a132b9db)
+        ;
+
+        
+    
+    
+            circle_marker_7e20b7b947d1edf617002494853a2be6.bindTooltip(
+                `<div>
+                     #42 Avenida Jacupessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9592329929192646054793c97138eb06 = L.circleMarker(
+                [-23.542023725179998, -46.63526765880499],
+                {"bubblingMouseEvents": true, "color": "#4482d0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4482d0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.46640419540669, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_57d3096ca3ba85213de1dbed7a393ad6 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_45cb0c8089a139d77c996f04b102c3d9 = $(`<div id="html_45cb0c8089a139d77c996f04b102c3d9" style="width: 100.0%; height: 100.0%;"><b>Avenida Prestes Maia</b><br>rank urbano: #41 · rank geral: #56<br>vias: Avenida Prestes Maia | Rua Brigadeiro Tobias | Praca Pedro Lessa<br>fatais: 4 · não fatais: 16 · peso: 28<br>extensão: 318 m · índice: 11.36</div>`)[0];
+                popup_57d3096ca3ba85213de1dbed7a393ad6.setContent(html_45cb0c8089a139d77c996f04b102c3d9);
+            
+        
+
+        circle_marker_9592329929192646054793c97138eb06.bindPopup(popup_57d3096ca3ba85213de1dbed7a393ad6)
+        ;
+
+        
+    
+    
+            circle_marker_9592329929192646054793c97138eb06.bindTooltip(
+                `<div>
+                     #41 Avenida Prestes Maia
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_27dd4760b763d4c06709022695faaffd = L.circleMarker(
+                [-23.550536822571434, -46.60702615418571],
+                {"bubblingMouseEvents": true, "color": "#4582d0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4582d0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_901e92cdc8c25e7c7fc16d5ae555212c = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d881deb8d7805d5248fe5fbc82884e04 = $(`<div id="html_d881deb8d7805d5248fe5fbc82884e04" style="width: 100.0%; height: 100.0%;"><b>Avenida Alcantara Machado</b><br>rank urbano: #40 · rank geral: #55<br>vias: Avenida Alcantara Machado | Rua Almirante Brasil | Avenida Radial Leste<br>fatais: 1 · não fatais: 6 · peso: 9<br>extensão: 102 m · índice: 11.32</div>`)[0];
+                popup_901e92cdc8c25e7c7fc16d5ae555212c.setContent(html_d881deb8d7805d5248fe5fbc82884e04);
+            
+        
+
+        circle_marker_27dd4760b763d4c06709022695faaffd.bindPopup(popup_901e92cdc8c25e7c7fc16d5ae555212c)
+        ;
+
+        
+    
+    
+            circle_marker_27dd4760b763d4c06709022695faaffd.bindTooltip(
+                `<div>
+                     #40 Avenida Alcantara Machado
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_4f3f30743c3b3d90074f704378924916 = L.circleMarker(
+                [-23.551214844111538, -46.63550247481539],
+                {"bubblingMouseEvents": true, "color": "#4683d0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4683d0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.05096679918781, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_3b5249c1c364b3e0132b9a4a4ba0409e = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_aea48b852bdb1fa4f0ac60415e2fda54 = $(`<div id="html_aea48b852bdb1fa4f0ac60415e2fda54" style="width: 100.0%; height: 100.0%;"><b>Praca Doutor Joao Mendes</b><br>rank urbano: #39 · rank geral: #54<br>vias: Praca Doutor Joao Mendes | Rua Senador Feijo | Viaduto Dona Paulina<br>fatais: 3 · não fatais: 23 · peso: 32<br>extensão: 362 m · índice: 11.30</div>`)[0];
+                popup_3b5249c1c364b3e0132b9a4a4ba0409e.setContent(html_aea48b852bdb1fa4f0ac60415e2fda54);
+            
+        
+
+        circle_marker_4f3f30743c3b3d90074f704378924916.bindPopup(popup_3b5249c1c364b3e0132b9a4a4ba0409e)
+        ;
+
+        
+    
+    
+            circle_marker_4f3f30743c3b3d90074f704378924916.bindTooltip(
+                `<div>
+                     #39 Praca Doutor Joao Mendes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_0027ad9d1324d9d9d0f29f0673c5b626 = L.circleMarker(
+                [-23.522612647500004, -46.740667838542855],
+                {"bubblingMouseEvents": true, "color": "#4783d0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4783d0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_89d311299fc21c985683d5b07665ff74 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_bf56785b93da85e0dad97a9a89ccd679 = $(`<div id="html_bf56785b93da85e0dad97a9a89ccd679" style="width: 100.0%; height: 100.0%;"><b>Avenida Doutor Gastao Vidigal</b><br>rank urbano: #38 · rank geral: #53<br>vias: Avenida Doutor Gastao Vidigal | Rua Major Paladino<br>fatais: 1 · não fatais: 6 · peso: 9<br>extensão: 101 m · índice: 11.26</div>`)[0];
+                popup_89d311299fc21c985683d5b07665ff74.setContent(html_bf56785b93da85e0dad97a9a89ccd679);
+            
+        
+
+        circle_marker_0027ad9d1324d9d9d0f29f0673c5b626.bindPopup(popup_89d311299fc21c985683d5b07665ff74)
+        ;
+
+        
+    
+    
+            circle_marker_0027ad9d1324d9d9d0f29f0673c5b626.bindTooltip(
+                `<div>
+                     #38 Avenida Doutor Gastao Vidigal
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bf0899efb902c62df9b394c7be845582 = L.circleMarker(
+                [-23.537739836334424, -46.63389496875575],
+                {"bubblingMouseEvents": true, "color": "#4883cfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4883cfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.89961239727768, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_c9b4a5df2a7b3556ea70d26559219f91 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_faba4e59e039023794c64f28fc9db9dd = $(`<div id="html_faba4e59e039023794c64f28fc9db9dd" style="width: 100.0%; height: 100.0%;"><b>Avenida Senador Queiros</b><br>rank urbano: #37 · rank geral: #52<br>vias: Avenida Senador Queiros | Avenida Tiradentes | Avenida Prestes Maia<br>fatais: 2 · não fatais: 59 · peso: 65<br>extensão: 730 m · índice: 11.23</div>`)[0];
+                popup_c9b4a5df2a7b3556ea70d26559219f91.setContent(html_faba4e59e039023794c64f28fc9db9dd);
+            
+        
+
+        circle_marker_bf0899efb902c62df9b394c7be845582.bindPopup(popup_c9b4a5df2a7b3556ea70d26559219f91)
+        ;
+
+        
+    
+    
+            circle_marker_bf0899efb902c62df9b394c7be845582.bindTooltip(
+                `<div>
+                     #37 Avenida Senador Queiros
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_86dc4d4f021bf739ddbc3f4d2dae21a0 = L.circleMarker(
+                [-23.55169124625, -46.4362462725],
+                {"bubblingMouseEvents": true, "color": "#4984cfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#4984cfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_1f7e646b946823508974747b19bb939b = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_da51a6a2c6006fd17b773c5c1acff408 = $(`<div id="html_da51a6a2c6006fd17b773c5c1acff408" style="width: 100.0%; height: 100.0%;"><b>Avenida Professor Joao Batista Conti</b><br>rank urbano: #36 · rank geral: #51<br>vias: Avenida Professor Joao Batista Conti | Avenida Nagib Farah Maluf | Avenida Prof Joao Batista Conti<br>fatais: 0 · não fatais: 8 · peso: 8<br>extensão: 90 m · índice: 11.22</div>`)[0];
+                popup_1f7e646b946823508974747b19bb939b.setContent(html_da51a6a2c6006fd17b773c5c1acff408);
+            
+        
+
+        circle_marker_86dc4d4f021bf739ddbc3f4d2dae21a0.bindPopup(popup_1f7e646b946823508974747b19bb939b)
+        ;
+
+        
+    
+    
+            circle_marker_86dc4d4f021bf739ddbc3f4d2dae21a0.bindTooltip(
+                `<div>
+                     #36 Avenida Professor Joao Batista Conti
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_284210da961f11fc20ed67e44c94ab12 = L.circleMarker(
+                [-23.57575951777778, -46.57152951555556],
+                {"bubblingMouseEvents": true, "color": "#5287cdff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5287cdff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_b6909a4ac7d70392b4ecb9743392c968 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8b09b1e80b2fabae86e69d98ae775451 = $(`<div id="html_8b09b1e80b2fabae86e69d98ae775451" style="width: 100.0%; height: 100.0%;"><b>Avenida Salim Farah Maluf</b><br>rank urbano: #35 · rank geral: #50<br>vias: Avenida Salim Farah Maluf | Rua Do Orfanato<br>fatais: 0 · não fatais: 9 · peso: 9<br>extensão: 98 m · índice: 10.93</div>`)[0];
+                popup_b6909a4ac7d70392b4ecb9743392c968.setContent(html_8b09b1e80b2fabae86e69d98ae775451);
+            
+        
+
+        circle_marker_284210da961f11fc20ed67e44c94ab12.bindPopup(popup_b6909a4ac7d70392b4ecb9743392c968)
+        ;
+
+        
+    
+    
+            circle_marker_284210da961f11fc20ed67e44c94ab12.bindTooltip(
+                `<div>
+                     #35 Avenida Salim Farah Maluf
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_5b1da6bbf56989c0ee8e33fb4cf9c912 = L.circleMarker(
+                [-23.673302134742862, -46.643432024457134],
+                {"bubblingMouseEvents": true, "color": "#5588ccff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5588ccff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_d77a43f62c1c59222a364baed19de8f3 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ecc7e49967ad7d7e6f8322398b3fd23f = $(`<div id="html_ecc7e49967ad7d7e6f8322398b3fd23f" style="width: 100.0%; height: 100.0%;"><b>Rua Alvares Fagundes</b><br>rank urbano: #34 · rank geral: #49<br>vias: Rua Alvares Fagundes | Avenida Cupece<br>fatais: 3 · não fatais: 4 · peso: 13<br>extensão: 141 m · índice: 10.83</div>`)[0];
+                popup_d77a43f62c1c59222a364baed19de8f3.setContent(html_ecc7e49967ad7d7e6f8322398b3fd23f);
+            
+        
+
+        circle_marker_5b1da6bbf56989c0ee8e33fb4cf9c912.bindPopup(popup_d77a43f62c1c59222a364baed19de8f3)
+        ;
+
+        
+    
+    
+            circle_marker_5b1da6bbf56989c0ee8e33fb4cf9c912.bindTooltip(
+                `<div>
+                     #34 Rua Alvares Fagundes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_03bd8e02a4efc3287e9d29fb54d70c26 = L.circleMarker(
+                [-23.675725827933334, -46.7892022288],
+                {"bubblingMouseEvents": true, "color": "#5689ccff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5689ccff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_c3bc524bcc224cee106253ddbfa5498f = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_0cf48f209380630b130d4bc9fddf8ca9 = $(`<div id="html_0cf48f209380630b130d4bc9fddf8ca9" style="width: 100.0%; height: 100.0%;"><b>Estrada De Itapecerica</b><br>rank urbano: #33 · rank geral: #48<br>vias: Estrada De Itapecerica | Rua Masatake Matsumoto<br>fatais: 3 · não fatais: 0 · peso: 9<br>extensão: 97 m · índice: 10.80</div>`)[0];
+                popup_c3bc524bcc224cee106253ddbfa5498f.setContent(html_0cf48f209380630b130d4bc9fddf8ca9);
+            
+        
+
+        circle_marker_03bd8e02a4efc3287e9d29fb54d70c26.bindPopup(popup_c3bc524bcc224cee106253ddbfa5498f)
+        ;
+
+        
+    
+    
+            circle_marker_03bd8e02a4efc3287e9d29fb54d70c26.bindTooltip(
+                `<div>
+                     #33 Estrada De Itapecerica
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_07f7918cbc9fcba629d6677af499ab96 = L.circleMarker(
+                [-23.543525438142858, -46.629357202128574],
+                {"bubblingMouseEvents": true, "color": "#598acbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#598acbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_661cf8460e621069c6fbb825f74e2e91 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_85d91d7fd9002dc50eeb6dfc70045801 = $(`<div id="html_85d91d7fd9002dc50eeb6dfc70045801" style="width: 100.0%; height: 100.0%;"><b>Viaduto Diario Popular</b><br>rank urbano: #32 · rank geral: #47<br>vias: Viaduto Diario Popular | Parque Dom Pedro Ii | Avenida Do Estado<br>fatais: 2 · não fatais: 5 · peso: 11<br>extensão: 118 m · índice: 10.71</div>`)[0];
+                popup_661cf8460e621069c6fbb825f74e2e91.setContent(html_85d91d7fd9002dc50eeb6dfc70045801);
+            
+        
+
+        circle_marker_07f7918cbc9fcba629d6677af499ab96.bindPopup(popup_661cf8460e621069c6fbb825f74e2e91)
+        ;
+
+        
+    
+    
+            circle_marker_07f7918cbc9fcba629d6677af499ab96.bindTooltip(
+                `<div>
+                     #32 Viaduto Diario Popular
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_10a280726acd30f88f30927145e600d7 = L.circleMarker(
+                [-23.64914710738125, -46.66137460615],
+                {"bubblingMouseEvents": true, "color": "#5b8bcbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5b8bcbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.504665215717488, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_80555a5c253b2a620c50903f487c239d = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_f717a5f7eed8b8e3dbb3d35d67e551f7 = $(`<div id="html_f717a5f7eed8b8e3dbb3d35d67e551f7" style="width: 100.0%; height: 100.0%;"><b>Avenida Santa Catarina</b><br>rank urbano: #31 · rank geral: #46<br>vias: Avenida Santa Catarina | Rua Alba | Rua Doutor Djalma Pinheiro Franco<br>fatais: 3 · não fatais: 13 · peso: 22<br>extensão: 234 m · índice: 10.65</div>`)[0];
+                popup_80555a5c253b2a620c50903f487c239d.setContent(html_f717a5f7eed8b8e3dbb3d35d67e551f7);
+            
+        
+
+        circle_marker_10a280726acd30f88f30927145e600d7.bindPopup(popup_80555a5c253b2a620c50903f487c239d)
+        ;
+
+        
+    
+    
+            circle_marker_10a280726acd30f88f30927145e600d7.bindTooltip(
+                `<div>
+                     #31 Avenida Santa Catarina
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ee1dcf6dd5a2caee84c02d567db11d96 = L.circleMarker(
+                [-23.530584825, -46.44392079800001],
+                {"bubblingMouseEvents": true, "color": "#618dcaff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#618dcaff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_c2bad085a2fe8437e0af2b1a18211113 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fcde9e6982eac80ada1c9c675248334f = $(`<div id="html_fcde9e6982eac80ada1c9c675248334f" style="width: 100.0%; height: 100.0%;"><b>Estrada Itaquera Guaianazes</b><br>rank urbano: #30 · rank geral: #45<br>vias: Estrada Itaquera Guaianazes | Rua Augusto Carlos Bauman<br>fatais: 0 · não fatais: 10 · peso: 10<br>extensão: 105 m · índice: 10.49</div>`)[0];
+                popup_c2bad085a2fe8437e0af2b1a18211113.setContent(html_fcde9e6982eac80ada1c9c675248334f);
+            
+        
+
+        circle_marker_ee1dcf6dd5a2caee84c02d567db11d96.bindPopup(popup_c2bad085a2fe8437e0af2b1a18211113)
+        ;
+
+        
+    
+    
+            circle_marker_ee1dcf6dd5a2caee84c02d567db11d96.bindTooltip(
+                `<div>
+                     #30 Estrada Itaquera Guaianazes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_aa919ca7f32b96fa69049a9edd8dfe9c = L.circleMarker(
+                [-23.520393865895652, -46.702359188313046],
+                {"bubblingMouseEvents": true, "color": "#628dc9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#628dc9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.191300234460845, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_18d3eee8f13bd25899f95a697ed234ac = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_754e02719d92d8b358ceb0ac747dbeb4 = $(`<div id="html_754e02719d92d8b358ceb0ac747dbeb4" style="width: 100.0%; height: 100.0%;"><b>Rua Nossa Senhora Da Lapa</b><br>rank urbano: #29 · rank geral: #44<br>vias: Rua Nossa Senhora Da Lapa | Rua Doutor Cincinato Pomponet | Rua Trajano<br>fatais: 5 · não fatais: 18 · peso: 33<br>extensão: 345 m · índice: 10.45</div>`)[0];
+                popup_18d3eee8f13bd25899f95a697ed234ac.setContent(html_754e02719d92d8b358ceb0ac747dbeb4);
+            
+        
+
+        circle_marker_aa919ca7f32b96fa69049a9edd8dfe9c.bindPopup(popup_18d3eee8f13bd25899f95a697ed234ac)
+        ;
+
+        
+    
+    
+            circle_marker_aa919ca7f32b96fa69049a9edd8dfe9c.bindTooltip(
+                `<div>
+                     #29 Rua Nossa Senhora Da Lapa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6ffb9271a3c7a3b1608fab2d8ced6f07 = L.circleMarker(
+                [-23.644882103983335, -46.64135282668334],
+                {"bubblingMouseEvents": true, "color": "#638dc9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#638dc9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_e182d9b042632ccb1eeaddd1386c3919 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_295e442d493e44d7ad102d33bcc0b514 = $(`<div id="html_295e442d493e44d7ad102d33bcc0b514" style="width: 100.0%; height: 100.0%;"><b>Avenida Engenheiro Armando De Arruda Pereira</b><br>rank urbano: #28 · rank geral: #43<br>vias: Avenida Engenheiro Armando De Arruda Pereira | Rua Das Perobas | Avenida Eng Armando De Arruda Pereira<br>fatais: 2 · não fatais: 4 · peso: 10<br>extensão: 104 m · índice: 10.42</div>`)[0];
+                popup_e182d9b042632ccb1eeaddd1386c3919.setContent(html_295e442d493e44d7ad102d33bcc0b514);
+            
+        
+
+        circle_marker_6ffb9271a3c7a3b1608fab2d8ced6f07.bindPopup(popup_e182d9b042632ccb1eeaddd1386c3919)
+        ;
+
+        
+    
+    
+            circle_marker_6ffb9271a3c7a3b1608fab2d8ced6f07.bindTooltip(
+                `<div>
+                     #28 Avenida Engenheiro Armando De Arruda Pereira
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9123a97c5a3a914f9bf6e2feabb34b34 = L.circleMarker(
+                [-23.62428317395, -46.677073845749995],
+                {"bubblingMouseEvents": true, "color": "#658ec9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#658ec9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_0732c50468b60c1047107717ed0a1932 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_e25db44e98367a87c60a79314ea008c3 = $(`<div id="html_e25db44e98367a87c60a79314ea008c3" style="width: 100.0%; height: 100.0%;"><b>Rua Antonio De Macedo Soares</b><br>rank urbano: #27 · rank geral: #42<br>vias: Rua Antonio De Macedo Soares | Avenida Jornalista Roberto Marinho<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 83 m · índice: 10.37</div>`)[0];
+                popup_0732c50468b60c1047107717ed0a1932.setContent(html_e25db44e98367a87c60a79314ea008c3);
+            
+        
+
+        circle_marker_9123a97c5a3a914f9bf6e2feabb34b34.bindPopup(popup_0732c50468b60c1047107717ed0a1932)
+        ;
+
+        
+    
+    
+            circle_marker_9123a97c5a3a914f9bf6e2feabb34b34.bindTooltip(
+                `<div>
+                     #27 Rua Antonio De Macedo Soares
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bc469b6613974438ea1647b2944f9404 = L.circleMarker(
+                [-23.54182786173207, -46.61613336799811],
+                {"bubblingMouseEvents": true, "color": "#658ec9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#658ec9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.0797350964332, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_d5da245b9b89d830410263c4edc22998 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_6eb4fa220d870f46cd8e04bc6a70c693 = $(`<div id="html_6eb4fa220d870f46cd8e04bc6a70c693" style="width: 100.0%; height: 100.0%;"><b>Avenida Rangel Pestana</b><br>rank urbano: #26 · rank geral: #41<br>vias: Avenida Rangel Pestana | Largo Da Concordia | Rua Barao De Ladario<br>fatais: 2 · não fatais: 51 · peso: 57<br>extensão: 591 m · índice: 10.37</div>`)[0];
+                popup_d5da245b9b89d830410263c4edc22998.setContent(html_6eb4fa220d870f46cd8e04bc6a70c693);
+            
+        
+
+        circle_marker_bc469b6613974438ea1647b2944f9404.bindPopup(popup_d5da245b9b89d830410263c4edc22998)
+        ;
+
+        
+    
+    
+            circle_marker_bc469b6613974438ea1647b2944f9404.bindTooltip(
+                `<div>
+                     #26 Avenida Rangel Pestana
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_e88ba2f15310babd336d5129e6c14523 = L.circleMarker(
+                [-23.549163036281577, -46.63868836132895],
+                {"bubblingMouseEvents": true, "color": "#7092c6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7092c6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.119288512538816, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_89a1c792c16b916cd77bb4952894141d = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_02e5a910eb72859bc1beedc884b49e6e = $(`<div id="html_02e5a910eb72859bc1beedc884b49e6e" style="width: 100.0%; height: 100.0%;"><b>Avenida 23 De Maio</b><br>rank urbano: #25 · rank geral: #40<br>vias: Avenida 23 De Maio | Avenida Nove De Julho | Rua Riachuelo<br>fatais: 1 · não fatais: 37 · peso: 40<br>extensão: 401 m · índice: 10.02</div>`)[0];
+                popup_89a1c792c16b916cd77bb4952894141d.setContent(html_02e5a910eb72859bc1beedc884b49e6e);
+            
+        
+
+        circle_marker_e88ba2f15310babd336d5129e6c14523.bindPopup(popup_89a1c792c16b916cd77bb4952894141d)
+        ;
+
+        
+    
+    
+            circle_marker_e88ba2f15310babd336d5129e6c14523.bindTooltip(
+                `<div>
+                     #25 Avenida 23 De Maio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_dac5b2b3ca7a6c3b700399d69268c091 = L.circleMarker(
+                [-23.48242333907143, -46.58930439174286],
+                {"bubblingMouseEvents": true, "color": "#7a96c4ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7a96c4ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_490e855beeb6d2e35bd999be49ae1ea0 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d8be8b17e67fcb3d444c7c6958a7c2a2 = $(`<div id="html_d8be8b17e67fcb3d444c7c6958a7c2a2" style="width: 100.0%; height: 100.0%;"><b>Avenida Julio Buono</b><br>rank urbano: #24 · rank geral: #38<br>vias: Avenida Julio Buono | Avenida Gustavo Adolfo<br>fatais: 1 · não fatais: 6 · peso: 9<br>extensão: 88 m · índice: 9.72</div>`)[0];
+                popup_490e855beeb6d2e35bd999be49ae1ea0.setContent(html_d8be8b17e67fcb3d444c7c6958a7c2a2);
+            
+        
+
+        circle_marker_dac5b2b3ca7a6c3b700399d69268c091.bindPopup(popup_490e855beeb6d2e35bd999be49ae1ea0)
+        ;
+
+        
+    
+    
+            circle_marker_dac5b2b3ca7a6c3b700399d69268c091.bindTooltip(
+                `<div>
+                     #24 Avenida Julio Buono
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ccda622c625f53098d6c13cc359593fe = L.circleMarker(
+                [-23.5916864982, -46.44404983188889],
+                {"bubblingMouseEvents": true, "color": "#8299c2ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8299c2ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.67333043730035, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_ded0b75a183af4d5a088904f2f5b78ef = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_bbdb9ce91cf93f4522d510db75a1eee2 = $(`<div id="html_bbdb9ce91cf93f4522d510db75a1eee2" style="width: 100.0%; height: 100.0%;"><b>Estrada Do Pessego</b><br>rank urbano: #23 · rank geral: #37<br>vias: Estrada Do Pessego | Avenida Jacu Pessego | Avenida Jacu Pessego Nova Trabalhadores<br>fatais: 7 · não fatais: 2 · peso: 23<br>extensão: 218 m · índice: 9.47</div>`)[0];
+                popup_ded0b75a183af4d5a088904f2f5b78ef.setContent(html_bbdb9ce91cf93f4522d510db75a1eee2);
+            
+        
+
+        circle_marker_ccda622c625f53098d6c13cc359593fe.bindPopup(popup_ded0b75a183af4d5a088904f2f5b78ef)
+        ;
+
+        
+    
+    
+            circle_marker_ccda622c625f53098d6c13cc359593fe.bindTooltip(
+                `<div>
+                     #23 Estrada Do Pessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7bfc00ddde03ad53fe110ecf50ccb068 = L.circleMarker(
+                [-23.53217168480455, -46.63234180764545],
+                {"bubblingMouseEvents": true, "color": "#859ac1ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#859ac1ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.46640419540669, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_f37f7d1e12c19d6e356c7d441faa5878 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_6bc867555c320064079fd1fbc5546c87 = $(`<div id="html_6bc867555c320064079fd1fbc5546c87" style="width: 100.0%; height: 100.0%;"><b>Avenida Tiradentes</b><br>rank urbano: #22 · rank geral: #36<br>vias: Avenida Tiradentes | Rua Joao Teodoro | Rua Ribeiro De Lima<br>fatais: 3 · não fatais: 19 · peso: 28<br>extensão: 263 m · índice: 9.38</div>`)[0];
+                popup_f37f7d1e12c19d6e356c7d441faa5878.setContent(html_6bc867555c320064079fd1fbc5546c87);
+            
+        
+
+        circle_marker_7bfc00ddde03ad53fe110ecf50ccb068.bindPopup(popup_f37f7d1e12c19d6e356c7d441faa5878)
+        ;
+
+        
+    
+    
+            circle_marker_7bfc00ddde03ad53fe110ecf50ccb068.bindTooltip(
+                `<div>
+                     #22 Avenida Tiradentes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_c4357bca1fbc7fb53b6e532b25b01e51 = L.circleMarker(
+                [-23.542954791739998, -46.63793257565333],
+                {"bubblingMouseEvents": true, "color": "#8d9dc0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8d9dc0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.332121111929343, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_0f1c264a41a8c13480869520d65db3b0 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d2b4bd057f9fa032f3c9aae7c2980483 = $(`<div id="html_d2b4bd057f9fa032f3c9aae7c2980483" style="width: 100.0%; height: 100.0%;"><b>Avenida Rio Branco</b><br>rank urbano: #21 · rank geral: #35<br>vias: Avenida Rio Branco | Largo Do Paissandu | Rua Capitao Salomao<br>fatais: 3 · não fatais: 12 · peso: 21<br>extensão: 192 m · índice: 9.16</div>`)[0];
+                popup_0f1c264a41a8c13480869520d65db3b0.setContent(html_d2b4bd057f9fa032f3c9aae7c2980483);
+            
+        
+
+        circle_marker_c4357bca1fbc7fb53b6e532b25b01e51.bindPopup(popup_0f1c264a41a8c13480869520d65db3b0)
+        ;
+
+        
+    
+    
+            circle_marker_c4357bca1fbc7fb53b6e532b25b01e51.bindTooltip(
+                `<div>
+                     #21 Avenida Rio Branco
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6c208998f352164aff4190a0be604b42 = L.circleMarker(
+                [-23.56918318668889, -46.64078416346667],
+                {"bubblingMouseEvents": true, "color": "#8f9ebfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8f9ebfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_cf00dd817a9fb67b5c574a14333e4c30 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_aa33ac50b32f7555b4560d3bbaaaf427 = $(`<div id="html_aa33ac50b32f7555b4560d3bbaaaf427" style="width: 100.0%; height: 100.0%;"><b>Avenida 23 De Maio</b><br>rank urbano: #20 · rank geral: #34<br>vias: Avenida 23 De Maio | Rua Doutor Bettencourt Rodrigues<br>fatais: 1 · não fatais: 8 · peso: 11<br>extensão: 100 m · índice: 9.10</div>`)[0];
+                popup_cf00dd817a9fb67b5c574a14333e4c30.setContent(html_aa33ac50b32f7555b4560d3bbaaaf427);
+            
+        
+
+        circle_marker_6c208998f352164aff4190a0be604b42.bindPopup(popup_cf00dd817a9fb67b5c574a14333e4c30)
+        ;
+
+        
+    
+    
+            circle_marker_6c208998f352164aff4190a0be604b42.bindTooltip(
+                `<div>
+                     #20 Avenida 23 De Maio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6a267ea7361e4400039f24402051afa0 = L.circleMarker(
+                [-23.6084143217625, -46.67670665055],
+                {"bubblingMouseEvents": true, "color": "#909ebfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#909ebfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.542562584220407, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_f8eae9fd18266c1a5f4c5a6ff7c49134 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_0238d64f699cb0acb13beec4ca44d5eb = $(`<div id="html_0238d64f699cb0acb13beec4ca44d5eb" style="width: 100.0%; height: 100.0%;"><b>Avenida Dos Bandeirantes</b><br>rank urbano: #19 · rank geral: #33<br>vias: Avenida Dos Bandeirantes | Avenida Santo Amaro<br>fatais: 2 · não fatais: 6 · peso: 12<br>extensão: 109 m · índice: 9.06</div>`)[0];
+                popup_f8eae9fd18266c1a5f4c5a6ff7c49134.setContent(html_0238d64f699cb0acb13beec4ca44d5eb);
+            
+        
+
+        circle_marker_6a267ea7361e4400039f24402051afa0.bindPopup(popup_f8eae9fd18266c1a5f4c5a6ff7c49134)
+        ;
+
+        
+    
+    
+            circle_marker_6a267ea7361e4400039f24402051afa0.bindTooltip(
+                `<div>
+                     #19 Avenida Dos Bandeirantes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_03355f6c0128a41a8d8a3babb5cc7cbe = L.circleMarker(
+                [-23.665890975830003, -46.71357637767001],
+                {"bubblingMouseEvents": true, "color": "#9ba3bcff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#9ba3bcff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.986651818838308, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_c190e76fe463182750d9d026bd21c352 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_2ef64b7e75df0f3bfa475a933b9136c2 = $(`<div id="html_2ef64b7e75df0f3bfa475a933b9136c2" style="width: 100.0%; height: 100.0%;"><b>Avenida Guarapiranga</b><br>rank urbano: #18 · rank geral: #32<br>vias: Avenida Guarapiranga | Rua Augusto Ferreira De Morais<br>fatais: 2 · não fatais: 8 · peso: 14<br>extensão: 122 m · índice: 8.72</div>`)[0];
+                popup_c190e76fe463182750d9d026bd21c352.setContent(html_2ef64b7e75df0f3bfa475a933b9136c2);
+            
+        
+
+        circle_marker_03355f6c0128a41a8d8a3babb5cc7cbe.bindPopup(popup_c190e76fe463182750d9d026bd21c352)
+        ;
+
+        
+    
+    
+            circle_marker_03355f6c0128a41a8d8a3babb5cc7cbe.bindTooltip(
+                `<div>
+                     #18 Avenida Guarapiranga
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_c25228ab3f0ccf7a27c34ec7908643aa = L.circleMarker(
+                [-23.5315422945, -46.520670007],
+                {"bubblingMouseEvents": true, "color": "#a1a5bbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a1a5bbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.155417527999328, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_3cfaca17e76201cccaa97cb61bd3edc1 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_073080cb341da03b961a7ee270eed4bf = $(`<div id="html_073080cb341da03b961a7ee270eed4bf" style="width: 100.0%; height: 100.0%;"><b>Avenida Radial Leste</b><br>rank urbano: #17 · rank geral: #30<br>vias: Avenida Radial Leste | Avenida Antonio Estevao De Carvalho | Avenida Conde De Frontin<br>fatais: 0 · não fatais: 20 · peso: 20<br>extensão: 171 m · índice: 8.56</div>`)[0];
+                popup_3cfaca17e76201cccaa97cb61bd3edc1.setContent(html_073080cb341da03b961a7ee270eed4bf);
+            
+        
+
+        circle_marker_c25228ab3f0ccf7a27c34ec7908643aa.bindPopup(popup_3cfaca17e76201cccaa97cb61bd3edc1)
+        ;
+
+        
+    
+    
+            circle_marker_c25228ab3f0ccf7a27c34ec7908643aa.bindTooltip(
+                `<div>
+                     #17 Avenida Radial Leste
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_0e4b4f16fad784f4f5112fb3ed83cb4a = L.circleMarker(
+                [-23.502929210173527, -46.625017053520594],
+                {"bubblingMouseEvents": true, "color": "#a5a6baff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a5a6baff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 15.085125168440815, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_14a5dfb9f2d39eca7b43928982532589 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_29bbfb18a1991b62f2563c660ad6bc40 = $(`<div id="html_29bbfb18a1991b62f2563c660ad6bc40" style="width: 100.0%; height: 100.0%;"><b>Rua Leite De Morais</b><br>rank urbano: #16 · rank geral: #29<br>vias: Rua Leite De Morais | Rua Voluntarios Da Patria | Rua Ezequiel Freire<br>fatais: 7 · não fatais: 27 · peso: 48<br>extensão: 404 m · índice: 8.41</div>`)[0];
+                popup_14a5dfb9f2d39eca7b43928982532589.setContent(html_29bbfb18a1991b62f2563c660ad6bc40);
+            
+        
+
+        circle_marker_0e4b4f16fad784f4f5112fb3ed83cb4a.bindPopup(popup_14a5dfb9f2d39eca7b43928982532589)
+        ;
+
+        
+    
+    
+            circle_marker_0e4b4f16fad784f4f5112fb3ed83cb4a.bindTooltip(
+                `<div>
+                     #16 Rua Leite De Morais
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_47921ca5d63406c1055c37f80e9b7e2e = L.circleMarker(
+                [-23.62977248902222, -46.6467541682],
+                {"bubblingMouseEvents": true, "color": "#a7a7b9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a7a7b9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_43dce60fad8c9f0fd436878b044c02ad = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_41f8325ec6911fcaec0c02f2b546f602 = $(`<div id="html_41f8325ec6911fcaec0c02f2b546f602" style="width: 100.0%; height: 100.0%;"><b>Avenida Dos Bandeirantes</b><br>rank urbano: #15 · rank geral: #28<br>vias: Avenida Dos Bandeirantes | Avenida Affonso D Escragnolle Taunay | Avenida Jabaquara<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 109 m · índice: 8.36</div>`)[0];
+                popup_43dce60fad8c9f0fd436878b044c02ad.setContent(html_41f8325ec6911fcaec0c02f2b546f602);
+            
+        
+
+        circle_marker_47921ca5d63406c1055c37f80e9b7e2e.bindPopup(popup_43dce60fad8c9f0fd436878b044c02ad)
+        ;
+
+        
+    
+    
+            circle_marker_47921ca5d63406c1055c37f80e9b7e2e.bindTooltip(
+                `<div>
+                     #15 Avenida Dos Bandeirantes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_024733d660a8d27112e014f68f4d398e = L.circleMarker(
+                [-23.54870764696111, -46.631437419370826],
+                {"bubblingMouseEvents": true, "color": "#afaab8ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#afaab8ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 18.83778959279313, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_297dc4d1d239fbd6cfc10efa829ced96 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d8d88404dfdd0f2c35bec827bdf0b44f = $(`<div id="html_d8d88404dfdd0f2c35bec827bdf0b44f" style="width: 100.0%; height: 100.0%;"><b>Parque Dom Pedro Ii</b><br>rank urbano: #14 · rank geral: #27<br>vias: Parque Dom Pedro Ii | Praca Da Se | Avenida Rangel Pestana<br>fatais: 7 · não fatais: 65 · peso: 86<br>extensão: 699 m · índice: 8.13</div>`)[0];
+                popup_297dc4d1d239fbd6cfc10efa829ced96.setContent(html_d8d88404dfdd0f2c35bec827bdf0b44f);
+            
+        
+
+        circle_marker_024733d660a8d27112e014f68f4d398e.bindPopup(popup_297dc4d1d239fbd6cfc10efa829ced96)
+        ;
+
+        
+    
+    
+            circle_marker_024733d660a8d27112e014f68f4d398e.bindTooltip(
+                `<div>
+                     #14 Parque Dom Pedro Ii
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_32b9f31ca6b3ca33da9eaf3cb429b2c5 = L.circleMarker(
+                [-23.67819529422222, -46.64074646733334],
+                {"bubblingMouseEvents": true, "color": "#b3abb7ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#b3abb7ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_fa557f728b40dc787b21790ca75d492f = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_e79d2617cad4a8858da98d748c7b388c = $(`<div id="html_e79d2617cad4a8858da98d748c7b388c" style="width: 100.0%; height: 100.0%;"><b>Avenida Cupece</b><br>rank urbano: #13 · rank geral: #26<br>vias: Avenida Cupece | Rua Padre Antonio De Gouveia<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 104 m · índice: 8.01</div>`)[0];
+                popup_fa557f728b40dc787b21790ca75d492f.setContent(html_e79d2617cad4a8858da98d748c7b388c);
+            
+        
+
+        circle_marker_32b9f31ca6b3ca33da9eaf3cb429b2c5.bindPopup(popup_fa557f728b40dc787b21790ca75d492f)
+        ;
+
+        
+    
+    
+            circle_marker_32b9f31ca6b3ca33da9eaf3cb429b2c5.bindTooltip(
+                `<div>
+                     #13 Avenida Cupece
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_09ca096ab3315443d332098eb89fb7f3 = L.circleMarker(
+                [-23.60655444066667, -46.67591332266666],
+                {"bubblingMouseEvents": true, "color": "#cbb5b1ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#cbb5b1ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.196773353931867, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_cb05f87e6d9a8d79cfac7f5d6acc413d = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_757a5f9178f0bfc91763ca4d05e9dfbe = $(`<div id="html_757a5f9178f0bfc91763ca4d05e9dfbe" style="width: 100.0%; height: 100.0%;"><b>Avenida Santo Amaro</b><br>rank urbano: #12 · rank geral: #25<br>vias: Avenida Santo Amaro | Spital Santa Paula Av Santo Amaro 2468<br>fatais: 0 · não fatais: 15 · peso: 15<br>extensão: 109 m · índice: 7.26</div>`)[0];
+                popup_cb05f87e6d9a8d79cfac7f5d6acc413d.setContent(html_757a5f9178f0bfc91763ca4d05e9dfbe);
+            
+        
+
+        circle_marker_09ca096ab3315443d332098eb89fb7f3.bindPopup(popup_cb05f87e6d9a8d79cfac7f5d6acc413d)
+        ;
+
+        
+    
+    
+            circle_marker_09ca096ab3315443d332098eb89fb7f3.bindTooltip(
+                `<div>
+                     #12 Avenida Santo Amaro
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_1daab609f9a5d8d982313c38fab64f71 = L.circleMarker(
+                [-23.52164773706522, -46.63816818771739],
+                {"bubblingMouseEvents": true, "color": "#d7b9aeff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#d7b9aeff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.616263691415206, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_b044b473c236d466af8b614d87a471bd = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_bc3641cc22dabc80a49f0e3792b9e301 = $(`<div id="html_bc3641cc22dabc80a49f0e3792b9e301" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Estado</b><br>rank urbano: #11 · rank geral: #24<br>vias: Avenida Do Estado | Avenida Presidente Castelo Branco | Sp 015 - Tiete<br>fatais: 3 · não fatais: 20 · peso: 29<br>extensão: 200 m · índice: 6.91</div>`)[0];
+                popup_b044b473c236d466af8b614d87a471bd.setContent(html_bc3641cc22dabc80a49f0e3792b9e301);
+            
+        
+
+        circle_marker_1daab609f9a5d8d982313c38fab64f71.bindPopup(popup_b044b473c236d466af8b614d87a471bd)
+        ;
+
+        
+    
+    
+            circle_marker_1daab609f9a5d8d982313c38fab64f71.bindTooltip(
+                `<div>
+                     #11 Avenida Do Estado
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_50f269f6e098b10296cc784ff66f3631 = L.circleMarker(
+                [-23.744618389516663, -46.67043664575001],
+                {"bubblingMouseEvents": true, "color": "#debcadff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#debcadff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_d139b0c3b8414941f6cad864d690fe00 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_7c87e0535d7c28a5b85b447c942adffd = $(`<div id="html_7c87e0535d7c28a5b85b447c942adffd" style="width: 100.0%; height: 100.0%;"><b>Rua Demas Zitto</b><br>rank urbano: #10 · rank geral: #23<br>vias: Rua Demas Zitto | Estrada Canal De Cocaia | Estrada Canal Da Cocaia<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 53 m · índice: 6.68</div>`)[0];
+                popup_d139b0c3b8414941f6cad864d690fe00.setContent(html_7c87e0535d7c28a5b85b447c942adffd);
+            
+        
+
+        circle_marker_50f269f6e098b10296cc784ff66f3631.bindPopup(popup_d139b0c3b8414941f6cad864d690fe00)
+        ;
+
+        
+    
+    
+            circle_marker_50f269f6e098b10296cc784ff66f3631.bindTooltip(
+                `<div>
+                     #10 Rua Demas Zitto
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_38ada414a2b57efefa80ff240508efe0 = L.circleMarker(
+                [-23.539251827521056, -46.4697628099],
+                {"bubblingMouseEvents": true, "color": "#f1c3a8ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f1c3a8ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.67333043730035, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_3b2e03f9e3cb0b1aeb1585f251f95e4e = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_87873e54231d2bfaa5990e872edf9ccd = $(`<div id="html_87873e54231d2bfaa5990e872edf9ccd" style="width: 100.0%; height: 100.0%;"><b>Avenida Jose Pinheiro Borges</b><br>rank urbano: #9 · rank geral: #22<br>vias: Avenida Jose Pinheiro Borges | Avenida Do Contorno | Rua Marinho Arcanjo Dos Santos<br>fatais: 2 · não fatais: 17 · peso: 23<br>extensão: 141 m · índice: 6.11</div>`)[0];
+                popup_3b2e03f9e3cb0b1aeb1585f251f95e4e.setContent(html_87873e54231d2bfaa5990e872edf9ccd);
+            
+        
+
+        circle_marker_38ada414a2b57efefa80ff240508efe0.bindPopup(popup_3b2e03f9e3cb0b1aeb1585f251f95e4e)
+        ;
+
+        
+    
+    
+            circle_marker_38ada414a2b57efefa80ff240508efe0.bindTooltip(
+                `<div>
+                     #9 Avenida Jose Pinheiro Borges
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bc0d8648a26b91c953b243ee5f0ff263 = L.circleMarker(
+                [-23.667987247824996, -46.737702021875],
+                {"bubblingMouseEvents": true, "color": "#f2c1a6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2c1a6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_2b07313cd8e73339a0b3e8196af16a62 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_7b346ecc6d52f21f8d5cf009462e7d34 = $(`<div id="html_7b346ecc6d52f21f8d5cf009462e7d34" style="width: 100.0%; height: 100.0%;"><b>Avenida Luiz Gushiken</b><br>rank urbano: #8 · rank geral: #21<br>vias: Avenida Luiz Gushiken<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 48 m · índice: 5.96</div>`)[0];
+                popup_2b07313cd8e73339a0b3e8196af16a62.setContent(html_7b346ecc6d52f21f8d5cf009462e7d34);
+            
+        
+
+        circle_marker_bc0d8648a26b91c953b243ee5f0ff263.bindPopup(popup_2b07313cd8e73339a0b3e8196af16a62)
+        ;
+
+        
+    
+    
+            circle_marker_bc0d8648a26b91c953b243ee5f0ff263.bindTooltip(
+                `<div>
+                     #8 Avenida Luiz Gushiken
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_0d1cf9998df9b76a72822d6e50e0324e = L.circleMarker(
+                [-23.531940892433333, -46.45601792593334],
+                {"bubblingMouseEvents": true, "color": "#f2bca0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2bca0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_21475e2b520cb10420114129258f6f9c = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fb4baf1ac7943ac9cdb9876e6d020f3b = $(`<div id="html_fb4baf1ac7943ac9cdb9876e6d020f3b" style="width: 100.0%; height: 100.0%;"><b>Avenida Jacupessego</b><br>rank urbano: #7 · rank geral: #20<br>vias: Avenida Jacupessego | Rua Itubera | Avenida Jacu-Pessego<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 73 m · índice: 5.63</div>`)[0];
+                popup_21475e2b520cb10420114129258f6f9c.setContent(html_fb4baf1ac7943ac9cdb9876e6d020f3b);
+            
+        
+
+        circle_marker_0d1cf9998df9b76a72822d6e50e0324e.bindPopup(popup_21475e2b520cb10420114129258f6f9c)
+        ;
+
+        
+    
+    
+            circle_marker_0d1cf9998df9b76a72822d6e50e0324e.bindTooltip(
+                `<div>
+                     #7 Avenida Jacupessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9193dfc3d6a00eaaeee0848158f7e3d8 = L.circleMarker(
+                [-23.672475720992423, -46.74304288045758],
+                {"bubblingMouseEvents": true, "color": "#f2ba9cff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2ba9cff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 17.576450198781714, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_fab6a3d1a8f2f35bdaacbf9e9d466123 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ee381986bd49b08e14ae625ea6753f47 = $(`<div id="html_ee381986bd49b08e14ae625ea6753f47" style="width: 100.0%; height: 100.0%;"><b>Acesso Estrada Do M Boi Mirim</b><br>rank urbano: #6 · rank geral: #19<br>vias: Acesso Estrada Do M Boi Mirim | Avenida Luiz Gushiken | Estrada Do M'Boi Mirim<br>fatais: 3 · não fatais: 63 · peso: 72<br>extensão: 391 m · índice: 5.44</div>`)[0];
+                popup_fab6a3d1a8f2f35bdaacbf9e9d466123.setContent(html_ee381986bd49b08e14ae625ea6753f47);
+            
+        
+
+        circle_marker_9193dfc3d6a00eaaeee0848158f7e3d8.bindPopup(popup_fab6a3d1a8f2f35bdaacbf9e9d466123)
+        ;
+
+        
+    
+    
+            circle_marker_9193dfc3d6a00eaaeee0848158f7e3d8.bindTooltip(
+                `<div>
+                     #6 Acesso Estrada Do M Boi Mirim
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d5dde55768453947e7252c26d6475e3f = L.circleMarker(
+                [-23.746690865, -46.68810891333334],
+                {"bubblingMouseEvents": true, "color": "#f1ac8bff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f1ac8bff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_ed4b372ce1d82a8928fab71f8c1bf075 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fa67d89a96f03dad34fe29d569079918 = $(`<div id="html_fa67d89a96f03dad34fe29d569079918" style="width: 100.0%; height: 100.0%;"><b>Avenida Dona Belmira Marin</b><br>rank urbano: #5 · rank geral: #18<br>vias: Avenida Dona Belmira Marin<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 36 m · índice: 4.54</div>`)[0];
+                popup_ed4b372ce1d82a8928fab71f8c1bf075.setContent(html_fa67d89a96f03dad34fe29d569079918);
+            
+        
+
+        circle_marker_d5dde55768453947e7252c26d6475e3f.bindPopup(popup_ed4b372ce1d82a8928fab71f8c1bf075)
+        ;
+
+        
+    
+    
+            circle_marker_d5dde55768453947e7252c26d6475e3f.bindTooltip(
+                `<div>
+                     #5 Avenida Dona Belmira Marin
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_33ada82a66aa39f1794f5c631b53ac37 = L.circleMarker(
+                [-23.72203097679286, -46.78514218943929],
+                {"bubblingMouseEvents": true, "color": "#f0a987ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a987ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.763560920082659, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_aa374d2a80a1156c185db666b126cdb6 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8fbfa861eef82fe43ca43c737644a1ff = $(`<div id="html_8fbfa861eef82fe43ca43c737644a1ff" style="width: 100.0%; height: 100.0%;"><b>Estrada Do M'Boi Mirim</b><br>rank urbano: #4 · rank geral: #17<br>vias: Estrada Do M'Boi Mirim | Estrada M Boi Mirim | Estrada Do M Boi Mirim<br>fatais: 1 · não fatais: 27 · peso: 30<br>extensão: 130 m · índice: 4.34</div>`)[0];
+                popup_aa374d2a80a1156c185db666b126cdb6.setContent(html_8fbfa861eef82fe43ca43c737644a1ff);
+            
+        
+
+        circle_marker_33ada82a66aa39f1794f5c631b53ac37.bindPopup(popup_aa374d2a80a1156c185db666b126cdb6)
+        ;
+
+        
+    
+    
+            circle_marker_33ada82a66aa39f1794f5c631b53ac37.bindTooltip(
+                `<div>
+                     #4 Estrada Do M'Boi Mirim
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_c890df7172fe2cc80f7209dda12b70e7 = L.circleMarker(
+                [-23.562770267906245, -46.612324145525],
+                {"bubblingMouseEvents": true, "color": "#f0a885ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a885ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.155417527999328, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_d817417ac4dfd4d92aa746b79a2b5acb = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_0aa3043331a2043466039d9d363f300b = $(`<div id="html_0aa3043331a2043466039d9d363f300b" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Estado</b><br>rank urbano: #3 · rank geral: #16<br>vias: Avenida Do Estado<br>fatais: 2 · não fatais: 14 · peso: 20<br>extensão: 85 m · índice: 4.24</div>`)[0];
+                popup_d817417ac4dfd4d92aa746b79a2b5acb.setContent(html_0aa3043331a2043466039d9d363f300b);
+            
+        
+
+        circle_marker_c890df7172fe2cc80f7209dda12b70e7.bindPopup(popup_d817417ac4dfd4d92aa746b79a2b5acb)
+        ;
+
+        
+    
+    
+            circle_marker_c890df7172fe2cc80f7209dda12b70e7.bindTooltip(
+                `<div>
+                     #3 Avenida Do Estado
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_cc6029ce53800cd7fa060ff1a0327431 = L.circleMarker(
+                [-23.5037375777, -46.636481662250006],
+                {"bubblingMouseEvents": true, "color": "#f0a07cff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a07cff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_a87005415b24d4dd9b42fc4efc532330 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_a1759fdbd7879b14b043188f004638ed = $(`<div id="html_a1759fdbd7879b14b043188f004638ed" style="width: 100.0%; height: 100.0%;"><b>Avenida Braz Leme</b><br>rank urbano: #2 · rank geral: #14<br>vias: Avenida Braz Leme<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 30 m · índice: 3.75</div>`)[0];
+                popup_a87005415b24d4dd9b42fc4efc532330.setContent(html_a1759fdbd7879b14b043188f004638ed);
+            
+        
+
+        circle_marker_cc6029ce53800cd7fa060ff1a0327431.bindPopup(popup_a87005415b24d4dd9b42fc4efc532330)
+        ;
+
+        
+    
+    
+            circle_marker_cc6029ce53800cd7fa060ff1a0327431.bindTooltip(
+                `<div>
+                     #2 Avenida Braz Leme
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_50adc5c7c7f5941c70a4ff12f004f4b0 = L.circleMarker(
+                [-23.513499371428573, -46.44380351000001],
+                {"bubblingMouseEvents": true, "color": "#ef976fff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ef976fff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.4, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_198dc83b6434babfe6143a083c575e70);
+        
+    
+        var popup_9f442a351ec31da34f9b11672e25cb64 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_c61bb2c5133e14e07eb635a62ce8db2d = $(`<div id="html_c61bb2c5133e14e07eb635a62ce8db2d" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Imperador</b><br>rank urbano: #1 · rank geral: #13<br>vias: Avenida Do Imperador | Avenida Imperador | Rua Fava De Arara<br>fatais: 1 · não fatais: 13 · peso: 16<br>extensão: 50 m · índice: 3.12</div>`)[0];
+                popup_9f442a351ec31da34f9b11672e25cb64.setContent(html_c61bb2c5133e14e07eb635a62ce8db2d);
+            
+        
+
+        circle_marker_50adc5c7c7f5941c70a4ff12f004f4b0.bindPopup(popup_9f442a351ec31da34f9b11672e25cb64)
+        ;
+
+        
+    
+    
+            circle_marker_50adc5c7c7f5941c70a4ff12f004f4b0.bindTooltip(
+                `<div>
+                     #1 Avenida Do Imperador
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            feature_group_198dc83b6434babfe6143a083c575e70.addTo(map_deff4dd1452e3cc5af3b2731048fb8ea);
+        
+    
+            var feature_group_51e3fbd2deb2f81e51a660854324083e = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var circle_marker_98cd59f805e8290d67ccac8777334bf6 = L.circleMarker(
+                [-23.57575951777778, -46.57152951555556],
+                {"bubblingMouseEvents": true, "color": "#5287cdff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5287cdff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_d1acc46a43ad4263a1a43dbcd2d248bb = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8286f10c70cfd813a6aa4483732ff940 = $(`<div id="html_8286f10c70cfd813a6aa4483732ff940" style="width: 100.0%; height: 100.0%;"><b>Avenida Salim Farah Maluf</b><br>rank urbano: #35 · rank geral: #50<br>vias: Avenida Salim Farah Maluf | Rua Do Orfanato<br>fatais: 0 · não fatais: 9 · peso: 9<br>extensão: 98 m · índice: 10.93</div>`)[0];
+                popup_d1acc46a43ad4263a1a43dbcd2d248bb.setContent(html_8286f10c70cfd813a6aa4483732ff940);
+            
+        
+
+        circle_marker_98cd59f805e8290d67ccac8777334bf6.bindPopup(popup_d1acc46a43ad4263a1a43dbcd2d248bb)
+        ;
+
+        
+    
+    
+            circle_marker_98cd59f805e8290d67ccac8777334bf6.bindTooltip(
+                `<div>
+                     #50 Avenida Salim Farah Maluf
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_a0fc02d3874296d75971e48442a431db = L.circleMarker(
+                [-23.673302134742862, -46.643432024457134],
+                {"bubblingMouseEvents": true, "color": "#5588ccff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5588ccff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_54e015004ece32aa82e1f0e8aab94af5 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_16f93681af55e96bc168e8517a9e5251 = $(`<div id="html_16f93681af55e96bc168e8517a9e5251" style="width: 100.0%; height: 100.0%;"><b>Rua Alvares Fagundes</b><br>rank urbano: #34 · rank geral: #49<br>vias: Rua Alvares Fagundes | Avenida Cupece<br>fatais: 3 · não fatais: 4 · peso: 13<br>extensão: 141 m · índice: 10.83</div>`)[0];
+                popup_54e015004ece32aa82e1f0e8aab94af5.setContent(html_16f93681af55e96bc168e8517a9e5251);
+            
+        
+
+        circle_marker_a0fc02d3874296d75971e48442a431db.bindPopup(popup_54e015004ece32aa82e1f0e8aab94af5)
+        ;
+
+        
+    
+    
+            circle_marker_a0fc02d3874296d75971e48442a431db.bindTooltip(
+                `<div>
+                     #49 Rua Alvares Fagundes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_91e09d6ec841f2c7ccae551cef35d412 = L.circleMarker(
+                [-23.675725827933334, -46.7892022288],
+                {"bubblingMouseEvents": true, "color": "#5689ccff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5689ccff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_f420f1aad6789bd6646f2d702a0a3d88 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_1dc53952f24d26a11b36dcd5650b5ce6 = $(`<div id="html_1dc53952f24d26a11b36dcd5650b5ce6" style="width: 100.0%; height: 100.0%;"><b>Estrada De Itapecerica</b><br>rank urbano: #33 · rank geral: #48<br>vias: Estrada De Itapecerica | Rua Masatake Matsumoto<br>fatais: 3 · não fatais: 0 · peso: 9<br>extensão: 97 m · índice: 10.80</div>`)[0];
+                popup_f420f1aad6789bd6646f2d702a0a3d88.setContent(html_1dc53952f24d26a11b36dcd5650b5ce6);
+            
+        
+
+        circle_marker_91e09d6ec841f2c7ccae551cef35d412.bindPopup(popup_f420f1aad6789bd6646f2d702a0a3d88)
+        ;
+
+        
+    
+    
+            circle_marker_91e09d6ec841f2c7ccae551cef35d412.bindTooltip(
+                `<div>
+                     #48 Estrada De Itapecerica
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_77aebbcf85e83f82991871f49c2639a5 = L.circleMarker(
+                [-23.543525438142858, -46.629357202128574],
+                {"bubblingMouseEvents": true, "color": "#598acbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#598acbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_d995eb2189ce4e4ae1a468a278272853 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d82cad4710812d915b9375491102c844 = $(`<div id="html_d82cad4710812d915b9375491102c844" style="width: 100.0%; height: 100.0%;"><b>Viaduto Diario Popular</b><br>rank urbano: #32 · rank geral: #47<br>vias: Viaduto Diario Popular | Parque Dom Pedro Ii | Avenida Do Estado<br>fatais: 2 · não fatais: 5 · peso: 11<br>extensão: 118 m · índice: 10.71</div>`)[0];
+                popup_d995eb2189ce4e4ae1a468a278272853.setContent(html_d82cad4710812d915b9375491102c844);
+            
+        
+
+        circle_marker_77aebbcf85e83f82991871f49c2639a5.bindPopup(popup_d995eb2189ce4e4ae1a468a278272853)
+        ;
+
+        
+    
+    
+            circle_marker_77aebbcf85e83f82991871f49c2639a5.bindTooltip(
+                `<div>
+                     #47 Viaduto Diario Popular
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_52ba0ab78abff8d649b9488b8a9db346 = L.circleMarker(
+                [-23.64914710738125, -46.66137460615],
+                {"bubblingMouseEvents": true, "color": "#5b8bcbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#5b8bcbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.504665215717488, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_dc0ee90027debe66998d55ca88154a64 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_604adaa0aa38773653303d6ad6c8e92c = $(`<div id="html_604adaa0aa38773653303d6ad6c8e92c" style="width: 100.0%; height: 100.0%;"><b>Avenida Santa Catarina</b><br>rank urbano: #31 · rank geral: #46<br>vias: Avenida Santa Catarina | Rua Alba | Rua Doutor Djalma Pinheiro Franco<br>fatais: 3 · não fatais: 13 · peso: 22<br>extensão: 234 m · índice: 10.65</div>`)[0];
+                popup_dc0ee90027debe66998d55ca88154a64.setContent(html_604adaa0aa38773653303d6ad6c8e92c);
+            
+        
+
+        circle_marker_52ba0ab78abff8d649b9488b8a9db346.bindPopup(popup_dc0ee90027debe66998d55ca88154a64)
+        ;
+
+        
+    
+    
+            circle_marker_52ba0ab78abff8d649b9488b8a9db346.bindTooltip(
+                `<div>
+                     #46 Avenida Santa Catarina
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_510a1d0ca5713d641d9a701ec5f30533 = L.circleMarker(
+                [-23.530584825, -46.44392079800001],
+                {"bubblingMouseEvents": true, "color": "#618dcaff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#618dcaff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_f8adb3f69edfb2c92eec6557bdb3f875 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_11ce2c5709885e0c7bde15809f58861d = $(`<div id="html_11ce2c5709885e0c7bde15809f58861d" style="width: 100.0%; height: 100.0%;"><b>Estrada Itaquera Guaianazes</b><br>rank urbano: #30 · rank geral: #45<br>vias: Estrada Itaquera Guaianazes | Rua Augusto Carlos Bauman<br>fatais: 0 · não fatais: 10 · peso: 10<br>extensão: 105 m · índice: 10.49</div>`)[0];
+                popup_f8adb3f69edfb2c92eec6557bdb3f875.setContent(html_11ce2c5709885e0c7bde15809f58861d);
+            
+        
+
+        circle_marker_510a1d0ca5713d641d9a701ec5f30533.bindPopup(popup_f8adb3f69edfb2c92eec6557bdb3f875)
+        ;
+
+        
+    
+    
+            circle_marker_510a1d0ca5713d641d9a701ec5f30533.bindTooltip(
+                `<div>
+                     #45 Estrada Itaquera Guaianazes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_122d281e0d20749c3f673eed5bfb899e = L.circleMarker(
+                [-23.520393865895652, -46.702359188313046],
+                {"bubblingMouseEvents": true, "color": "#628dc9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#628dc9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.191300234460845, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_03ef334b23612d004e3576dcac53f2d4 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_9ade545e3099e3a537766b9ba9ecc5ad = $(`<div id="html_9ade545e3099e3a537766b9ba9ecc5ad" style="width: 100.0%; height: 100.0%;"><b>Rua Nossa Senhora Da Lapa</b><br>rank urbano: #29 · rank geral: #44<br>vias: Rua Nossa Senhora Da Lapa | Rua Doutor Cincinato Pomponet | Rua Trajano<br>fatais: 5 · não fatais: 18 · peso: 33<br>extensão: 345 m · índice: 10.45</div>`)[0];
+                popup_03ef334b23612d004e3576dcac53f2d4.setContent(html_9ade545e3099e3a537766b9ba9ecc5ad);
+            
+        
+
+        circle_marker_122d281e0d20749c3f673eed5bfb899e.bindPopup(popup_03ef334b23612d004e3576dcac53f2d4)
+        ;
+
+        
+    
+    
+            circle_marker_122d281e0d20749c3f673eed5bfb899e.bindTooltip(
+                `<div>
+                     #44 Rua Nossa Senhora Da Lapa
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_45873e4ef6af15bc0d08d9c18734351a = L.circleMarker(
+                [-23.644882103983335, -46.64135282668334],
+                {"bubblingMouseEvents": true, "color": "#638dc9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#638dc9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_aa0f246b95093a3eeddb815e28d0a646 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_066bc0d6609e3edc3f0e2a1127dfd2bd = $(`<div id="html_066bc0d6609e3edc3f0e2a1127dfd2bd" style="width: 100.0%; height: 100.0%;"><b>Avenida Engenheiro Armando De Arruda Pereira</b><br>rank urbano: #28 · rank geral: #43<br>vias: Avenida Engenheiro Armando De Arruda Pereira | Rua Das Perobas | Avenida Eng Armando De Arruda Pereira<br>fatais: 2 · não fatais: 4 · peso: 10<br>extensão: 104 m · índice: 10.42</div>`)[0];
+                popup_aa0f246b95093a3eeddb815e28d0a646.setContent(html_066bc0d6609e3edc3f0e2a1127dfd2bd);
+            
+        
+
+        circle_marker_45873e4ef6af15bc0d08d9c18734351a.bindPopup(popup_aa0f246b95093a3eeddb815e28d0a646)
+        ;
+
+        
+    
+    
+            circle_marker_45873e4ef6af15bc0d08d9c18734351a.bindTooltip(
+                `<div>
+                     #43 Avenida Engenheiro Armando De Arruda Pereira
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_78cabfb32cc01baf297beb1362f1cb08 = L.circleMarker(
+                [-23.62428317395, -46.677073845749995],
+                {"bubblingMouseEvents": true, "color": "#658ec9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#658ec9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_f10cd14d4a4d32f4b95ca63e21454d5f = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_6c80944251aac85182c0e918efe414f0 = $(`<div id="html_6c80944251aac85182c0e918efe414f0" style="width: 100.0%; height: 100.0%;"><b>Rua Antonio De Macedo Soares</b><br>rank urbano: #27 · rank geral: #42<br>vias: Rua Antonio De Macedo Soares | Avenida Jornalista Roberto Marinho<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 83 m · índice: 10.37</div>`)[0];
+                popup_f10cd14d4a4d32f4b95ca63e21454d5f.setContent(html_6c80944251aac85182c0e918efe414f0);
+            
+        
+
+        circle_marker_78cabfb32cc01baf297beb1362f1cb08.bindPopup(popup_f10cd14d4a4d32f4b95ca63e21454d5f)
+        ;
+
+        
+    
+    
+            circle_marker_78cabfb32cc01baf297beb1362f1cb08.bindTooltip(
+                `<div>
+                     #42 Rua Antonio De Macedo Soares
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_385160f5fb28c63cc9e0f88ba309ba82 = L.circleMarker(
+                [-23.54182786173207, -46.61613336799811],
+                {"bubblingMouseEvents": true, "color": "#658ec9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#658ec9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 16.0797350964332, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_5ebcff9a3c36a4cfb2487ca4dc57268a = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_4d6253a8613ab0912e5927ee970dd8db = $(`<div id="html_4d6253a8613ab0912e5927ee970dd8db" style="width: 100.0%; height: 100.0%;"><b>Avenida Rangel Pestana</b><br>rank urbano: #26 · rank geral: #41<br>vias: Avenida Rangel Pestana | Largo Da Concordia | Rua Barao De Ladario<br>fatais: 2 · não fatais: 51 · peso: 57<br>extensão: 591 m · índice: 10.37</div>`)[0];
+                popup_5ebcff9a3c36a4cfb2487ca4dc57268a.setContent(html_4d6253a8613ab0912e5927ee970dd8db);
+            
+        
+
+        circle_marker_385160f5fb28c63cc9e0f88ba309ba82.bindPopup(popup_5ebcff9a3c36a4cfb2487ca4dc57268a)
+        ;
+
+        
+    
+    
+            circle_marker_385160f5fb28c63cc9e0f88ba309ba82.bindTooltip(
+                `<div>
+                     #41 Avenida Rangel Pestana
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6d2050709affa2514bba9a0d814d3950 = L.circleMarker(
+                [-23.549163036281577, -46.63868836132895],
+                {"bubblingMouseEvents": true, "color": "#7092c6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7092c6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.119288512538816, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_82ae2510b6538ea48f3a44d012158c21 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fd75a878fba4f8acb7a4cf611d350b3c = $(`<div id="html_fd75a878fba4f8acb7a4cf611d350b3c" style="width: 100.0%; height: 100.0%;"><b>Avenida 23 De Maio</b><br>rank urbano: #25 · rank geral: #40<br>vias: Avenida 23 De Maio | Avenida Nove De Julho | Rua Riachuelo<br>fatais: 1 · não fatais: 37 · peso: 40<br>extensão: 401 m · índice: 10.02</div>`)[0];
+                popup_82ae2510b6538ea48f3a44d012158c21.setContent(html_fd75a878fba4f8acb7a4cf611d350b3c);
+            
+        
+
+        circle_marker_6d2050709affa2514bba9a0d814d3950.bindPopup(popup_82ae2510b6538ea48f3a44d012158c21)
+        ;
+
+        
+    
+    
+            circle_marker_6d2050709affa2514bba9a0d814d3950.bindTooltip(
+                `<div>
+                     #40 Avenida 23 De Maio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ff69ae2c16e2a7cdad439b34ad4b48ed = L.circleMarker(
+                [-23.53905185438, -46.56965443056],
+                {"bubblingMouseEvents": true, "color": "#7193c6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7193c6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_db6dc35bc2b6567db7139e58398808da = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_54cccb0b5f4087e3e42c327e764cedba = $(`<div id="html_54cccb0b5f4087e3e42c327e764cedba" style="width: 100.0%; height: 100.0%;"><b>Rua Melo Freire</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #39<br>vias: Rua Melo Freire | Rua Melo Freire Tatuape R Melo Freire | Rua Melo Peixoto<br>fatais: 2 · não fatais: 3 · peso: 9<br>extensão: 90 m · índice: 9.99</div>`)[0];
+                popup_db6dc35bc2b6567db7139e58398808da.setContent(html_54cccb0b5f4087e3e42c327e764cedba);
+            
+        
+
+        circle_marker_ff69ae2c16e2a7cdad439b34ad4b48ed.bindPopup(popup_db6dc35bc2b6567db7139e58398808da)
+        ;
+
+        
+    
+    
+            circle_marker_ff69ae2c16e2a7cdad439b34ad4b48ed.bindTooltip(
+                `<div>
+                     #39 Rua Melo Freire
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_42938d8fa234d0eddd33eccfae832d8b = L.circleMarker(
+                [-23.48242333907143, -46.58930439174286],
+                {"bubblingMouseEvents": true, "color": "#7a96c4ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#7a96c4ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_bdc975493d38e8148459cd39912364b1 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_9dbe7b1765d15732c71a4342881a3248 = $(`<div id="html_9dbe7b1765d15732c71a4342881a3248" style="width: 100.0%; height: 100.0%;"><b>Avenida Julio Buono</b><br>rank urbano: #24 · rank geral: #38<br>vias: Avenida Julio Buono | Avenida Gustavo Adolfo<br>fatais: 1 · não fatais: 6 · peso: 9<br>extensão: 88 m · índice: 9.72</div>`)[0];
+                popup_bdc975493d38e8148459cd39912364b1.setContent(html_9dbe7b1765d15732c71a4342881a3248);
+            
+        
+
+        circle_marker_42938d8fa234d0eddd33eccfae832d8b.bindPopup(popup_bdc975493d38e8148459cd39912364b1)
+        ;
+
+        
+    
+    
+            circle_marker_42938d8fa234d0eddd33eccfae832d8b.bindTooltip(
+                `<div>
+                     #38 Avenida Julio Buono
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_317e38a9bfa740332b0069e9dd5694a7 = L.circleMarker(
+                [-23.5916864982, -46.44404983188889],
+                {"bubblingMouseEvents": true, "color": "#8299c2ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8299c2ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.67333043730035, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_e7f9d706a7e8e4f54e70fc403738750a = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_438f875dafa015651eac1db5ee70d23a = $(`<div id="html_438f875dafa015651eac1db5ee70d23a" style="width: 100.0%; height: 100.0%;"><b>Estrada Do Pessego</b><br>rank urbano: #23 · rank geral: #37<br>vias: Estrada Do Pessego | Avenida Jacu Pessego | Avenida Jacu Pessego Nova Trabalhadores<br>fatais: 7 · não fatais: 2 · peso: 23<br>extensão: 218 m · índice: 9.47</div>`)[0];
+                popup_e7f9d706a7e8e4f54e70fc403738750a.setContent(html_438f875dafa015651eac1db5ee70d23a);
+            
+        
+
+        circle_marker_317e38a9bfa740332b0069e9dd5694a7.bindPopup(popup_e7f9d706a7e8e4f54e70fc403738750a)
+        ;
+
+        
+    
+    
+            circle_marker_317e38a9bfa740332b0069e9dd5694a7.bindTooltip(
+                `<div>
+                     #37 Estrada Do Pessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_5a26eac2c2920eb100ff8974392b7fb1 = L.circleMarker(
+                [-23.53217168480455, -46.63234180764545],
+                {"bubblingMouseEvents": true, "color": "#859ac1ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#859ac1ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.46640419540669, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_440c826aaa3ce8154045d40f427df206 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_f69d96a9f37957828c750c88f4ad4be0 = $(`<div id="html_f69d96a9f37957828c750c88f4ad4be0" style="width: 100.0%; height: 100.0%;"><b>Avenida Tiradentes</b><br>rank urbano: #22 · rank geral: #36<br>vias: Avenida Tiradentes | Rua Joao Teodoro | Rua Ribeiro De Lima<br>fatais: 3 · não fatais: 19 · peso: 28<br>extensão: 263 m · índice: 9.38</div>`)[0];
+                popup_440c826aaa3ce8154045d40f427df206.setContent(html_f69d96a9f37957828c750c88f4ad4be0);
+            
+        
+
+        circle_marker_5a26eac2c2920eb100ff8974392b7fb1.bindPopup(popup_440c826aaa3ce8154045d40f427df206)
+        ;
+
+        
+    
+    
+            circle_marker_5a26eac2c2920eb100ff8974392b7fb1.bindTooltip(
+                `<div>
+                     #36 Avenida Tiradentes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_234c0a44594104a5924be5c7aa9c5e38 = L.circleMarker(
+                [-23.542954791739998, -46.63793257565333],
+                {"bubblingMouseEvents": true, "color": "#8d9dc0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8d9dc0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.332121111929343, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_99c1ed79d6ecea04e014256440424be5 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_a8786098b17e1b6bbd0bee14943ac93c = $(`<div id="html_a8786098b17e1b6bbd0bee14943ac93c" style="width: 100.0%; height: 100.0%;"><b>Avenida Rio Branco</b><br>rank urbano: #21 · rank geral: #35<br>vias: Avenida Rio Branco | Largo Do Paissandu | Rua Capitao Salomao<br>fatais: 3 · não fatais: 12 · peso: 21<br>extensão: 192 m · índice: 9.16</div>`)[0];
+                popup_99c1ed79d6ecea04e014256440424be5.setContent(html_a8786098b17e1b6bbd0bee14943ac93c);
+            
+        
+
+        circle_marker_234c0a44594104a5924be5c7aa9c5e38.bindPopup(popup_99c1ed79d6ecea04e014256440424be5)
+        ;
+
+        
+    
+    
+            circle_marker_234c0a44594104a5924be5c7aa9c5e38.bindTooltip(
+                `<div>
+                     #35 Avenida Rio Branco
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_21e87f9f58014b49d29e156d57124fc5 = L.circleMarker(
+                [-23.56918318668889, -46.64078416346667],
+                {"bubblingMouseEvents": true, "color": "#8f9ebfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#8f9ebfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_5eb9edda91ce30303d1b0d673e4ecf42 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_c2d536966227cf3c37194693ec811184 = $(`<div id="html_c2d536966227cf3c37194693ec811184" style="width: 100.0%; height: 100.0%;"><b>Avenida 23 De Maio</b><br>rank urbano: #20 · rank geral: #34<br>vias: Avenida 23 De Maio | Rua Doutor Bettencourt Rodrigues<br>fatais: 1 · não fatais: 8 · peso: 11<br>extensão: 100 m · índice: 9.10</div>`)[0];
+                popup_5eb9edda91ce30303d1b0d673e4ecf42.setContent(html_c2d536966227cf3c37194693ec811184);
+            
+        
+
+        circle_marker_21e87f9f58014b49d29e156d57124fc5.bindPopup(popup_5eb9edda91ce30303d1b0d673e4ecf42)
+        ;
+
+        
+    
+    
+            circle_marker_21e87f9f58014b49d29e156d57124fc5.bindTooltip(
+                `<div>
+                     #34 Avenida 23 De Maio
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_98b48e286b1a8e310745f369015aac88 = L.circleMarker(
+                [-23.6084143217625, -46.67670665055],
+                {"bubblingMouseEvents": true, "color": "#909ebfff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#909ebfff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.542562584220407, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_8f500cdfa8e859d436648c83d213f28c = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_6187bc8b6833309af5947790eb62d86e = $(`<div id="html_6187bc8b6833309af5947790eb62d86e" style="width: 100.0%; height: 100.0%;"><b>Avenida Dos Bandeirantes</b><br>rank urbano: #19 · rank geral: #33<br>vias: Avenida Dos Bandeirantes | Avenida Santo Amaro<br>fatais: 2 · não fatais: 6 · peso: 12<br>extensão: 109 m · índice: 9.06</div>`)[0];
+                popup_8f500cdfa8e859d436648c83d213f28c.setContent(html_6187bc8b6833309af5947790eb62d86e);
+            
+        
+
+        circle_marker_98b48e286b1a8e310745f369015aac88.bindPopup(popup_8f500cdfa8e859d436648c83d213f28c)
+        ;
+
+        
+    
+    
+            circle_marker_98b48e286b1a8e310745f369015aac88.bindTooltip(
+                `<div>
+                     #33 Avenida Dos Bandeirantes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ea0ae77c7c76f52793bd24fb61159e90 = L.circleMarker(
+                [-23.665890975830003, -46.71357637767001],
+                {"bubblingMouseEvents": true, "color": "#9ba3bcff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#9ba3bcff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.986651818838308, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_b39ce9ae5d8417e904aad7f43edb5084 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_2af1ea0dd98aaf143065aad4953ace4f = $(`<div id="html_2af1ea0dd98aaf143065aad4953ace4f" style="width: 100.0%; height: 100.0%;"><b>Avenida Guarapiranga</b><br>rank urbano: #18 · rank geral: #32<br>vias: Avenida Guarapiranga | Rua Augusto Ferreira De Morais<br>fatais: 2 · não fatais: 8 · peso: 14<br>extensão: 122 m · índice: 8.72</div>`)[0];
+                popup_b39ce9ae5d8417e904aad7f43edb5084.setContent(html_2af1ea0dd98aaf143065aad4953ace4f);
+            
+        
+
+        circle_marker_ea0ae77c7c76f52793bd24fb61159e90.bindPopup(popup_b39ce9ae5d8417e904aad7f43edb5084)
+        ;
+
+        
+    
+    
+            circle_marker_ea0ae77c7c76f52793bd24fb61159e90.bindTooltip(
+                `<div>
+                     #32 Avenida Guarapiranga
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_568d8723090b2f0e6b2f51070b73bf7d = L.circleMarker(
+                [-23.403729473225003, -46.575702946700005],
+                {"bubblingMouseEvents": true, "color": "#9da3bcff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#9da3bcff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_5e69d6b503a02ec06c613ced5cc2902c = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_cc400a5cbf41167d0846eaf3786ccae3 = $(`<div id="html_cc400a5cbf41167d0846eaf3786ccae3" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #31<br>vias: Br 381<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 69 m · índice: 8.65</div>`)[0];
+                popup_5e69d6b503a02ec06c613ced5cc2902c.setContent(html_cc400a5cbf41167d0846eaf3786ccae3);
+            
+        
+
+        circle_marker_568d8723090b2f0e6b2f51070b73bf7d.bindPopup(popup_5e69d6b503a02ec06c613ced5cc2902c)
+        ;
+
+        
+    
+    
+            circle_marker_568d8723090b2f0e6b2f51070b73bf7d.bindTooltip(
+                `<div>
+                     #31 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b838d0a9ebe3cafe8765bacd5a817b3a = L.circleMarker(
+                [-23.5315422945, -46.520670007],
+                {"bubblingMouseEvents": true, "color": "#a1a5bbff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a1a5bbff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.155417527999328, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_37228f3918f130e5a92e34d2cacfddb5 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_b3e29dec5511a7c261fb5b85525742b5 = $(`<div id="html_b3e29dec5511a7c261fb5b85525742b5" style="width: 100.0%; height: 100.0%;"><b>Avenida Radial Leste</b><br>rank urbano: #17 · rank geral: #30<br>vias: Avenida Radial Leste | Avenida Antonio Estevao De Carvalho | Avenida Conde De Frontin<br>fatais: 0 · não fatais: 20 · peso: 20<br>extensão: 171 m · índice: 8.56</div>`)[0];
+                popup_37228f3918f130e5a92e34d2cacfddb5.setContent(html_b3e29dec5511a7c261fb5b85525742b5);
+            
+        
+
+        circle_marker_b838d0a9ebe3cafe8765bacd5a817b3a.bindPopup(popup_37228f3918f130e5a92e34d2cacfddb5)
+        ;
+
+        
+    
+    
+            circle_marker_b838d0a9ebe3cafe8765bacd5a817b3a.bindTooltip(
+                `<div>
+                     #30 Avenida Radial Leste
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_3c2bbfdd69928499f420d708b27f08b0 = L.circleMarker(
+                [-23.502929210173527, -46.625017053520594],
+                {"bubblingMouseEvents": true, "color": "#a5a6baff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a5a6baff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 15.085125168440815, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_0cedfae3f6b2eb4c87a91e0da02a6f20 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ef5552d6d9aab11287e6c85354e603d5 = $(`<div id="html_ef5552d6d9aab11287e6c85354e603d5" style="width: 100.0%; height: 100.0%;"><b>Rua Leite De Morais</b><br>rank urbano: #16 · rank geral: #29<br>vias: Rua Leite De Morais | Rua Voluntarios Da Patria | Rua Ezequiel Freire<br>fatais: 7 · não fatais: 27 · peso: 48<br>extensão: 404 m · índice: 8.41</div>`)[0];
+                popup_0cedfae3f6b2eb4c87a91e0da02a6f20.setContent(html_ef5552d6d9aab11287e6c85354e603d5);
+            
+        
+
+        circle_marker_3c2bbfdd69928499f420d708b27f08b0.bindPopup(popup_0cedfae3f6b2eb4c87a91e0da02a6f20)
+        ;
+
+        
+    
+    
+            circle_marker_3c2bbfdd69928499f420d708b27f08b0.bindTooltip(
+                `<div>
+                     #29 Rua Leite De Morais
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_a6077a343b07cf1513cc0c3db398a2b5 = L.circleMarker(
+                [-23.62977248902222, -46.6467541682],
+                {"bubblingMouseEvents": true, "color": "#a7a7b9ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#a7a7b9ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_ff78813a09a5c7f908438e8b73d7d2fa = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_207492e7af05fcd3e109a9def482c04c = $(`<div id="html_207492e7af05fcd3e109a9def482c04c" style="width: 100.0%; height: 100.0%;"><b>Avenida Dos Bandeirantes</b><br>rank urbano: #15 · rank geral: #28<br>vias: Avenida Dos Bandeirantes | Avenida Affonso D Escragnolle Taunay | Avenida Jabaquara<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 109 m · índice: 8.36</div>`)[0];
+                popup_ff78813a09a5c7f908438e8b73d7d2fa.setContent(html_207492e7af05fcd3e109a9def482c04c);
+            
+        
+
+        circle_marker_a6077a343b07cf1513cc0c3db398a2b5.bindPopup(popup_ff78813a09a5c7f908438e8b73d7d2fa)
+        ;
+
+        
+    
+    
+            circle_marker_a6077a343b07cf1513cc0c3db398a2b5.bindTooltip(
+                `<div>
+                     #28 Avenida Dos Bandeirantes
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_a3407d5dfe76567ef4e9ea45a6242eec = L.circleMarker(
+                [-23.54870764696111, -46.631437419370826],
+                {"bubblingMouseEvents": true, "color": "#afaab8ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#afaab8ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 18.83778959279313, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_b378b7274c658e145996c3361f936349 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_36acb3bce24e11b26e48d09db9cb5b5f = $(`<div id="html_36acb3bce24e11b26e48d09db9cb5b5f" style="width: 100.0%; height: 100.0%;"><b>Parque Dom Pedro Ii</b><br>rank urbano: #14 · rank geral: #27<br>vias: Parque Dom Pedro Ii | Praca Da Se | Avenida Rangel Pestana<br>fatais: 7 · não fatais: 65 · peso: 86<br>extensão: 699 m · índice: 8.13</div>`)[0];
+                popup_b378b7274c658e145996c3361f936349.setContent(html_36acb3bce24e11b26e48d09db9cb5b5f);
+            
+        
+
+        circle_marker_a3407d5dfe76567ef4e9ea45a6242eec.bindPopup(popup_b378b7274c658e145996c3361f936349)
+        ;
+
+        
+    
+    
+            circle_marker_a3407d5dfe76567ef4e9ea45a6242eec.bindTooltip(
+                `<div>
+                     #27 Parque Dom Pedro Ii
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f0e4051f3cc59a8b0379dba0c41e8c25 = L.circleMarker(
+                [-23.67819529422222, -46.64074646733334],
+                {"bubblingMouseEvents": true, "color": "#b3abb7ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#b3abb7ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_ece0bd2c585896a38afbc95f7eb60962 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_177426fdf5b01f70e1ab47d18ee5bd63 = $(`<div id="html_177426fdf5b01f70e1ab47d18ee5bd63" style="width: 100.0%; height: 100.0%;"><b>Avenida Cupece</b><br>rank urbano: #13 · rank geral: #26<br>vias: Avenida Cupece | Rua Padre Antonio De Gouveia<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 104 m · índice: 8.01</div>`)[0];
+                popup_ece0bd2c585896a38afbc95f7eb60962.setContent(html_177426fdf5b01f70e1ab47d18ee5bd63);
+            
+        
+
+        circle_marker_f0e4051f3cc59a8b0379dba0c41e8c25.bindPopup(popup_ece0bd2c585896a38afbc95f7eb60962)
+        ;
+
+        
+    
+    
+            circle_marker_f0e4051f3cc59a8b0379dba0c41e8c25.bindTooltip(
+                `<div>
+                     #26 Avenida Cupece
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2f087c35ad5c082c5c35b07bbbf377eb = L.circleMarker(
+                [-23.60655444066667, -46.67591332266666],
+                {"bubblingMouseEvents": true, "color": "#cbb5b1ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#cbb5b1ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.196773353931867, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_6865650ccc914f28a19f54d50cf51392 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_b12e2cc21a616acae61ddf6f39dda78c = $(`<div id="html_b12e2cc21a616acae61ddf6f39dda78c" style="width: 100.0%; height: 100.0%;"><b>Avenida Santo Amaro</b><br>rank urbano: #12 · rank geral: #25<br>vias: Avenida Santo Amaro | Spital Santa Paula Av Santo Amaro 2468<br>fatais: 0 · não fatais: 15 · peso: 15<br>extensão: 109 m · índice: 7.26</div>`)[0];
+                popup_6865650ccc914f28a19f54d50cf51392.setContent(html_b12e2cc21a616acae61ddf6f39dda78c);
+            
+        
+
+        circle_marker_2f087c35ad5c082c5c35b07bbbf377eb.bindPopup(popup_6865650ccc914f28a19f54d50cf51392)
+        ;
+
+        
+    
+    
+            circle_marker_2f087c35ad5c082c5c35b07bbbf377eb.bindTooltip(
+                `<div>
+                     #25 Avenida Santo Amaro
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_15e1c9695871ca9faf39f26e02de59fe = L.circleMarker(
+                [-23.52164773706522, -46.63816818771739],
+                {"bubblingMouseEvents": true, "color": "#d7b9aeff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#d7b9aeff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.616263691415206, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_added80060b6f65a1208668deca27169 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_c85fcb1f708f80cd4e03597921f936ad = $(`<div id="html_c85fcb1f708f80cd4e03597921f936ad" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Estado</b><br>rank urbano: #11 · rank geral: #24<br>vias: Avenida Do Estado | Avenida Presidente Castelo Branco | Sp 015 - Tiete<br>fatais: 3 · não fatais: 20 · peso: 29<br>extensão: 200 m · índice: 6.91</div>`)[0];
+                popup_added80060b6f65a1208668deca27169.setContent(html_c85fcb1f708f80cd4e03597921f936ad);
+            
+        
+
+        circle_marker_15e1c9695871ca9faf39f26e02de59fe.bindPopup(popup_added80060b6f65a1208668deca27169)
+        ;
+
+        
+    
+    
+            circle_marker_15e1c9695871ca9faf39f26e02de59fe.bindTooltip(
+                `<div>
+                     #24 Avenida Do Estado
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7806d0211e4a756ef9d6e4e5bfc91c5c = L.circleMarker(
+                [-23.744618389516663, -46.67043664575001],
+                {"bubblingMouseEvents": true, "color": "#debcadff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#debcadff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_dfe0a661477f3225e51a6f5cd2d1b8e5 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8c001a7ab42f7064921897c2657cf685 = $(`<div id="html_8c001a7ab42f7064921897c2657cf685" style="width: 100.0%; height: 100.0%;"><b>Rua Demas Zitto</b><br>rank urbano: #10 · rank geral: #23<br>vias: Rua Demas Zitto | Estrada Canal De Cocaia | Estrada Canal Da Cocaia<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 53 m · índice: 6.68</div>`)[0];
+                popup_dfe0a661477f3225e51a6f5cd2d1b8e5.setContent(html_8c001a7ab42f7064921897c2657cf685);
+            
+        
+
+        circle_marker_7806d0211e4a756ef9d6e4e5bfc91c5c.bindPopup(popup_dfe0a661477f3225e51a6f5cd2d1b8e5)
+        ;
+
+        
+    
+    
+            circle_marker_7806d0211e4a756ef9d6e4e5bfc91c5c.bindTooltip(
+                `<div>
+                     #23 Rua Demas Zitto
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f50b9fd75f63720bcf76c4bbdf81bbfa = L.circleMarker(
+                [-23.539251827521056, -46.4697628099],
+                {"bubblingMouseEvents": true, "color": "#f1c3a8ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f1c3a8ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.67333043730035, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_3026849d47aec9d8b0cd8b2eb595ad04 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_b20c8bc40f6ce1421f8341143c1540b2 = $(`<div id="html_b20c8bc40f6ce1421f8341143c1540b2" style="width: 100.0%; height: 100.0%;"><b>Avenida Jose Pinheiro Borges</b><br>rank urbano: #9 · rank geral: #22<br>vias: Avenida Jose Pinheiro Borges | Avenida Do Contorno | Rua Marinho Arcanjo Dos Santos<br>fatais: 2 · não fatais: 17 · peso: 23<br>extensão: 141 m · índice: 6.11</div>`)[0];
+                popup_3026849d47aec9d8b0cd8b2eb595ad04.setContent(html_b20c8bc40f6ce1421f8341143c1540b2);
+            
+        
+
+        circle_marker_f50b9fd75f63720bcf76c4bbdf81bbfa.bindPopup(popup_3026849d47aec9d8b0cd8b2eb595ad04)
+        ;
+
+        
+    
+    
+            circle_marker_f50b9fd75f63720bcf76c4bbdf81bbfa.bindTooltip(
+                `<div>
+                     #22 Avenida Jose Pinheiro Borges
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2d66de44a6efb6d6e0a3a0f54a505db1 = L.circleMarker(
+                [-23.667987247824996, -46.737702021875],
+                {"bubblingMouseEvents": true, "color": "#f2c1a6ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2c1a6ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_90cc9b23415435d1cca4dadbc11cce47 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_a68418b0e949f8fc9bdf209c0e3e97fc = $(`<div id="html_a68418b0e949f8fc9bdf209c0e3e97fc" style="width: 100.0%; height: 100.0%;"><b>Avenida Luiz Gushiken</b><br>rank urbano: #8 · rank geral: #21<br>vias: Avenida Luiz Gushiken<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 48 m · índice: 5.96</div>`)[0];
+                popup_90cc9b23415435d1cca4dadbc11cce47.setContent(html_a68418b0e949f8fc9bdf209c0e3e97fc);
+            
+        
+
+        circle_marker_2d66de44a6efb6d6e0a3a0f54a505db1.bindPopup(popup_90cc9b23415435d1cca4dadbc11cce47)
+        ;
+
+        
+    
+    
+            circle_marker_2d66de44a6efb6d6e0a3a0f54a505db1.bindTooltip(
+                `<div>
+                     #21 Avenida Luiz Gushiken
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_05323d1f82bba6a7933f614bbf5e142b = L.circleMarker(
+                [-23.531940892433333, -46.45601792593334],
+                {"bubblingMouseEvents": true, "color": "#f2bca0ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2bca0ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_4024f316cbac474c8bdc41a73c5f3dba = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_79d3f0d26961ecd3449e4951b657d447 = $(`<div id="html_79d3f0d26961ecd3449e4951b657d447" style="width: 100.0%; height: 100.0%;"><b>Avenida Jacupessego</b><br>rank urbano: #7 · rank geral: #20<br>vias: Avenida Jacupessego | Rua Itubera | Avenida Jacu-Pessego<br>fatais: 2 · não fatais: 7 · peso: 13<br>extensão: 73 m · índice: 5.63</div>`)[0];
+                popup_4024f316cbac474c8bdc41a73c5f3dba.setContent(html_79d3f0d26961ecd3449e4951b657d447);
+            
+        
+
+        circle_marker_05323d1f82bba6a7933f614bbf5e142b.bindPopup(popup_4024f316cbac474c8bdc41a73c5f3dba)
+        ;
+
+        
+    
+    
+            circle_marker_05323d1f82bba6a7933f614bbf5e142b.bindTooltip(
+                `<div>
+                     #20 Avenida Jacupessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_31160a14d339f14c6faef6144abefa59 = L.circleMarker(
+                [-23.672475720992423, -46.74304288045758],
+                {"bubblingMouseEvents": true, "color": "#f2ba9cff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f2ba9cff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 17.576450198781714, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_ae69e6da6f52672f5387d9086d0ca685 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_bd38240df00975fc82013931f341ab0b = $(`<div id="html_bd38240df00975fc82013931f341ab0b" style="width: 100.0%; height: 100.0%;"><b>Acesso Estrada Do M Boi Mirim</b><br>rank urbano: #6 · rank geral: #19<br>vias: Acesso Estrada Do M Boi Mirim | Avenida Luiz Gushiken | Estrada Do M'Boi Mirim<br>fatais: 3 · não fatais: 63 · peso: 72<br>extensão: 391 m · índice: 5.44</div>`)[0];
+                popup_ae69e6da6f52672f5387d9086d0ca685.setContent(html_bd38240df00975fc82013931f341ab0b);
+            
+        
+
+        circle_marker_31160a14d339f14c6faef6144abefa59.bindPopup(popup_ae69e6da6f52672f5387d9086d0ca685)
+        ;
+
+        
+    
+    
+            circle_marker_31160a14d339f14c6faef6144abefa59.bindTooltip(
+                `<div>
+                     #19 Acesso Estrada Do M Boi Mirim
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_7cc85b08b5126026398c3444c1d1ffbb = L.circleMarker(
+                [-23.746690865, -46.68810891333334],
+                {"bubblingMouseEvents": true, "color": "#f1ac8bff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f1ac8bff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_05357ce922e9135773a73ed9a053ed7c = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_1a20c7f037d5489ff8975c1d7e723910 = $(`<div id="html_1a20c7f037d5489ff8975c1d7e723910" style="width: 100.0%; height: 100.0%;"><b>Avenida Dona Belmira Marin</b><br>rank urbano: #5 · rank geral: #18<br>vias: Avenida Dona Belmira Marin<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 36 m · índice: 4.54</div>`)[0];
+                popup_05357ce922e9135773a73ed9a053ed7c.setContent(html_1a20c7f037d5489ff8975c1d7e723910);
+            
+        
+
+        circle_marker_7cc85b08b5126026398c3444c1d1ffbb.bindPopup(popup_05357ce922e9135773a73ed9a053ed7c)
+        ;
+
+        
+    
+    
+            circle_marker_7cc85b08b5126026398c3444c1d1ffbb.bindTooltip(
+                `<div>
+                     #18 Avenida Dona Belmira Marin
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_ca1e4c0599f5386462d097c642c0e9a0 = L.circleMarker(
+                [-23.72203097679286, -46.78514218943929],
+                {"bubblingMouseEvents": true, "color": "#f0a987ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a987ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.763560920082659, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_5eac99623d50847c6a30d970ea84d446 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_dd97ae3e6296a3a55b56b75a80f5cff1 = $(`<div id="html_dd97ae3e6296a3a55b56b75a80f5cff1" style="width: 100.0%; height: 100.0%;"><b>Estrada Do M'Boi Mirim</b><br>rank urbano: #4 · rank geral: #17<br>vias: Estrada Do M'Boi Mirim | Estrada M Boi Mirim | Estrada Do M Boi Mirim<br>fatais: 1 · não fatais: 27 · peso: 30<br>extensão: 130 m · índice: 4.34</div>`)[0];
+                popup_5eac99623d50847c6a30d970ea84d446.setContent(html_dd97ae3e6296a3a55b56b75a80f5cff1);
+            
+        
+
+        circle_marker_ca1e4c0599f5386462d097c642c0e9a0.bindPopup(popup_5eac99623d50847c6a30d970ea84d446)
+        ;
+
+        
+    
+    
+            circle_marker_ca1e4c0599f5386462d097c642c0e9a0.bindTooltip(
+                `<div>
+                     #17 Estrada Do M'Boi Mirim
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bc86567e9454488235b6e0d25cdbfaf6 = L.circleMarker(
+                [-23.562770267906245, -46.612324145525],
+                {"bubblingMouseEvents": true, "color": "#f0a885ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a885ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.155417527999328, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_f3ce2bd3531a9525ba451391edcc8e1b = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_94337a40fa8da1663e0ee62c66a19f63 = $(`<div id="html_94337a40fa8da1663e0ee62c66a19f63" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Estado</b><br>rank urbano: #3 · rank geral: #16<br>vias: Avenida Do Estado<br>fatais: 2 · não fatais: 14 · peso: 20<br>extensão: 85 m · índice: 4.24</div>`)[0];
+                popup_f3ce2bd3531a9525ba451391edcc8e1b.setContent(html_94337a40fa8da1663e0ee62c66a19f63);
+            
+        
+
+        circle_marker_bc86567e9454488235b6e0d25cdbfaf6.bindPopup(popup_f3ce2bd3531a9525ba451391edcc8e1b)
+        ;
+
+        
+    
+    
+            circle_marker_bc86567e9454488235b6e0d25cdbfaf6.bindTooltip(
+                `<div>
+                     #16 Avenida Do Estado
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_6e557903a34cee7da4aef95df53ff636 = L.circleMarker(
+                [-23.583082819599998, -46.7751105939],
+                {"bubblingMouseEvents": true, "color": "#f0a17dff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a17dff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.542562584220407, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_7c9dc926b639141437399c4cec214530 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_37d001280b03cf20bbeadabccbb92fc4 = $(`<div id="html_37d001280b03cf20bbeadabccbb92fc4" style="width: 100.0%; height: 100.0%;"><b>Sp 270</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #15<br>vias: Sp 270 | Rua Joaquim Lapas Veiga<br>fatais: 4 · não fatais: 0 · peso: 12<br>extensão: 46 m · índice: 3.82</div>`)[0];
+                popup_7c9dc926b639141437399c4cec214530.setContent(html_37d001280b03cf20bbeadabccbb92fc4);
+            
+        
+
+        circle_marker_6e557903a34cee7da4aef95df53ff636.bindPopup(popup_7c9dc926b639141437399c4cec214530)
+        ;
+
+        
+    
+    
+            circle_marker_6e557903a34cee7da4aef95df53ff636.bindTooltip(
+                `<div>
+                     #15 Sp 270
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_10828182108c8063f05e65d4863809f0 = L.circleMarker(
+                [-23.5037375777, -46.636481662250006],
+                {"bubblingMouseEvents": true, "color": "#f0a07cff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#f0a07cff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_9c107421aaf029e453c9854d4ba550bb = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ef543a0dd25cafa56862d0bd825a0a48 = $(`<div id="html_ef543a0dd25cafa56862d0bd825a0a48" style="width: 100.0%; height: 100.0%;"><b>Avenida Braz Leme</b><br>rank urbano: #2 · rank geral: #14<br>vias: Avenida Braz Leme<br>fatais: 2 · não fatais: 2 · peso: 8<br>extensão: 30 m · índice: 3.75</div>`)[0];
+                popup_9c107421aaf029e453c9854d4ba550bb.setContent(html_ef543a0dd25cafa56862d0bd825a0a48);
+            
+        
+
+        circle_marker_10828182108c8063f05e65d4863809f0.bindPopup(popup_9c107421aaf029e453c9854d4ba550bb)
+        ;
+
+        
+    
+    
+            circle_marker_10828182108c8063f05e65d4863809f0.bindTooltip(
+                `<div>
+                     #14 Avenida Braz Leme
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9996241bc4dc27c7b7519a75aa14d1d8 = L.circleMarker(
+                [-23.513499371428573, -46.44380351000001],
+                {"bubblingMouseEvents": true, "color": "#ef976fff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ef976fff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.4, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_66784b091d343ad2a1e584c4aa2e11ed = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_a882ae52d7f1cac1660015a3ce697245 = $(`<div id="html_a882ae52d7f1cac1660015a3ce697245" style="width: 100.0%; height: 100.0%;"><b>Avenida Do Imperador</b><br>rank urbano: #1 · rank geral: #13<br>vias: Avenida Do Imperador | Avenida Imperador | Rua Fava De Arara<br>fatais: 1 · não fatais: 13 · peso: 16<br>extensão: 50 m · índice: 3.12</div>`)[0];
+                popup_66784b091d343ad2a1e584c4aa2e11ed.setContent(html_a882ae52d7f1cac1660015a3ce697245);
+            
+        
+
+        circle_marker_9996241bc4dc27c7b7519a75aa14d1d8.bindPopup(popup_66784b091d343ad2a1e584c4aa2e11ed)
+        ;
+
+        
+    
+    
+            circle_marker_9996241bc4dc27c7b7519a75aa14d1d8.bindTooltip(
+                `<div>
+                     #13 Avenida Do Imperador
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_f8a1039b68b32a92ae0f20dccedd9516 = L.circleMarker(
+                [-23.64433681866667, -46.58471725966666],
+                {"bubblingMouseEvents": true, "color": "#ee8d64ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee8d64ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_2e253823872741e70c4c63d788605934 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_7de0b3936ae0b0a0a0e08e4cc391f0e5 = $(`<div id="html_7de0b3936ae0b0a0a0e08e4cc391f0e5" style="width: 100.0%; height: 100.0%;"><b>Avenida Anchieta</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #12<br>vias: Avenida Anchieta | Sp 150<br>fatais: 1 · não fatais: 5 · peso: 8<br>extensão: 0 m · índice: 2.50</div>`)[0];
+                popup_2e253823872741e70c4c63d788605934.setContent(html_7de0b3936ae0b0a0a0e08e4cc391f0e5);
+            
+        
+
+        circle_marker_f8a1039b68b32a92ae0f20dccedd9516.bindPopup(popup_2e253823872741e70c4c63d788605934)
+        ;
+
+        
+    
+    
+            circle_marker_f8a1039b68b32a92ae0f20dccedd9516.bindTooltip(
+                `<div>
+                     #12 Avenida Anchieta
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_74feff5936d915a0ec1c892c82959a54 = L.circleMarker(
+                [-23.50475826, -46.50686145],
+                {"bubblingMouseEvents": true, "color": "#ee8d64ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee8d64ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.525483399593906, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_fc19817ba51675624e08f08088f27242 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d0f3d2449f3dca7b9b3de13043d8898d = $(`<div id="html_d0f3d2449f3dca7b9b3de13043d8898d" style="width: 100.0%; height: 100.0%;"><b>Avenida Cangaiba</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #11<br>vias: Avenida Cangaiba<br>fatais: 0 · não fatais: 8 · peso: 8<br>extensão: 0 m · índice: 2.50</div>`)[0];
+                popup_fc19817ba51675624e08f08088f27242.setContent(html_d0f3d2449f3dca7b9b3de13043d8898d);
+            
+        
+
+        circle_marker_74feff5936d915a0ec1c892c82959a54.bindPopup(popup_fc19817ba51675624e08f08088f27242)
+        ;
+
+        
+    
+    
+            circle_marker_74feff5936d915a0ec1c892c82959a54.bindTooltip(
+                `<div>
+                     #11 Avenida Cangaiba
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d56ba95b684de8645d426c296ff033da = L.circleMarker(
+                [-23.619195540366672, -46.44704966853333],
+                {"bubblingMouseEvents": true, "color": "#ee895eff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee895eff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_14c13ac4c46cda06e149dbe6a7d5b53e = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_fb2dadc0bf62f66461328e8503c9a989 = $(`<div id="html_fb2dadc0bf62f66461328e8503c9a989" style="width: 100.0%; height: 100.0%;"><b>Avenida Vice-Presidente Jose Alencar Gomes Da Silva</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #10<br>vias: Avenida Vice-Presidente Jose Alencar Gomes Da Silva | Avenida Vice Presidente Jose Alencar Gomes Da Silva<br>fatais: 3 · não fatais: 0 · peso: 9<br>extensão: 2 m · índice: 2.22</div>`)[0];
+                popup_14c13ac4c46cda06e149dbe6a7d5b53e.setContent(html_fb2dadc0bf62f66461328e8503c9a989);
+            
+        
+
+        circle_marker_d56ba95b684de8645d426c296ff033da.bindPopup(popup_14c13ac4c46cda06e149dbe6a7d5b53e)
+        ;
+
+        
+    
+    
+            circle_marker_d56ba95b684de8645d426c296ff033da.bindTooltip(
+                `<div>
+                     #10 Avenida Vice-Presidente Jose Alencar Gomes Da Silva
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2bfc02d8113375aa4bdbb0035857cd80 = L.circleMarker(
+                [-23.586298441, -46.758632581],
+                {"bubblingMouseEvents": true, "color": "#ee895eff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee895eff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.8, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_1f16f79e882a779a3d36fc433b933199 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_a2027384d1b76db2484d2c067d4393f7 = $(`<div id="html_a2027384d1b76db2484d2c067d4393f7" style="width: 100.0%; height: 100.0%;"><b>Sp 270</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #9<br>vias: Sp 270<br>fatais: 0 · não fatais: 9 · peso: 9<br>extensão: 0 m · índice: 2.22</div>`)[0];
+                popup_1f16f79e882a779a3d36fc433b933199.setContent(html_a2027384d1b76db2484d2c067d4393f7);
+            
+        
+
+        circle_marker_2bfc02d8113375aa4bdbb0035857cd80.bindPopup(popup_1f16f79e882a779a3d36fc433b933199)
+        ;
+
+        
+    
+    
+            circle_marker_2bfc02d8113375aa4bdbb0035857cd80.bindTooltip(
+                `<div>
+                     #9 Sp 270
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_bf6db1848b5a21fa573cc830b9efaf85 = L.circleMarker(
+                [-23.4714171252, -46.56485542415],
+                {"bubblingMouseEvents": true, "color": "#ee865aff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee865aff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.059644256269408, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_585bab6319ec813b33dd50e093dc19d7 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_75454ba916f12af5bd3b381be7fde8c6 = $(`<div id="html_75454ba916f12af5bd3b381be7fde8c6" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #8<br>vias: Br 381<br>fatais: 3 · não fatais: 1 · peso: 10<br>extensão: 5 m · índice: 2.00</div>`)[0];
+                popup_585bab6319ec813b33dd50e093dc19d7.setContent(html_75454ba916f12af5bd3b381be7fde8c6);
+            
+        
+
+        circle_marker_bf6db1848b5a21fa573cc830b9efaf85.bindPopup(popup_585bab6319ec813b33dd50e093dc19d7)
+        ;
+
+        
+    
+    
+            circle_marker_bf6db1848b5a21fa573cc830b9efaf85.bindTooltip(
+                `<div>
+                     #8 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_457b844a98374bfd7b235c26b8765407 = L.circleMarker(
+                [-23.501972688339997, -46.7543465065],
+                {"bubblingMouseEvents": true, "color": "#ee8357ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ee8357ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.30659966456864, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_97ac2b60bf307738f4e57aa22b6662c2 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_d7740a870c2600a1932d3df052abef13 = $(`<div id="html_d7740a870c2600a1932d3df052abef13" style="width: 100.0%; height: 100.0%;"><b>Sp 330</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #7<br>vias: Sp 330<br>fatais: 3 · não fatais: 2 · peso: 11<br>extensão: 5 m · índice: 1.82</div>`)[0];
+                popup_97ac2b60bf307738f4e57aa22b6662c2.setContent(html_d7740a870c2600a1932d3df052abef13);
+            
+        
+
+        circle_marker_457b844a98374bfd7b235c26b8765407.bindPopup(popup_97ac2b60bf307738f4e57aa22b6662c2)
+        ;
+
+        
+    
+    
+            circle_marker_457b844a98374bfd7b235c26b8765407.bindTooltip(
+                `<div>
+                     #7 Sp 330
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b6d57ae06f1b0e9c1063ab7cb9066217 = L.circleMarker(
+                [-23.432320922125, -46.569143994375004],
+                {"bubblingMouseEvents": true, "color": "#ed8154ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ed8154ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.542562584220407, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_f85c5ed3147a2695984b72d74ecb87c6 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_aabeff369b95be9a355a074700dcabcb = $(`<div id="html_aabeff369b95be9a355a074700dcabcb" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #6<br>vias: Br 381<br>fatais: 4 · não fatais: 0 · peso: 12<br>extensão: 5 m · índice: 1.67</div>`)[0];
+                popup_f85c5ed3147a2695984b72d74ecb87c6.setContent(html_aabeff369b95be9a355a074700dcabcb);
+            
+        
+
+        circle_marker_b6d57ae06f1b0e9c1063ab7cb9066217.bindPopup(popup_f85c5ed3147a2695984b72d74ecb87c6)
+        ;
+
+        
+    
+    
+            circle_marker_b6d57ae06f1b0e9c1063ab7cb9066217.bindTooltip(
+                `<div>
+                     #6 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_e72cff0e438f2fc40da7634eb1407718 = L.circleMarker(
+                [-23.481616814307685, -46.45312070338462],
+                {"bubblingMouseEvents": true, "color": "#ed7f51ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ed7f51ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.768882040742383, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_d01e3c17dac0fbb5103572ccb92ea53b = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_8417cbfe0f490628bae266488beb092f = $(`<div id="html_8417cbfe0f490628bae266488beb092f" style="width: 100.0%; height: 100.0%;"><b>Avenida Jacu Pessego</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #5<br>vias: Avenida Jacu Pessego<br>fatais: 0 · não fatais: 13 · peso: 13<br>extensão: 15 m · índice: 1.54</div>`)[0];
+                popup_d01e3c17dac0fbb5103572ccb92ea53b.setContent(html_8417cbfe0f490628bae266488beb092f);
+            
+        
+
+        circle_marker_e72cff0e438f2fc40da7634eb1407718.bindPopup(popup_d01e3c17dac0fbb5103572ccb92ea53b)
+        ;
+
+        
+    
+    
+            circle_marker_e72cff0e438f2fc40da7634eb1407718.bindTooltip(
+                `<div>
+                     #5 Avenida Jacu Pessego
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_721ad9708bab23a0ac112ed2dc62c063 = L.circleMarker(
+                [-23.449268559825, -46.569566858274996],
+                {"bubblingMouseEvents": true, "color": "#ed7d4fff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ed7d4fff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.986651818838308, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_262c16f856ab5d7167aeab9fc9dd8cd0 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_3d6a8776390a51ee694f64d5c990f340 = $(`<div id="html_3d6a8776390a51ee694f64d5c990f340" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #4<br>vias: Br 381<br>fatais: 3 · não fatais: 5 · peso: 14<br>extensão: 5 m · índice: 1.43</div>`)[0];
+                popup_262c16f856ab5d7167aeab9fc9dd8cd0.setContent(html_3d6a8776390a51ee694f64d5c990f340);
+            
+        
+
+        circle_marker_721ad9708bab23a0ac112ed2dc62c063.bindPopup(popup_262c16f856ab5d7167aeab9fc9dd8cd0)
+        ;
+
+        
+    
+    
+            circle_marker_721ad9708bab23a0ac112ed2dc62c063.bindTooltip(
+                `<div>
+                     #4 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_b273176d42d66426d9136a2c2c23338c = L.circleMarker(
+                [-23.4577295287, -46.57131718986667],
+                {"bubblingMouseEvents": true, "color": "#ed7646ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ed7646ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.332121111929343, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_7b0c55ef7ad0e07c8edf77376ecc6fb5 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_ad18f1f0018b7138cd227a600be786f1 = $(`<div id="html_ad18f1f0018b7138cd227a600be786f1" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #3<br>vias: Br 381<br>fatais: 6 · não fatais: 3 · peso: 21<br>extensão: 5 m · índice: 0.95</div>`)[0];
+                popup_7b0c55ef7ad0e07c8edf77376ecc6fb5.setContent(html_ad18f1f0018b7138cd227a600be786f1);
+            
+        
+
+        circle_marker_b273176d42d66426d9136a2c2c23338c.bindPopup(popup_7b0c55ef7ad0e07c8edf77376ecc6fb5)
+        ;
+
+        
+    
+    
+            circle_marker_b273176d42d66426d9136a2c2c23338c.bindTooltip(
+                `<div>
+                     #3 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_db5c52153ee9aea1e81e1f1648bcae40 = L.circleMarker(
+                [-23.44080990818, -46.567857859220005],
+                {"bubblingMouseEvents": true, "color": "#ec7444ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ec7444ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.83836717690617, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_8b97e93981944f705b6b55722157c138 = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_bb1059d16764a7eb8044ddd853d330f0 = $(`<div id="html_bb1059d16764a7eb8044ddd853d330f0" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #2<br>vias: Br 381<br>fatais: 7 · não fatais: 3 · peso: 24<br>extensão: 5 m · índice: 0.83</div>`)[0];
+                popup_8b97e93981944f705b6b55722157c138.setContent(html_bb1059d16764a7eb8044ddd853d330f0);
+            
+        
+
+        circle_marker_db5c52153ee9aea1e81e1f1648bcae40.bindPopup(popup_8b97e93981944f705b6b55722157c138)
+        ;
+
+        
+    
+    
+            circle_marker_db5c52153ee9aea1e81e1f1648bcae40.bindTooltip(
+                `<div>
+                     #2 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d833f784d1aff8800f63f957f0aa7d88 = L.circleMarker(
+                [-23.46636541990625, -46.571497230737506],
+                {"bubblingMouseEvents": true, "color": "#ec7444ff", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "#ec7444ff", "fillOpacity": 0.65, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.83836717690617, "stroke": true, "weight": 1.5}
+            ).addTo(feature_group_51e3fbd2deb2f81e51a660854324083e);
+        
+    
+        var popup_cb97280e8274bbd8db4d2e9d895837fa = L.popup({
+  "maxWidth": 340,
+});
+
+        
+            
+                var html_f01cc937c9e776c7ff47a08a8954e043 = $(`<div id="html_f01cc937c9e776c7ff47a08a8954e043" style="width: 100.0%; height: 100.0%;"><b>Br 381</b><br>rank urbano: fora (rodovia/empilhado) · rank geral: #1<br>vias: Br 381<br>fatais: 4 · não fatais: 12 · peso: 24<br>extensão: 5 m · índice: 0.83</div>`)[0];
+                popup_cb97280e8274bbd8db4d2e9d895837fa.setContent(html_f01cc937c9e776c7ff47a08a8954e043);
+            
+        
+
+        circle_marker_d833f784d1aff8800f63f957f0aa7d88.bindPopup(popup_cb97280e8274bbd8db4d2e9d895837fa)
+        ;
+
+        
+    
+    
+            circle_marker_d833f784d1aff8800f63f957f0aa7d88.bindTooltip(
+                `<div>
+                     #1 Br 381
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8fd593e61338eb5b67566f5bf795b800 = L.marker(
+                [-23.542310645, -46.6165536],
+                {
+}
+            ).addTo(map_deff4dd1452e3cc5af3b2731048fb8ea);
+        
+    
+            var icon_186df4230dc192eead28db3bdfc28e00 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "black",
+  "iconColor": "white",
+  "icon": "star",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9e093d1faf555997f1f02995acf6bbdd = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0361111ee4e4f8ede7d335696144a501 = $(`<div id="html_0361111ee4e4f8ede7d335696144a501" style="width: 100.0%; height: 100.0%;"><b>Piloto do projeto</b><br>Largo da Concórdia / Av. Celso Garcia</div>`)[0];
+                popup_9e093d1faf555997f1f02995acf6bbdd.setContent(html_0361111ee4e4f8ede7d335696144a501);
+            
+        
+
+        marker_8fd593e61338eb5b67566f5bf795b800.bindPopup(popup_9e093d1faf555997f1f02995acf6bbdd)
+        ;
+
+        
+    
+    
+            marker_8fd593e61338eb5b67566f5bf795b800.bindTooltip(
+                `<div>
+                     Piloto: Largo da Concórdia (Brás)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8fd593e61338eb5b67566f5bf795b800.setIcon(icon_186df4230dc192eead28db3bdfc28e00);
+            
+    
+    var color_map_35ad63cbced48714a304d57b81e39f97 = {};
+
+    
+    color_map_35ad63cbced48714a304d57b81e39f97.color = d3.scale.threshold()
+              .domain([0.0, 0.024359745089800232, 0.048719490179600464, 0.07307923526940069, 0.09743898035920093, 0.12179872544900117, 0.14615847053880138, 0.17051821562860164, 0.19487796071840185, 0.21923770580820207, 0.24359745089800233, 0.26795719598780254, 0.29231694107760275, 0.31667668616740297, 0.3410364312572033, 0.3653961763470035, 0.3897559214368037, 0.4141156665266039, 0.43847541161640413, 0.46283515670620445, 0.48719490179600466, 0.5115546468858049, 0.5359143919756051, 0.5602741370654053, 0.5846338821552055, 0.6089936272450057, 0.6333533723348059, 0.6577131174246064, 0.6820728625144066, 0.7064326076042068, 0.730792352694007, 0.7551520977838072, 0.7795118428736074, 0.8038715879634076, 0.8282313330532078, 0.852591078143008, 0.8769508232328083, 0.9013105683226085, 0.9256703134124089, 0.9500300585022091, 0.9743898035920093, 0.9987495486818095, 1.0231092937716098, 1.04746903886141, 1.0718287839512102, 1.0961885290410105, 1.1205482741308106, 1.144908019220611, 1.169267764310411, 1.1936275094002113, 1.2179872544900114, 1.2423469995798118, 1.2667067446696119, 1.2910664897594122, 1.3154262348492127, 1.3397859799390128, 1.3641457250288131, 1.3885054701186132, 1.4128652152084136, 1.4372249602982137, 1.461584705388014, 1.485944450477814, 1.5103041955676144, 1.5346639406574145, 1.5590236857472148, 1.5833834308370152, 1.6077431759268153, 1.6321029210166156, 1.6564626661064157, 1.680822411196216, 1.705182156286016, 1.7295419013758164, 1.7539016464656165, 1.7782613915554168, 1.802621136645217, 1.8269808817350173, 1.8513406268248178, 1.875700371914618, 1.9000601170044182, 1.9244198620942183, 1.9487796071840187, 1.9731393522738188, 1.997499097363619, 2.021858842453419, 2.0462185875432195, 2.0705783326330196, 2.09493807772282, 2.1192978228126202, 2.1436575679024203, 2.168017312992221, 2.192377058082021, 2.216736803171821, 2.241096548261621, 2.2654562933514217, 2.289816038441222, 2.314175783531022, 2.338535528620822, 2.3628952737106226, 2.3872550188004227, 2.4116147638902232, 2.435974508980023, 2.4603342540698234, 2.4846939991596235, 2.509053744249424, 2.5334134893392237, 2.5577732344290243, 2.5821329795188244, 2.606492724608625, 2.6308524696984255, 2.655212214788225, 2.6795719598780257, 2.7039317049678258, 2.7282914500576263, 2.752651195147426, 2.7770109402372265, 2.8013706853270266, 2.825730430416827, 2.850090175506627, 2.8744499205964273, 2.8988096656862274, 2.923169410776028, 2.947529155865828, 2.971888900955628, 2.9962486460454283, 3.020608391135229, 3.044968136225029, 3.069327881314829, 3.093687626404629, 3.1180473714944297, 3.1424071165842298, 3.1667668616740303, 3.1911266067638304, 3.2154863518536305, 3.239846096943431, 3.264205842033231, 3.2885655871230313, 3.3129253322128314, 3.337285077302632, 3.361644822392432, 3.3860045674822326, 3.410364312572032, 3.4347240576618328, 3.459083802751633, 3.4834435478414334, 3.507803292931233, 3.5321630380210336, 3.5565227831108337, 3.5808825282006342, 3.605242273290434, 3.6296020183802344, 3.6539617634700345, 3.678321508559835, 3.7026812536496356, 3.7270409987394353, 3.751400743829236, 3.775760488919036, 3.8001202340088365, 3.824479979098636, 3.8488397241884367, 3.8731994692782368, 3.8975592143680373, 3.9219189594578374, 3.9462787045476375, 3.9706384496374376, 3.994998194727238, 4.019357939817039, 4.043717684906838, 4.068077429996639, 4.092437175086439, 4.116796920176239, 4.141156665266039, 4.16551641035584, 4.18987615544564, 4.2142359005354395, 4.2385956456252405, 4.262955390715041, 4.287315135804841, 4.311674880894641, 4.336034625984442, 4.360394371074242, 4.384754116164042, 4.409113861253841, 4.433473606343642, 4.457833351433442, 4.482193096523242, 4.5065528416130425, 4.5309125867028435, 4.555272331792644, 4.579632076882444, 4.603991821972244, 4.628351567062044, 4.652711312151844, 4.677071057241644, 4.701430802331444, 4.725790547421245, 4.750150292511045, 4.774510037600845, 4.798869782690646, 4.8232295277804464, 4.847589272870246, 4.871949017960046, 4.896308763049847, 4.920668508139647, 4.945028253229447, 4.969387998319247, 4.993747743409048, 5.018107488498848, 5.042467233588648, 5.0668269786784474, 5.091186723768248, 5.1155464688580485, 5.139906213947849, 5.164265959037649, 5.18862570412745, 5.21298544921725, 5.23734519430705, 5.261704939396851, 5.28606468448665, 5.31042442957645, 5.33478417466625, 5.359143919756051, 5.383503664845851, 5.4078634099356515, 5.432223155025452, 5.456582900115253, 5.480942645205053, 5.505302390294852, 5.529662135384652, 5.554021880474453, 5.578381625564253, 5.602741370654053, 5.627101115743853, 5.651460860833654, 5.675820605923454, 5.700180351013254, 5.724540096103054, 5.748899841192855, 5.773259586282655, 5.797619331372455, 5.821979076462256, 5.846338821552056, 5.870698566641856, 5.895058311731656, 5.919418056821456, 5.943777801911256, 5.9681375470010565, 5.992497292090857, 6.016857037180658, 6.041216782270458, 6.065576527360258, 6.089936272450058, 6.114296017539859, 6.138655762629658, 6.163015507719458, 6.187375252809258, 6.211734997899059, 6.236094742988859, 6.2604544880786595, 6.2848142331684596, 6.3091739782582605, 6.333533723348061, 6.35789346843786, 6.382253213527661, 6.406612958617461, 6.430972703707261, 6.455332448797061, 6.479692193886862, 6.504051938976662, 6.528411684066462, 6.552771429156262, 6.5771311742460625, 6.601490919335863, 6.625850664425663, 6.650210409515463, 6.674570154605264, 6.698929899695064, 6.723289644784864, 6.747649389874664, 6.772009134964465, 6.796368880054264, 6.820728625144064, 6.8450883702338645, 6.8694481153236655, 6.893807860413466, 6.918167605503266, 6.942527350593067, 6.966887095682867, 6.991246840772666, 7.015606585862466, 7.039966330952267, 7.064326076042067, 7.088685821131867, 7.113045566221667, 7.137405311311468, 7.1617650564012685, 7.186124801491069, 7.210484546580868, 7.234844291670669, 7.259204036760469, 7.283563781850269, 7.307923526940069, 7.33228327202987, 7.35664301711967, 7.38100276220947, 7.405362507299271, 7.4297222523890705, 7.454081997478871, 7.478441742568671, 7.502801487658472, 7.527161232748272, 7.551520977838072, 7.575880722927872, 7.600240468017673, 7.624600213107473, 7.648959958197272, 7.673319703287072, 7.697679448376873, 7.7220391934666734, 7.7463989385564735, 7.770758683646274, 7.795118428736075, 7.819478173825875, 7.843837918915675, 7.868197664005474, 7.892557409095275, 7.916917154185075, 7.941276899274875, 7.965636644364676, 7.989996389454476, 8.014356134544277, 8.038715879634077, 8.063075624723878, 8.087435369813676, 8.111795114903478, 8.136154859993278, 8.160514605083078, 8.184874350172878, 8.209234095262678, 8.233593840352478, 8.257953585442278, 8.282313330532078, 8.306673075621879, 8.33103282071168, 8.355392565801479, 8.37975231089128, 8.40411205598108, 8.428471801070879, 8.45283154616068, 8.477191291250481, 8.501551036340281, 8.525910781430081, 8.550270526519881, 8.574630271609681, 8.598990016699483, 8.623349761789282, 8.647709506879082, 8.672069251968884, 8.696428997058682, 8.720788742148484, 8.745148487238282, 8.769508232328084, 8.793867977417884, 8.818227722507682, 8.842587467597484, 8.866947212687284, 8.891306957777084, 8.915666702866885, 8.940026447956686, 8.964386193046485, 8.988745938136287, 9.013105683226085, 9.037465428315885, 9.061825173405687, 9.086184918495485, 9.110544663585287, 9.134904408675087, 9.159264153764887, 9.183623898854687, 9.207983643944488, 9.232343389034288, 9.256703134124088, 9.281062879213888, 9.305422624303688, 9.32978236939349, 9.354142114483288, 9.37850185957309, 9.402861604662888, 9.42722134975269, 9.45158109484249, 9.475940839932289, 9.50030058502209, 9.52466033011189, 9.54902007520169, 9.57337982029149, 9.597739565381293, 9.622099310471091, 9.646459055560893, 9.670818800650691, 9.695178545740491, 9.719538290830293, 9.743898035920092, 9.768257781009893, 9.792617526099693, 9.816977271189494, 9.841337016279294, 9.865696761369094, 9.890056506458894, 9.914416251548694, 9.938775996638494, 9.963135741728294, 9.987495486818096, 10.011855231907894, 10.036214976997696, 10.060574722087496, 10.084934467177296, 10.109294212267097, 10.133653957356895, 10.158013702446697, 10.182373447536497, 10.206733192626297, 10.231092937716097, 10.255452682805899, 10.279812427895697, 10.3041721729855, 10.328531918075297, 10.352891663165098, 10.3772514082549, 10.401611153344698, 10.4259708984345, 10.4503306435243, 10.4746903886141, 10.4990501337039, 10.523409878793702, 10.5477696238835, 10.5721293689733, 10.5964891140631, 10.6208488591529, 10.645208604242702, 10.6695683493325, 10.693928094422303, 10.718287839512103, 10.742647584601903, 10.767007329691703, 10.791367074781501, 10.815726819871303, 10.840086564961103, 10.864446310050903, 10.888806055140703, 10.913165800230505, 10.937525545320304, 10.961885290410105, 10.986245035499904, 11.010604780589704, 11.034964525679506, 11.059324270769304, 11.083684015859106, 11.108043760948906, 11.132403506038706, 11.156763251128506, 11.181122996218308, 11.205482741308106, 11.229842486397906, 11.254202231487707, 11.278561976577507, 11.302921721667309, 11.327281466757107, 11.351641211846909, 11.376000956936709, 11.400360702026507, 11.424720447116309, 11.449080192206107, 11.47343993729591, 11.49779968238571, 11.52215942747551, 11.54651917256531, 11.570878917655111, 11.59523866274491, 11.61959840783471, 11.643958152924512, 11.66831789801431, 11.692677643104112, 11.71703738819391, 11.741397133283712, 11.765756878373512, 11.790116623463312, 11.814476368553112, 11.838836113642913, 11.863195858732713, 11.887555603822513, 11.911915348912313, 11.936275094002113, 11.960634839091915, 11.984994584181713, 12.009354329271515, 12.033714074361315, 12.058073819451113, 12.082433564540915, 12.106793309630714, 12.131153054720516, 12.155512799810316])
+              .range(['#eb6834ff', '#eb6834ff', '#eb6935ff', '#ec6935ff', '#ec6936ff', '#ec6a36ff', '#ec6a37ff', '#ec6a37ff', '#ec6b37ff', '#ec6b38ff', '#ec6c38ff', '#ec6c39ff', '#ec6c39ff', '#ec6d3aff', '#ec6d3aff', '#ec6d3bff', '#ec6e3bff', '#ec6e3cff', '#ec6e3cff', '#ec6f3dff', '#ec6f3dff', '#ec703eff', '#ec703eff', '#ec703eff', '#ec713fff', '#ec713fff', '#ec7140ff', '#ec7240ff', '#ec7241ff', '#ec7341ff', '#ec7342ff', '#ec7342ff', '#ec7443ff', '#ec7443ff', '#ec7444ff', '#ec7544ff', '#ec7545ff', '#ec7545ff', '#ec7645ff', '#ed7646ff', '#ed7746ff', '#ed7747ff', '#ed7747ff', '#ed7848ff', '#ed7848ff', '#ed7849ff', '#ed7949ff', '#ed794aff', '#ed794aff', '#ed7a4bff', '#ed7a4bff', '#ed7b4cff', '#ed7b4cff', '#ed7b4cff', '#ed7c4dff', '#ed7c4dff', '#ed7c4eff', '#ed7d4eff', '#ed7d4fff', '#ed7e4fff', '#ed7e50ff', '#ed7e50ff', '#ed7f51ff', '#ed7f51ff', '#ed7f52ff', '#ed8052ff', '#ed8053ff', '#ed8053ff', '#ed8153ff', '#ed8154ff', '#ed8254ff', '#ed8255ff', '#ed8255ff', '#ed8356ff', '#ee8356ff', '#ee8357ff', '#ee8457ff', '#ee8458ff', '#ee8458ff', '#ee8559ff', '#ee8559ff', '#ee865aff', '#ee865aff', '#ee865aff', '#ee875bff', '#ee875bff', '#ee875cff', '#ee885cff', '#ee885dff', '#ee885dff', '#ee895eff', '#ee895eff', '#ee8a5fff', '#ee8a5fff', '#ee8a60ff', '#ee8b60ff', '#ee8b61ff', '#ee8b61ff', '#ee8c61ff', '#ee8c62ff', '#ee8d62ff', '#ee8d63ff', '#ee8d63ff', '#ee8e64ff', '#ee8e64ff', '#ee8e65ff', '#ee8f65ff', '#ee8f66ff', '#ee8f66ff', '#ee9067ff', '#ef9067ff', '#ef9168ff', '#ef9168ff', '#ef9168ff', '#ef9269ff', '#ef9269ff', '#ef926aff', '#ef936aff', '#ef936bff', '#ef936bff', '#ef946cff', '#ef946cff', '#ef956dff', '#ef956dff', '#ef956eff', '#ef966eff', '#ef966fff', '#ef966fff', '#ef976fff', '#ef9770ff', '#ef9870ff', '#ef9871ff', '#ef9871ff', '#ef9972ff', '#ef9972ff', '#ef9973ff', '#ef9a73ff', '#ef9a74ff', '#ef9a74ff', '#ef9b75ff', '#ef9b75ff', '#ef9c76ff', '#ef9c76ff', '#ef9c76ff', '#ef9d77ff', '#f09d77ff', '#f09d78ff', '#f09e78ff', '#f09e79ff', '#f09e79ff', '#f09f7aff', '#f09f7aff', '#f0a07bff', '#f0a07bff', '#f0a07cff', '#f0a17cff', '#f0a17dff', '#f0a17dff', '#f0a27dff', '#f0a27eff', '#f0a27eff', '#f0a37fff', '#f0a37fff', '#f0a480ff', '#f0a480ff', '#f0a481ff', '#f0a581ff', '#f0a582ff', '#f0a582ff', '#f0a683ff', '#f0a683ff', '#f0a784ff', '#f0a784ff', '#f0a784ff', '#f0a885ff', '#f0a885ff', '#f0a886ff', '#f0a986ff', '#f0a987ff', '#f0a987ff', '#f0aa88ff', '#f1aa88ff', '#f1ab89ff', '#f1ab89ff', '#f1ab8aff', '#f1ac8aff', '#f1ac8bff', '#f1ac8bff', '#f1ad8bff', '#f1ad8cff', '#f1ad8cff', '#f1ae8dff', '#f1ae8dff', '#f1af8eff', '#f1af8eff', '#f1af8fff', '#f1b08fff', '#f1b090ff', '#f1b090ff', '#f1b191ff', '#f1b191ff', '#f1b292ff', '#f1b292ff', '#f1b292ff', '#f1b393ff', '#f1b393ff', '#f1b394ff', '#f1b494ff', '#f1b495ff', '#f1b495ff', '#f1b596ff', '#f1b596ff', '#f1b697ff', '#f1b697ff', '#f1b698ff', '#f1b798ff', '#f2b799ff', '#f2b799ff', '#f2b899ff', '#f2b89aff', '#f2b89aff', '#f2b99bff', '#f2b99bff', '#f2ba9cff', '#f2ba9cff', '#f2ba9dff', '#f2bb9dff', '#f2bb9eff', '#f2bb9eff', '#f2bc9fff', '#f2bc9fff', '#f2bca0ff', '#f2bda0ff', '#f2bda0ff', '#f2bea1ff', '#f2bea1ff', '#f2bea2ff', '#f2bfa2ff', '#f2bfa3ff', '#f2bfa3ff', '#f2c0a4ff', '#f2c0a4ff', '#f2c1a5ff', '#f2c1a5ff', '#f2c1a6ff', '#f2c2a6ff', '#f2c2a7ff', '#f2c2a7ff', '#f2c3a7ff', '#f2c3a8ff', '#f2c3a8ff', '#f1c3a8ff', '#f0c3a9ff', '#f0c2a9ff', '#efc2a9ff', '#eec2a9ff', '#edc1a9ff', '#ecc1aaff', '#ecc1aaff', '#ebc0aaff', '#eac0aaff', '#e9c0aaff', '#e8bfaaff', '#e8bfabff', '#e7bfabff', '#e6bfabff', '#e5beabff', '#e4beabff', '#e4beacff', '#e3bdacff', '#e2bdacff', '#e1bdacff', '#e0bcacff', '#e0bcadff', '#dfbcadff', '#debcadff', '#ddbbadff', '#dcbbadff', '#dcbbadff', '#dbbaaeff', '#dabaaeff', '#d9baaeff', '#d8b9aeff', '#d7b9aeff', '#d7b9afff', '#d6b9afff', '#d5b8afff', '#d4b8afff', '#d3b8afff', '#d3b7afff', '#d2b7b0ff', '#d1b7b0ff', '#d0b6b0ff', '#cfb6b0ff', '#cfb6b0ff', '#ceb6b1ff', '#cdb5b1ff', '#ccb5b1ff', '#cbb5b1ff', '#cbb4b1ff', '#cab4b2ff', '#c9b4b2ff', '#c8b3b2ff', '#c7b3b2ff', '#c7b3b2ff', '#c6b3b2ff', '#c5b2b3ff', '#c4b2b3ff', '#c3b2b3ff', '#c3b1b3ff', '#c2b1b3ff', '#c1b1b4ff', '#c0b0b4ff', '#bfb0b4ff', '#bfb0b4ff', '#beafb4ff', '#bdafb4ff', '#bcafb5ff', '#bbafb5ff', '#bbaeb5ff', '#baaeb5ff', '#b9aeb5ff', '#b8adb6ff', '#b7adb6ff', '#b6adb6ff', '#b6acb6ff', '#b5acb6ff', '#b4acb7ff', '#b3acb7ff', '#b2abb7ff', '#b2abb7ff', '#b1abb7ff', '#b0aab7ff', '#afaab8ff', '#aeaab8ff', '#aea9b8ff', '#ada9b8ff', '#aca9b8ff', '#aba9b9ff', '#aaa8b9ff', '#aaa8b9ff', '#a9a8b9ff', '#a8a7b9ff', '#a7a7b9ff', '#a6a7baff', '#a6a6baff', '#a5a6baff', '#a4a6baff', '#a3a6baff', '#a2a5bbff', '#a2a5bbff', '#a1a5bbff', '#a0a4bbff', '#9fa4bbff', '#9ea4bcff', '#9ea3bcff', '#9da3bcff', '#9ca3bcff', '#9ba3bcff', '#9aa2bcff', '#9aa2bdff', '#99a2bdff', '#98a1bdff', '#97a1bdff', '#96a1bdff', '#96a0beff', '#95a0beff', '#94a0beff', '#93a0beff', '#929fbeff', '#919fbeff', '#919fbfff', '#909ebfff', '#8f9ebfff', '#8e9ebfff', '#8d9dbfff', '#8d9dc0ff', '#8c9dc0ff', '#8b9cc0ff', '#8a9cc0ff', '#899cc0ff', '#899cc0ff', '#889bc1ff', '#879bc1ff', '#869bc1ff', '#859ac1ff', '#859ac1ff', '#849ac2ff', '#8399c2ff', '#8299c2ff', '#8199c2ff', '#8199c2ff', '#8098c3ff', '#7f98c3ff', '#7e98c3ff', '#7d97c3ff', '#7d97c3ff', '#7c97c3ff', '#7b96c4ff', '#7a96c4ff', '#7996c4ff', '#7996c4ff', '#7895c4ff', '#7795c5ff', '#7695c5ff', '#7594c5ff', '#7594c5ff', '#7494c5ff', '#7393c5ff', '#7293c6ff', '#7193c6ff', '#7093c6ff', '#7092c6ff', '#6f92c6ff', '#6e92c7ff', '#6d91c7ff', '#6c91c7ff', '#6c91c7ff', '#6b90c7ff', '#6a90c8ff', '#6990c8ff', '#6890c8ff', '#688fc8ff', '#678fc8ff', '#668fc8ff', '#658ec9ff', '#648ec9ff', '#648ec9ff', '#638dc9ff', '#628dc9ff', '#618dcaff', '#608ccaff', '#608ccaff', '#5f8ccaff', '#5e8ccaff', '#5d8bcaff', '#5c8bcbff', '#5c8bcbff', '#5b8acbff', '#5a8acbff', '#598acbff', '#5889ccff', '#5889ccff', '#5789ccff', '#5689ccff', '#5588ccff', '#5488cdff', '#5488cdff', '#5387cdff', '#5287cdff', '#5187cdff', '#5086cdff', '#4f86ceff', '#4f86ceff', '#4e86ceff', '#4d85ceff', '#4c85ceff', '#4b85cfff', '#4b84cfff', '#4a84cfff', '#4984cfff', '#4883cfff', '#4783cfff', '#4783d0ff', '#4683d0ff', '#4582d0ff', '#4482d0ff', '#4382d0ff', '#4381d1ff', '#4281d1ff', '#4181d1ff', '#4080d1ff', '#3f80d1ff', '#3f80d2ff', '#3e80d2ff', '#3d7fd2ff', '#3c7fd2ff', '#3b7fd2ff', '#3b7ed2ff', '#3a7ed3ff', '#397ed3ff', '#387dd3ff', '#377dd3ff', '#377dd3ff', '#367cd4ff', '#357cd4ff', '#347cd4ff', '#337cd4ff', '#337bd4ff', '#327bd4ff', '#317bd5ff', '#307ad5ff', '#2f7ad5ff', '#2e7ad5ff', '#2e79d5ff', '#2d79d6ff', '#2c79d6ff', '#2b79d6ff', '#2a78d6ff', '#2a78d6ff']);
+    
+
+    color_map_35ad63cbced48714a304d57b81e39f97.x = d3.scale.linear()
+              .domain([0.0, 12.155512799810316])
+              .range([0, 450 - 50]);
+
+    color_map_35ad63cbced48714a304d57b81e39f97.legend = L.control({position: 'topright'});
+    color_map_35ad63cbced48714a304d57b81e39f97.legend.onAdd = function (map) {var div = L.DomUtil.create('div', 'legend'); return div};
+    color_map_35ad63cbced48714a304d57b81e39f97.legend.addTo(map_deff4dd1452e3cc5af3b2731048fb8ea);
+
+    color_map_35ad63cbced48714a304d57b81e39f97.xAxis = d3.svg.axis()
+        .scale(color_map_35ad63cbced48714a304d57b81e39f97.x)
+        .orient("top")
+        .tickSize(1)
+        .tickValues([0.0, 6.077756399905158, 12.155512799810316]);
+
+    color_map_35ad63cbced48714a304d57b81e39f97.svg = d3.select(".legend.leaflet-control").append("svg")
+        .attr("id", 'legend')
+        .attr("width", 450)
+        .attr("height", 40);
+
+    color_map_35ad63cbced48714a304d57b81e39f97.g = color_map_35ad63cbced48714a304d57b81e39f97.svg.append("g")
+        .attr("class", "key")
+        .attr("fill", "black")
+        .attr("transform", "translate(25,16)");
+
+    color_map_35ad63cbced48714a304d57b81e39f97.g.selectAll("rect")
+        .data(color_map_35ad63cbced48714a304d57b81e39f97.color.range().map(function(d, i) {
+          return {
+            x0: i ? color_map_35ad63cbced48714a304d57b81e39f97.x(color_map_35ad63cbced48714a304d57b81e39f97.color.domain()[i - 1]) : color_map_35ad63cbced48714a304d57b81e39f97.x.range()[0],
+            x1: i < color_map_35ad63cbced48714a304d57b81e39f97.color.domain().length ? color_map_35ad63cbced48714a304d57b81e39f97.x(color_map_35ad63cbced48714a304d57b81e39f97.color.domain()[i]) : color_map_35ad63cbced48714a304d57b81e39f97.x.range()[1],
+            z: d
+          };
+        }))
+      .enter().append("rect")
+        .attr("height", 40 - 30)
+        .attr("x", function(d) { return d.x0; })
+        .attr("width", function(d) { return d.x1 - d.x0; })
+        .style("fill", function(d) { return d.z; });
+
+    color_map_35ad63cbced48714a304d57b81e39f97.g.call(color_map_35ad63cbced48714a304d57b81e39f97.xAxis).append("text")
+        .attr("class", "caption")
+        .attr("y", 21)
+        .attr("fill", "black")
+        .text("\u00cdndice CET (m por atropelamento ponderado) \u00b7 menor = mais priorit\u00e1rio");
+    
+            var layer_control_084d8cfd541bb989f354405081098c39_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_50ed47697d3c70bfa99f801a5e34e738,
+                },
+                overlays :  {
+                    "Top 50 urbano (rank_urbano)" : feature_group_198dc83b6434babfe6143a083c575e70,
+                    "Top 50 geral (rank_prioridade)" : feature_group_51e3fbd2deb2f81e51a660854324083e,
+                },
+            };
+            let layer_control_084d8cfd541bb989f354405081098c39 = L.control.layers(
+                layer_control_084d8cfd541bb989f354405081098c39_layers.base_layers,
+                layer_control_084d8cfd541bb989f354405081098c39_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": false,
+  "autoZIndex": true,
+}
+            ).addTo(map_deff4dd1452e3cc5af3b2731048fb8ea);
+
+        
+</script>
+</html>
