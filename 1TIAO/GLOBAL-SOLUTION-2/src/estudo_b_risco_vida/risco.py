@@ -92,16 +92,18 @@ RISCO_VARIAVEIS = ["hora_sin", "hora_cos", "hora_sin2", "hora_cos2", "fim_de_sem
 _VARIAVEIS_CELULA = ["hist_log", "em_grupo", "peso_grupo", "rodovia"]
 
 
-def variaveis_celula(tabelas: dict) -> pd.DataFrame:
-    """Resumo do treino por célula: log1p(nº de atropelamentos), tem ponto em grupo do DBSCAN, maior peso de grupo
-    com ponto na célula e se a maioria dos pontos é em rodovia. `tabelas` vem de construir_tabelas (só treino)."""
+def variaveis_celula(tabelas: dict, anos: float = 1.0) -> pd.DataFrame:
+    """Resumo do histórico por célula: log1p(atropelamentos por ano), tem ponto em grupo do DBSCAN, maior peso de grupo
+    (por ano) com ponto na célula e se a maioria dos pontos é em rodovia. `tabelas` vem de construir_tabelas;
+    `anos` = quantos anos o histórico cobre (deixa 1 e 2 anos de histórico na mesma escala)."""
     rot = tabelas["rotulos"]
     peso = np.array([tabelas["grupos"][int(g)]["peso"] if g >= 0 else 0 for g in rot])
     d = pd.DataFrame({"celula": pd.Index(tabelas["celula_pt"], tupleize_cols=False), "em_grupo": (rot >= 0).astype(int),
                       "peso_grupo": peso, "rodovia": tabelas["rodovia_pt"].astype(float)})
     g = d.groupby("celula").agg(n=("em_grupo", "size"), em_grupo=("em_grupo", "max"),
                                 peso_grupo=("peso_grupo", "max"), rodovia=("rodovia", "mean"))
-    g["hist_log"] = np.log1p(g["n"])
+    g["hist_log"] = np.log1p(g["n"] / anos)
+    g["peso_grupo"] = g["peso_grupo"] / anos
     g["rodovia"] = (g["rodovia"] > 0.5).astype(int)
     g.index = pd.Index(list(g.index), tupleize_cols=False)
     return g[_VARIAVEIS_CELULA]

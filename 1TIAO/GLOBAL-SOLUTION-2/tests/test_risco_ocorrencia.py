@@ -18,6 +18,13 @@ def test_variaveis_celula_resume_o_treino(treino_sintetico):
     assert tc.loc[[b]].iloc[0].tolist() == pytest.approx([math.log1p(1), 0, 0, 1])
 
 
+def test_variaveis_celula_por_ano_divide_historico_e_peso(treino_sintetico):
+    tc = rv.variaveis_celula(rv.construir_tabelas(treino_sintetico, eps_m=100, min_samples=8), anos=2)
+    a = rv.celula([-23.55], [-46.63])[0]
+    # 10 atropelamentos em 2 anos → 5 por ano; peso 14 em 2 anos → 7 por ano
+    assert tc.loc[[a]].iloc[0].tolist() == pytest.approx([math.log1p(5), 1, 7, 0])
+
+
 def test_celula_sem_historico_recebe_zeros(treino_sintetico):
     tc = rv.variaveis_celula(rv.construir_tabelas(treino_sintetico, eps_m=100, min_samples=8))
     v = rv.montar_variaveis_risco([(0, 0)], [18], [0], [1], tc)
