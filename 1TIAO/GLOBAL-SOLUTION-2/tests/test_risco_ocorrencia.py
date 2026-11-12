@@ -2,9 +2,29 @@
 
 Rodar a partir de 1TIAO/GLOBAL-SOLUTION-2/:  python -m pytest tests -v
 """
+import math
+
 import pandas as pd
+import pytest
 
 import risco as rv
+
+
+# ---------------------------------------------------------------- variáveis por célula
+def test_variaveis_celula_resume_o_treino(treino_sintetico):
+    tc = rv.variaveis_celula(rv.construir_tabelas(treino_sintetico, eps_m=100, min_samples=8))
+    a, b = rv.celula([-23.55], [-46.63])[0], rv.celula([-23.70], [-46.70])[0]
+    assert tc.loc[[a]].iloc[0].tolist() == pytest.approx([math.log1p(10), 1, 14, 0])
+    assert tc.loc[[b]].iloc[0].tolist() == pytest.approx([math.log1p(1), 0, 0, 1])
+
+
+def test_celula_sem_historico_recebe_zeros(treino_sintetico):
+    tc = rv.variaveis_celula(rv.construir_tabelas(treino_sintetico, eps_m=100, min_samples=8))
+    v = rv.montar_variaveis_risco([(0, 0)], [18], [0], [1], tc)
+    assert v[["hist_log", "em_grupo", "peso_grupo", "rodovia"]].iloc[0].tolist() == [0, 0, 0, 0]
+    assert v.columns.tolist() == rv.RISCO_VARIAVEIS
+    assert v["hora_sin"].iloc[0] == pytest.approx(-1.0)
+    assert v["hora_cos2"].iloc[0] == pytest.approx(-1.0)   # 18h no 2º harmônico: 2·270° = 540° → cosseno -1
 
 
 # ---------------------------------------------------------------- exposição e contagens

@@ -36,12 +36,7 @@ def test_chovendo_comeca_em_0_2_mm():
 
 
 # ---------------------------------------------------------------- variáveis do local (sem vazamento)
-@pytest.fixture
-def treino_sintetico():
-    # 10 atropelamentos no mesmo ponto A (2 fatais) + 1 fatal isolado em B, longe.
-    a = [{"latitude": -23.55, "longitude": -46.63, "fatal": i < 2, "tipo_via": "VIAS URBANAS"} for i in range(10)]
-    b = [{"latitude": -23.70, "longitude": -46.70, "fatal": True, "tipo_via": "ESTRADAS E RODOVIAS"}]
-    return pd.DataFrame(a + b)
+# fixture treino_sintetico: em tests/conftest.py
 
 
 def test_ponto_novo_no_grupo_usa_letalidade_suavizada_do_grupo(treino_sintetico):

@@ -87,6 +87,36 @@ def exposicao(chuva_hora: pd.Series, inicio: str, fim: str) -> pd.DataFrame:
     return d.groupby(["hora", "fim_de_semana", "chovendo"]).size().rename("horas").reset_index()
 
 
+RISCO_VARIAVEIS = ["hora_sin", "hora_cos", "hora_sin2", "hora_cos2", "fim_de_semana", "chovendo",
+                   "hist_log", "em_grupo", "peso_grupo", "rodovia"]
+_VARIAVEIS_CELULA = ["hist_log", "em_grupo", "peso_grupo", "rodovia"]
+
+
+def variaveis_celula(tabelas: dict) -> pd.DataFrame:
+    """Resumo do treino por célula: log1p(nº de atropelamentos), tem ponto em grupo do DBSCAN, maior peso de grupo
+    com ponto na célula e se a maioria dos pontos é em rodovia. `tabelas` vem de construir_tabelas (só treino)."""
+    rot = tabelas["rotulos"]
+    peso = np.array([tabelas["grupos"][int(g)]["peso"] if g >= 0 else 0 for g in rot])
+    d = pd.DataFrame({"celula": pd.Index(tabelas["celula_pt"], tupleize_cols=False), "em_grupo": (rot >= 0).astype(int),
+                      "peso_grupo": peso, "rodovia": tabelas["rodovia_pt"].astype(float)})
+    g = d.groupby("celula").agg(n=("em_grupo", "size"), em_grupo=("em_grupo", "max"),
+                                peso_grupo=("peso_grupo", "max"), rodovia=("rodovia", "mean"))
+    g["hist_log"] = np.log1p(g["n"])
+    g["rodovia"] = (g["rodovia"] > 0.5).astype(int)
+    g.index = pd.Index(list(g.index), tupleize_cols=False)
+    return g[_VARIAVEIS_CELULA]
+
+
+def montar_variaveis_risco(celulas: list, hora, fim_de_semana, chovendo, tab_celula: pd.DataFrame) -> pd.DataFrame:
+    """Variáveis do modelo de risco (RISCO_VARIAVEIS). Célula fora de tab_celula → variáveis de local zeradas."""
+    h = np.asarray(hora, float)
+    loc = tab_celula.reindex(pd.Index(list(celulas), tupleize_cols=False)).fillna(0).reset_index(drop=True)
+    v = pd.DataFrame({"hora_sin": np.sin(2 * np.pi * h / 24), "hora_cos": np.cos(2 * np.pi * h / 24),
+                      "hora_sin2": np.sin(4 * np.pi * h / 24), "hora_cos2": np.cos(4 * np.pi * h / 24),
+                      "fim_de_semana": np.asarray(fim_de_semana, int), "chovendo": np.asarray(chovendo, int)})
+    return pd.concat([v, loc], axis=1)[RISCO_VARIAVEIS]
+
+
 def contagens(eventos: pd.DataFrame) -> pd.DataFrame:
     """Atropelamentos por célula × hora × fim de semana × chovendo. `eventos`: latitude, longitude, quando, chuva_mm."""
     q = pd.to_datetime(eventos["quando"])
