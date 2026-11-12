@@ -9,12 +9,15 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
 | 01 | `01_limpeza_analise_atropelamentos_sp.ipynb` | Lê o `dados_infosiga.zip`, faz o recorte (capital, 2022–2025, sem `NOTIFICACAO`), limpa os dados, confere com o painel do Infosiga e faz a análise exploratória | bases em `data/processed/` |
 | 02 | `02_modelo_letalidade_atropelamentos_sp.ipynb` | Regressão logística: o que aumenta a chance de um pedestre atropelado morrer | razões de chances, probabilidades previstas |
 | 03 | `03_dbscan_pontos_criticos.ipynb` | DBSCAN (haversine, fatal com peso 3) + índice de concentração da CET, ranking, mapa e banco SQLite | `data/processed/seguranca_viaria.db`, `docs/evidencias/estudo_b/` |
+| 04 | `04_entorno_pontos_criticos.ipynb` | Escolas (300 m) e semáforos (150 m) em volta de cada grupo, a partir do GeoSampa; grava as colunas na tabela `clusters` e confirma o piloto | colunas novas em `clusters`, `mapa_entorno.html` |
 
 ## Como rodar
 
 1. Baixe o `dados_infosiga.zip` em <https://infosiga.detran.sp.gov.br> (aba *Dados Abertos e Documentos*) e
    coloque em `1TIAO/GLOBAL-SOLUTION-2/data/raw/` **sem extrair**. O arquivo (141 MB) não vai para o Git.
    As bases tratadas de `data/processed/` já estão versionadas: os notebooks 02 e 03 rodam sem o zip.
+   As camadas do GeoSampa (escolas e semáforos) são baixadas pelo notebook 04 se não estiverem em
+   `data/raw/geosampa/`. Se o notebook 03 for rodado de novo, ele recria o banco: rode o 04 em seguida.
 2. Na raiz do repositório:
    ```
    python -m venv .venv
@@ -37,9 +40,16 @@ Dados abertos do Infosiga SP (Detran-SP), dicionário v1.8, extração de 19/10/
    tem o **4º maior volume ponderado da cidade**. O grupo vizinho, Parque Dom Pedro II / Rangel Pestana, é o
    14º e tem o maior volume. Já a Av. Celso Garcia, mais para dentro da Zona Leste, cai para 94º. Isso
    sustenta o piloto no nó do Largo da Concórdia.
+4. **Entorno (GeoSampa):** o grupo do Largo da Concórdia tem **4 semáforos a até 150 m** e **nenhuma escola
+   pública a até 300 m** (a mais próxima, EE Padre Anchieta, fica a ~340 m). O piloto se confirma para o modo
+   "pedestre", atuando sobre semáforos que já existem. O modo "escola" entra como cenário de demonstração. No
+   top 50 urbano, 20 grupos têm escola por perto e 9 não têm semáforo. O foco Demas Zitto / Canal de Cocaia
+   (Grajaú) junta as duas coisas e é o candidato a uma segunda fase.
 
 ## Pendências
 
 - **Comparação completa com o ranking da CET:** o PDF público da reunião de 11/03/2026 é só a transcrição, sem
   a tabela das 244 concentrações. A função de comparação está pronta no notebook 03 (seção 5) e roda sozinha
   quando existir `data/processed/cet_concentracoes.csv` (`nome;rank_cet;lat;lon`).
+- **Pontos de alagamento do CGE:** sem base aberta. Entram como trabalho futuro (pedido via LAI) ou como base
+  simulada identificada como tal na tabela `pontos_alagamento` (notebook 04, seção 6).
