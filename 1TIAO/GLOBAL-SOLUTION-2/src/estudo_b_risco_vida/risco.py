@@ -32,6 +32,7 @@ K_SUAVIZACAO = 20           # letalidade local suavizada: (fatais + K·taxa_glob
 RAIO_TIPO_VIA_M = 150       # tipo de via do local = maioria dos atropelamentos de treino neste raio
 INDICE_SEM_GRUPO = 30.0     # índice CET atribuído a quem não está em grupo (acima do maior índice observado)
 CAMINHO_MODELO = Path(__file__).resolve().parents[2] / "models" / "modelo_gravidade.joblib"
+CAMINHO_MODELO_RISCO = Path(__file__).resolve().parents[2] / "models" / "modelo_risco.joblib"
 
 VARIAVEIS = ["hora_sin", "hora_cos", "dia_semana", "fim_de_semana", "mes_sin", "mes_cos",
              "chovendo", "chuva_mm", "rodovia_local", "em_grupo", "peso_grupo", "indice_cet_grupo",
@@ -224,6 +225,15 @@ def _pacote(caminho: str = str(CAMINHO_MODELO)) -> dict:
     return joblib.load(caminho)
 
 
+@lru_cache(maxsize=1)
+def _pacote_risco(caminho: str = str(CAMINHO_MODELO_RISCO)) -> dict:
+    """Modelo de risco de ocorrência (notebook 06) + tabelas, carregados uma vez só por processo."""
+    import joblib
+    if not Path(caminho).exists():
+        raise FileNotFoundError(f"{caminho} não existe: rode o notebook 06_modelo_risco_ocorrencia.ipynb")
+    return joblib.load(caminho)
+
+
 def _numero(nome: str, valor, minimo: float, maximo: float) -> float:
     if isinstance(valor, bool) or not isinstance(valor, (int, float, np.integer, np.floating)):
         raise ValueError(f"{nome} precisa ser número, recebeu {valor!r}")
@@ -234,10 +244,16 @@ def _numero(nome: str, valor, minimo: float, maximo: float) -> float:
 
 
 def risco(lat: float, lon: float, quando: datetime, chuva_mm: float) -> dict:
-    """Probabilidade de um atropelamento ser fatal neste local e momento.
+    """Risco de atropelamento neste local (célula de ~500 m) e momento, e a chance de ele ser fatal.
 
-    Devolve {"probabilidade_fatal", "nivel" (baixo/medio/alto), "cluster_id", "rank_prioridade", "rank_urbano",
-    "motivos"}. cluster_id/rank vêm do ranking oficial (notebook 03) e são None fora de um grupo (> EPS_M).
+    Devolve:
+      probabilidade_atropelamento_1h  chance de >= 1 atropelamento na célula na próxima hora (protagonista; notebook 06)
+      risco_relativo                  taxa do local/momento ÷ taxa média das células da cidade
+      nivel                           baixo / medio / alto pelo risco de atropelamento (quantis 50% e 90% de 2024)
+      probabilidade_fatal             se houver atropelamento, chance de ser fatal (coadjuvante; notebook 05)
+      probabilidade_atropelamento_fatal_1h  produto das duas probabilidades
+      cluster_id, rank_prioridade, rank_urbano  grupo oficial do notebook 03 (None fora de um grupo, > EPS_M)
+      motivos                         lista curta em português
     Levanta ValueError para entrada inválida.
     """
     lat = _numero("lat", lat, -90, 90)
@@ -249,8 +265,20 @@ def risco(lat: float, lon: float, quando: datetime, chuva_mm: float) -> dict:
     pk = _pacote()
     X = montar_variaveis([lat], [lon], [quando], [chuva], pk["tabelas"])
     prob = float(pk["modelo"].predict_proba(X[pk["variaveis"]])[0, 1])
-    cortes = pk["cortes_nivel"]
-    nivel = "alto" if prob >= cortes["alto"] else "medio" if prob >= cortes["medio"] else "baixo"
+
+    # risco de ocorrência (protagonista)
+    pr = _pacote_risco()
+    fds = int(quando.weekday() >= 5)
+    chovendo = int(chuva >= LIMIAR_CHUVA_MM)
+    cel = celula([lat], [lon])
+    if cel[0] in pr["celulas_modeladas"]:
+        Xr = montar_variaveis_risco(cel, [quando.hour], [fds], [chovendo], pr["tab_celula"])
+        taxa = max(float(pr["modelo"].predict(Xr[pr["variaveis"]])[0]), 0.0)   # atropelamentos esperados por hora
+    else:   # célula sem nenhum atropelamento registrado em 2022–2025: fora da população do modelo (meio caso)
+        taxa = pr["taxa_celula_sem_registro"]
+    p_atrop = 1.0 - math.exp(-taxa)
+    cortes = pr["cortes_nivel"]
+    nivel = "alto" if taxa >= cortes["alto"] else "medio" if taxa >= cortes["medio"] else "baixo"
 
     # grupo oficial (notebook 03): ponto agrupado mais próximo, se a menos de EPS_M
     d, j = pk["oficial_arvore"].query(_rad([lat], [lon]), k=1)
@@ -263,11 +291,13 @@ def risco(lat: float, lon: float, quando: datetime, chuva_mm: float) -> dict:
 
     v = X.iloc[0]
     motivos = []
+    if quando.hour in pr["horas_pico"]:
+        motivos.append("horário de pico")
     if quando.hour < 6:
         motivos.append("madrugada")
     elif quando.hour >= 19:
         motivos.append("noite")
-    if v["chovendo"]:
+    if chovendo and pr["chuva_rr"]["ic_inf"] > 1:   # só cita a chuva se o efeito foi demonstrado (notebook 06)
         motivos.append("chuva")
     if v["fim_de_semana"]:
         motivos.append("fim de semana")
@@ -280,5 +310,7 @@ def risco(lat: float, lon: float, quando: datetime, chuva_mm: float) -> dict:
     if v["let_local"] > 1.5 * pk["tabelas"]["taxa_global"]:
         motivos.append("local com histórico de mortes")
 
-    return {"probabilidade_fatal": round(prob, 4), "nivel": nivel, "cluster_id": cluster_id,
+    return {"probabilidade_atropelamento_1h": round(p_atrop, 6), "risco_relativo": round(taxa / pr["lambda_media"], 2),
+            "nivel": nivel, "probabilidade_fatal": round(prob, 4),
+            "probabilidade_atropelamento_fatal_1h": round(p_atrop * prob, 6), "cluster_id": cluster_id,
             "rank_prioridade": rank, "rank_urbano": rank_urbano, "motivos": motivos}

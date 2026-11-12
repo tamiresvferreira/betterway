@@ -91,7 +91,9 @@ def test_mesmo_local_sabado_madrugada_com_chuva_tem_probabilidade_maior():
     base = rv.risco(*LARGO_CONCORDIA, TERCA_18H30, 0.0)
     pior = rv.risco(*LARGO_CONCORDIA, SABADO_03H, 10.0)
     assert pior["probabilidade_fatal"] > base["probabilidade_fatal"]
-    assert "madrugada" in pior["motivos"] and "chuva" in pior["motivos"]
+    assert "madrugada" in pior["motivos"]
+    # "chuva" só entra nos motivos se o modelo de ocorrência mostrar efeito da chuva (IC acima de 1) — notebook 06
+    assert ("chuva" in pior["motivos"]) == (rv._pacote_risco()["chuva_rr"]["ic_inf"] > 1)
 
 
 def test_ponto_fora_de_sao_paulo_nao_quebra_e_fica_sem_grupo():

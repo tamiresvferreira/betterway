@@ -65,3 +65,49 @@ def test_contagens_agrupa_por_celula_e_combinacao():
     c = rv.contagens(ev).set_index(["celula", "hora", "fim_de_semana", "chovendo"])["n"].to_dict()
     # -23.551/0.005 = -4710.2 → -4711 ; -46.631/0.005 = -9326.2 → -9327 ; -23.701 → -4741 ; -46.701 → -9341
     assert c == {((-4711, -9327), 18, 0, 0): 2, ((-4711, -9327), 18, 1, 0): 1, ((-4741, -9341), 3, 0, 1): 1}
+
+
+# ---------------------------------------------------------------- risco() com risco de ocorrência
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+LARGO = (-23.54231, -46.61655)
+
+
+def test_largo_devolve_probabilidade_de_atropelamento_valida():
+    r = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 30), 0.0)
+    assert 0.0 < r["probabilidade_atropelamento_1h"] < 1.0
+    assert r["nivel"] in {"baixo", "medio", "alto"}
+    assert r["risco_relativo"] > 0
+    assert r["probabilidade_atropelamento_fatal_1h"] == pytest.approx(
+        r["probabilidade_atropelamento_1h"] * r["probabilidade_fatal"], abs=1e-3)
+
+
+def test_dia_util_18h_tem_mais_risco_que_4h():
+    a = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 0), 0.0)
+    b = rv.risco(*LARGO, datetime(2026, 11, 10, 4, 0), 0.0)
+    assert a["probabilidade_atropelamento_1h"] > b["probabilidade_atropelamento_1h"]
+
+
+def test_largo_tem_mais_risco_que_celula_sem_historico():
+    a = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 0), 0.0)
+    b = rv.risco(-23.98, -46.80, datetime(2026, 11, 10, 18, 0), 0.0)   # extremo sul, sem histórico
+    assert a["probabilidade_atropelamento_1h"] > b["probabilidade_atropelamento_1h"]
+
+
+def test_fora_de_sp_tem_risco_baixo_sem_grupo():
+    r = rv.risco(-22.90, -43.20, datetime(2026, 11, 10, 18, 0), 0.0)
+    assert r["cluster_id"] is None
+    assert 0.0 <= r["probabilidade_atropelamento_1h"] < 1.0
+    assert r["nivel"] == "baixo"
+
+
+def test_quando_com_fuso_e_aceito():
+    r = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 0, tzinfo=ZoneInfo("America/Sao_Paulo")), 0.0)
+    assert 0.0 < r["probabilidade_atropelamento_1h"] < 1.0
+
+
+def test_chuva_muito_alta_nao_quebra():
+    r = rv.risco(*LARGO, datetime(2026, 11, 10, 18, 0), 300.0)
+    assert 0.0 <= r["probabilidade_atropelamento_1h"] <= 1.0
+    assert 0.0 <= r["probabilidade_fatal"] <= 1.0
