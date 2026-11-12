@@ -59,16 +59,6 @@ Organizar e versionar todo o fluxo de desenvolvimento acadêmico, garantindo:
 │   ├── 📂 GLOBAL-SOLUTION-1    
 │   └── 📂 GLOBAL-SOLUTION-2
 │
-├── 📂 2TIAO
-│   ├── 📂 ENTERPRISE-CHALLENGE
-│   ├── 📂 FASE1
-│   │   ├── 📂 CAP-X-NOME-DA-ATIVIDADE-APRESENTADA-NO-PORTAL
-│   ├── 📂 FASE2
-│   ├── 📂 FASE3
-│   ├── 📂 ...
-│   ├── 📂 GLOBAL-SOLUTION-1    
-│   └── 📂 GLOBAL-SOLUTION-2
-│
 └── README.md
 ```
 
