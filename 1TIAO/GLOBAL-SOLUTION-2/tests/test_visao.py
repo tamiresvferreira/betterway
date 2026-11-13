@@ -230,9 +230,15 @@ def test_outros_auxilios(classe):
     assert vs.associar_auxilios([pessoa, D(classe, (600, 600, 660, 700))]) == {}
 
 
+def andando(classe, quadros, track_id=7, y0=650):
+    """Veículo que se move dentro da faixa de teste: a base desce 10 px por quadro (caixa de 50 px de altura)."""
+    q0 = quadros[0]
+    return [vs.Deteccao(q, classe, (10, y0 + 10 * (q - q0), 90, y0 + 50 + 10 * (q - q0)), 0.9, track_id) for q in quadros]
+
+
 def test_conflito_deduplicado():
     dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(40)]
-    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(40)]
+    dets += andando("car", list(range(40)))
     c = vs.conflitos(dets, faixa_ret(), fps=30)
     assert len(c) == 1 and c[0].track_veiculo == 7 and c[0].track_pedestre == 1
 
@@ -241,14 +247,14 @@ def test_conflito_deduplicado():
 def test_janela_de_conflito(quadro_carro, esperado):
     dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(10)]          # dentro até o quadro 9
     dets += [vs.Deteccao(q, "person", (30, 1200, 70, 1300), 0.9, 1) for q in range(10, 60)]   # fora (y=1300)
-    dets += [vs.Deteccao(quadro_carro, "car", (10, 650, 90, 700), 0.9, 7)]
+    dets += andando("car", [quadro_carro - 1, quadro_carro])      # 2 quadros: dá para medir o movimento
     assert len(vs.conflitos(dets, faixa_ret(), fps=30)) == esperado
 
 
 @pytest.mark.parametrize("classe, esperado", [("car", 1), ("motorcycle", 1), ("bus", 1), ("truck", 1), ("bicycle", 0)])
 def test_classes_de_veiculo(classe, esperado):
     dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(5)]
-    dets += [vs.Deteccao(q, classe, (10, 650, 90, 700), 0.9, 7) for q in range(5)]
+    dets += andando(classe, list(range(5)))
     assert len(vs.conflitos(dets, faixa_ret(), fps=30)) == esperado
     if classe == "bicycle":
         assert vs.contagem_bicicletas(dets, faixa_ret()) == 1
@@ -261,9 +267,20 @@ def test_bloqueio(n, esperado):
     assert vs.conflitos(dets, faixa_ret(), fps=30) == []
 
 
+def test_veiculo_parado_na_faixa_nao_e_conflito():
+    # carro parado (base fixa) com pedestre passando à frente: comportamento correto, não quase-acidente
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(40)]
+    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(40)]
+    assert vs.conflitos(dets, faixa_ret(), fps=30) == []
+
+
+def test_veiculo_andando_na_faixa_vazia_nao_e_bloqueio():
+    assert vs.bloqueios(andando("car", list(range(60))), faixa_ret(), fps=30) == []
+
+
 def test_severidade_pcd():
     dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(5)]
-    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(5)]
+    dets += andando("car", list(range(5)))
     assert vs.conflitos(dets, faixa_ret(), fps=30, pcd_ids={1})[0].severidade == "alta"
     assert vs.conflitos(dets, faixa_ret(), fps=30)[0].severidade == "normal"
 
@@ -367,7 +384,7 @@ def _cenario():
     ys = atravessa(300)
     dets = trajeto(1, ys)
     dets += [vs.Deteccao(q, "wheelchair", (30, ys[q] - 40, 70, ys[q]), 0.9, None) for q in range(3, 13)]  # junto aos pés
-    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(150, 160)]
+    dets += andando("car", list(range(150, 160)))
     dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 8) for q in range(400, 470)]
     pcd = {1}
     return vs.eventos_de(vs.travessias(dets, f, 30, pcd), vs.conflitos(dets, f, 30, pcd), vs.bloqueios(dets, f, 30),

@@ -20,6 +20,8 @@ TETO_S = 120                # acima disso: "acima_do_teto" (fora das médias)
 VEL_IDOSO_MS = 1.2          # velocidade que os semáforos de SP supõem (Duim et al., 2017)
 JANELA_CONFLITO_S = 1.0     # pedestre que saiu há até 1 s ainda conta no conflito
 BLOQUEIO_S = 2.0            # veículo parado na faixa vazia por >= 2 s = bloqueio
+JANELA_MOV_S = 0.5          # janela para dizer se um veículo está em movimento
+MOV_MIN_REL = 0.2           # em movimento: a base andou >= 20% da altura da caixa dentro da janela
 MIN_QUADROS_PCD = 5         # quadros com auxílio colado para marcar a pessoa como PCD
 CONF_MIN_AUXILIO = 0.25     # confiança mínima das classes de auxílio
 SOBREPOSICAO_PCD = 0.3      # interseção ÷ área da caixa do auxílio
@@ -153,11 +155,11 @@ def _validar_fps(fps) -> float:
     return float(fps)
 
 
-def _por_track(deteccoes, classe="person") -> dict[int, list[Deteccao]]:
-    """Detecções de uma classe agrupadas por track_id, ordenadas por quadro, uma por quadro (a 1ª)."""
+def _por_track(deteccoes, classe: str | None = "person") -> dict[int, list[Deteccao]]:
+    """Detecções agrupadas por track_id, ordenadas por quadro, uma por quadro (a 1ª). classe=None: qualquer classe."""
     grupos: dict[int, dict[int, Deteccao]] = {}
     for d in deteccoes:
-        if d.classe == classe and d.track_id is not None:
+        if (classe is None or d.classe == classe) and d.track_id is not None:
             grupos.setdefault(d.track_id, {}).setdefault(d.quadro, d)
     return {t: [q[k] for k in sorted(q)] for t, q in grupos.items()}
 
@@ -298,12 +300,32 @@ def _na_faixa(deteccoes, faixa: Faixa, classes) -> dict[int, dict[int, str]]:
     return out
 
 
+def _veiculos_em_movimento(deteccoes, fps) -> set[tuple[int, int]]:
+    """(quadro, track_id) dos veículos motorizados em movimento: a base da caixa andou ≥ MOV_MIN_REL × altura da caixa
+    em relação à observação mais antiga dentro de JANELA_MOV_S. Sem observação anterior na janela = não se sabe = não
+    conta como movimento."""
+    janela = JANELA_MOV_S * fps
+    movendo = set()
+    for tid, dets in _por_track([d for d in deteccoes if d.classe in VEICULOS_CONFLITO], classe=None).items():
+        for j, d in enumerate(dets):
+            anteriores = [a for a in dets[:j] if d.quadro - a.quadro <= janela]
+            if not anteriores:
+                continue
+            (x0, y0), (x1, y1) = ponto_da_pessoa(anteriores[0].caixa), ponto_da_pessoa(d.caixa)
+            if math.hypot(x1 - x0, y1 - y0) >= MOV_MIN_REL * (d.caixa[3] - d.caixa[1]):
+                movendo.add((d.quadro, tid))
+    return movendo
+
+
 def conflitos(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Conflito]:
-    """Veículo motorizado (carro, moto, ônibus, caminhão) na faixa enquanto há pedestre nela ou que saiu há no
-    máximo JANELA_CONFLITO_S. Um conflito por par veículo × pedestre (deduplicado). Bicicleta não gera conflito."""
+    """Veículo motorizado (carro, moto, ônibus, caminhão) EM MOVIMENTO na faixa enquanto há pedestre nela ou que saiu
+    há no máximo JANELA_CONFLITO_S. Um conflito por par veículo × pedestre (deduplicado). Veículo parado na linha com
+    pedestre passando à frente não é conflito; bicicleta não gera conflito."""
     fps = _validar_fps(fps)
     janela = JANELA_CONFLITO_S * fps
-    veic = _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO)
+    movendo = _veiculos_em_movimento(deteccoes, fps)
+    veic = {q: {t: c for t, c in v.items() if (q, t) in movendo}
+            for q, v in _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO).items()}
     ped = _na_faixa(deteccoes, faixa, {"person"})
     ultimo_dentro: dict[int, int] = {}
     vistos, saida = set(), []
@@ -319,10 +341,12 @@ def conflitos(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Conflit
 
 
 def bloqueios(deteccoes, faixa: Faixa, fps) -> list[Bloqueio]:
-    """Veículo motorizado na faixa SEM pedestre nela por ≥ BLOQUEIO_S seguidos: obriga o pedestre a desviar."""
+    """Veículo motorizado PARADO na faixa SEM pedestre nela por ≥ BLOQUEIO_S seguidos: obriga o pedestre a desviar."""
     fps = _validar_fps(fps)
     minimo = BLOQUEIO_S * fps
-    veic = _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO)
+    movendo = _veiculos_em_movimento(deteccoes, fps)
+    veic = {q: {t: c for t, c in v.items() if (q, t) not in movendo}
+            for q, v in _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO).items()}
     ped = _na_faixa(deteccoes, faixa, {"person"})
     corridas: dict[int, list[int]] = {}
     saida = []
