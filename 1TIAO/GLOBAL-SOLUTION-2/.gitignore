@@ -16,3 +16,8 @@ data/processed/*.db
 runs/
 src/simulacao/saidas/
 *.mp4
+
+# vídeo de demonstração: o arquivo fica fora do Git, a ficha de fonte e licença entra
+!data/raw/video/
+data/raw/video/*
+!data/raw/video/FONTE.md

@@ -1,0 +1,10 @@
+{
+  "video": "data/raw/video/shibuya_crossing.ogv",
+  "descricao": "Faixa da direita do cruzamento de Shibuya, atravessada de cima (lado A, calçada distante) para baixo (lado B, calçada próxima da câmera)",
+  "resolucao": [640, 480],
+  "poligono": [[322, 250], [600, 262], [640, 330], [640, 368], [350, 352]],
+  "lado_a": [0, 1],
+  "lado_b": [3, 4],
+  "comprimento_m": 15.0,
+  "comprimento_metodo": "estimativa: ~16-17 listras entre as calçadas × 0,9 m (padrão japonês: listra de 45 cm + vão de 45 cm)"
+}

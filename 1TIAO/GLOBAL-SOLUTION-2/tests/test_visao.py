@@ -492,7 +492,7 @@ def test_quadro_sem_deteccao():
 
 @pytest.mark.slow
 def test_fumaca_modelo_real():
-    videos = sorted((RAIZ / "data" / "raw" / "video").glob("*.mp4"))
+    videos = sorted(p for p in (RAIZ / "data" / "raw" / "video").iterdir() if p.suffix in {".mp4", ".ogv", ".webm"})
     if not videos:
         pytest.skip("sem vídeo em data/raw/video (Tarefa 7)")
     import detector
