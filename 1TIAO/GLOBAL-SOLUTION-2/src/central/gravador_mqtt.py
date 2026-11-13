@@ -21,11 +21,11 @@ BANCO = Path(__file__).resolve().parents[2] / "data" / "processed" / "seguranca_
 
 
 def processar(con, payload: bytes, agora: datetime | None = None) -> str:
-    """Grava um evento do nó. Devolve 'gravado', 'repetido' ou 'invalido: <motivo>'; nunca levanta exceção
-    por causa do conteúdo da mensagem (um gravador que cai perde os eventos seguintes)."""
+    """Grava um evento do nó. Devolve 'gravado', 'repetido', 'invalido: <motivo>' ou 'erro: <motivo>' e nunca
+    levanta exceção: o broker é público (qualquer um publica) e um gravador que cai perde os eventos seguintes."""
     try:
         d = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+    except (ValueError, RecursionError) as e:   # UnicodeDecodeError e JSONDecodeError são ValueError
         return f"invalido: não é JSON ({type(e).__name__})"
     erros = m.validar_evento(d)
     if erros:
@@ -34,10 +34,13 @@ def processar(con, payload: bytes, agora: datetime | None = None) -> str:
     chave = f"esp32:{NO_ID}:{d['boot']}:{d['seq']}"
     dados = {**d, "demonstracao": True, "no": NO_ID}
     antes = con.total_changes
-    with con:
-        con.execute("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, valor, payload_json, chave) "
-                    "VALUES (?, 'esp32', ?, ?, NULL, ?, ?) ON CONFLICT(chave) DO NOTHING",
-                    (ts, CLUSTER_PILOTO, d["tipo"], json.dumps(dados, ensure_ascii=False), chave))
+    try:
+        with con:
+            con.execute("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, valor, payload_json, chave) "
+                        "VALUES (?, 'esp32', ?, ?, NULL, ?, ?) ON CONFLICT(chave) DO NOTHING",
+                        (ts, CLUSTER_PILOTO, d["tipo"], json.dumps(dados, ensure_ascii=False), chave))
+    except sqlite3.Error as e:
+        return f"erro: banco ({type(e).__name__}: {e})"
     return "gravado" if con.total_changes > antes else "repetido"
 
 

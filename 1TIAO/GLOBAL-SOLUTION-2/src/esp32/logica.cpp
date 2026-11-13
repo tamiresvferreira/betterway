@@ -125,7 +125,8 @@ void No::botao(uint32_t agora) {
   if (ambulanciaPerto(agora)) {  // prioridade da ambulância: recusa agora, atende depois
     float eta = etaRestante(agora);
     pedidoGuardado_ = true;
-    recusaAte_ = agora + MOSTRA_RECUSA;
+    recusaDesde_ = agora;
+    recusaAtiva_ = true;
     emitir("botao_recusado_ambulancia", static_cast<int32_t>(eta < 0 ? 0 : eta));
     return;
   }
@@ -137,8 +138,12 @@ void No::botao(uint32_t agora) {
   if (!(fase_ == Fase::PedestreVerde && faseEstendida_)) pedidoEstendido_ = true;
 }
 
+bool No::recusando(uint32_t agora, uint32_t janela) const {
+  return recusaAtiva_ && agora - recusaDesde_ < janela;
+}
+
 const char* No::texto(uint32_t agora) const {
-  if (agora < recusaAte_) return "PRIORIDADE AMBULANCIA";
+  if (recusando(agora, MOSTRA_RECUSA)) return "PRIORIDADE AMBULANCIA";
   if (modo_ == Modo::Ambulancia) return "AMBULANCIA - ABRA CAMINHO";
   const bool atravessando = fase_ == Fase::PedestreVerde || fase_ == Fase::PedestrePisca;
   if (pedidoEstendido_ || (faseEstendida_ && atravessando && modo_ != Modo::Escola)) return "TRAVESSIA ESTENDIDA";
@@ -163,11 +168,21 @@ Saida No::passo(uint32_t agora) {
       agora - etaDesde_ > static_cast<uint32_t>(etaS_ * 1000.0f) + FOLGA_AMBULANCIA) {
     encerrarAmbulancia(agora);
   }
+  if (recusaAtiva_ && !recusando(agora, MOSTRA_RECUSA)) recusaAtiva_ = false;
   // 3) ciclo do semáforo
   const uint32_t dec = agora - inicioFase_;
   switch (fase_) {
     case Fase::CarrosVerde:
-      if (ambulanciaPerto(agora)) break;  // verde no sentido da ambulância até ela passar
+      if (ambulanciaPerto(agora)) {  // verde no sentido da ambulância até ela passar...
+        if (dec < AMBULANCIA_VERDE_MAX) break;
+        pedestreForcado_ = true;     // ...por no máximo 60 s seguidos: depois, uma travessia de pedestre
+        if (pedidoGuardado_) {       // quem apertou durante a espera atravessa com tempo estendido
+          pedidoGuardado_ = false;
+          pedidoEstendido_ = true;
+        }
+        irPara(Fase::CarrosAmarelo, agora);
+        break;
+      }
       if (dec >= (pedidoEstendido_ ? VERDE_CARROS_MIN : VERDE_CARROS)) irPara(Fase::CarrosAmarelo, agora);
       break;
     case Fase::CarrosAmarelo:
@@ -180,8 +195,12 @@ Saida No::passo(uint32_t agora) {
       uint32_t d = duracao(fase_);
       if (vermelhoAposPedestre_ && modo_ == Modo::Pedestre && faixaOcupada_) d += EXTRA_FAIXA_OCUPADA;
       if (dec >= d) {
-        if (vermelhoAposPedestre_ || ambulanciaPerto(agora)) irPara(Fase::CarrosVerde, agora);
-        else irPara(Fase::PedestreVerde, agora);
+        if (vermelhoAposPedestre_ || (ambulanciaPerto(agora) && !pedestreForcado_)) {
+          irPara(Fase::CarrosVerde, agora);
+        } else {
+          pedestreForcado_ = false;
+          irPara(Fase::PedestreVerde, agora);
+        }
       }
       break;
     }
@@ -206,7 +225,7 @@ Saida No::passo(uint32_t agora) {
   s.carroVm = !s.carroVd && !s.carroAm;
   s.pedVd = fase_ == Fase::PedestreVerde;
   s.pedVm = fase_ == Fase::PedestrePisca ? (d2 / 500) % 2 == 0 : !s.pedVd;
-  if (agora < recusaAte_ && recusaAte_ - agora > MOSTRA_RECUSA - 600) s.buzzer = BUZ_RECUSA;
+  if (recusando(agora, BIPE_RECUSA)) s.buzzer = BUZ_RECUSA;
   else if (modo_ == Modo::Ambulancia) s.buzzer = BUZ_ALERTA;
   else if (fase_ == Fase::PedestreVerde && faseEstendida_) s.buzzer = BUZ_LENTO;
   else if (fase_ == Fase::PedestrePisca && faseEstendida_) s.buzzer = BUZ_RAPIDO;

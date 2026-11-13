@@ -46,3 +46,15 @@ def test_lixo_nao_derruba(con):
     for ruim in (b"\xff\x00", b"[1,2]", b'{"v":1}', _ev(tipo="nada"), b"", b"null"):
         assert g.processar(con, ruim).startswith("invalido")
     assert g.processar(con, _ev(seq=2)) == "gravado"
+
+
+def test_mensagem_maliciosa_nao_derruba(con):
+    """Revisão: broker público — qualquer um publica. JSON profundo demais (RecursionError) não pode matar o gravador."""
+    assert g.processar(con, b"[" * 100000).startswith("invalido")
+    assert g.processar(con, _ev(seq=7)) == "gravado"
+
+
+def test_erro_do_banco_nao_derruba():
+    import sqlite3
+    sem_tabela = sqlite3.connect(":memory:")
+    assert g.processar(sem_tabela, _ev()).startswith("erro")

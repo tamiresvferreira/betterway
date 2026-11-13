@@ -35,7 +35,11 @@ struct Evento {
 // static da classe usadas em ternários podem dar "undefined reference" no compilador do ESP32 em C++11.
 constexpr uint32_t VERDE_CARROS = 20000, VERDE_CARROS_MIN = 8000, AMARELO = 3000, AMARELO_CHUVA = 4000,
                    VERMELHO_TOTAL = 2000, VERMELHO_TOTAL_CHUVA = 3000, PISCA = 4000, EXTRA_FAIXA_OCUPADA = 10000,
-                   SEM_CENTRAL = 120000, FOLGA_AMBULANCIA = 15000, MOSTRA_RECUSA = 3000, INTERVALO_BOTAO = 1000;
+                   SEM_CENTRAL = 120000, FOLGA_AMBULANCIA = 15000, MOSTRA_RECUSA = 3000, INTERVALO_BOTAO = 1000,
+                   BIPE_RECUSA = 600,
+                   // a ambulância segura o verde dos carros por no máximo 60 s seguidos; depois o ciclo serve uma
+                   // travessia (se a central reenviar eta para sempre, os pedestres não ficam presos)
+                   AMBULANCIA_VERDE_MAX = 60000;
 constexpr float VEL_NORMAL = 1.2f, VEL_ESTENDIDA = 0.8f, ETA_BLOQUEIO_S = 30.0f;
 
 const char* nomeModo(Modo m);
@@ -63,7 +67,9 @@ class No {
   bool pedidoGuardado_ = false;   // botão recusado pela ambulância, atender depois
   bool faseEstendida_ = false;    // a travessia em curso é estendida
   bool comandoRecebido_ = false;
-  uint32_t ultimoComando_ = 0, ultimoBotao_ = 0, recusaAte_ = 0;
+  uint32_t ultimoComando_ = 0, ultimoBotao_ = 0, recusaDesde_ = 0;
+  bool recusaAtiva_ = false;       // diferenças de tempo (não horário absoluto): resiste à virada do millis()
+  bool pedestreForcado_ = false;   // limite da ambulância atingido: servir uma travessia neste ciclo
   bool botaoJaApertado_ = false;
 
   static constexpr int FILA = 8;
@@ -77,5 +83,6 @@ class No {
   float etaRestante(uint32_t agora) const;
   uint32_t duracao(Fase f) const;
   void irPara(Fase f, uint32_t agora);
+  bool recusando(uint32_t agora, uint32_t janela) const;
   const char* texto(uint32_t agora) const;
 };
