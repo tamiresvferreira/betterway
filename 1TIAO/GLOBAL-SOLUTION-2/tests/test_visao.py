@@ -738,3 +738,26 @@ def test_bicicleta_que_e_a_cadeira_de_rodas_sai():
     bici_outro_quadro = vs.Deteccao(5, "bicycle", (120, 300, 290, 500), 0.4, 7)
     saida = vs.sem_bicicleta_na_cadeira([cadeira, bici_falsa, bici_real, bici_outro_quadro])
     assert bici_falsa not in saida and bici_real in saida and bici_outro_quadro in saida and cadeira in saida
+
+
+def test_acompanhante_que_pega_a_cadeira_as_vezes_nao_vira_cadeirante():
+    """Nos quadros em que quem está sentado não é detectado, a cadeira cai no acompanhante (único perto). Ele só pode
+    ser marcado se a cadeira estiver com ele em ≥ FRACAO_MIN_PCD dos quadros em que aparece (vídeos: 6% e 24%)."""
+    dets = []
+    for q in range(100):
+        dets.append(vs.Deteccao(q, "person", (200, 50, 380, 500), 0.9, 2))                 # acompanhante segurando a cadeira
+        if q % 4:                                                                           # sentado: 75% dos quadros
+            dets.append(vs.Deteccao(q, "person", (100, 150, 300, 500), 0.9, 1))
+        dets.append(vs.Deteccao(q, "wheelchair", (95, 140, 330, 505), 0.9, None))
+    assert vs.auxilios_por_pessoa(dets) == {1: "wheelchair"}
+
+
+def test_dois_cadeirantes_lado_a_lado_ficam_os_dois():
+    dets = []
+    for q in range(40):
+        dets.append(vs.Deteccao(q, "person", (100, 150, 300, 500), 0.9, 1))
+        dets.append(vs.Deteccao(q, "person", (500, 150, 700, 500), 0.9, 2))
+        dets.append(vs.Deteccao(q, "wheelchair", (95, 140, 310, 505), 0.9, None))
+        if q % 3:
+            dets.append(vs.Deteccao(q, "wheelchair", (495, 140, 710, 505), 0.9, None))
+    assert vs.auxilios_por_pessoa(dets) == {1: "wheelchair", 2: "wheelchair"}

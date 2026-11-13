@@ -25,6 +25,8 @@ MOV_MIN_REL = 0.2           # em movimento: a base andou >= 20% da altura da cai
 VEL_CONFLITO_ALTA_KMH = 30  # conflito com veículo a >= 30 km/h na faixa = severidade alta
 VEL_MAX_PEDESTRE_MS = 3.5   # travessia mais rápida que isso não é de pedestre andando (provável condutor não detectado)
 MIN_QUADROS_PCD = 5         # quadros com auxílio colado para marcar a pessoa como PCD
+DOMINANCIA_PCD = 0.5    # acompanhante: recebeu o auxílio < 50% das vezes de quem está junto (vídeos: 14 × 216 e
+                        # 61 × 150); dois cadeirantes lado a lado, com contagens parecidas, ficam os dois
 CONF_MIN_AUXILIO = 0.10     # confiança mínima das classes de auxílio (0,10: 10/11 cadeirantes nas 58 fotos, sem alarme
                             # nas 25 negativas; errar para o lado de proteger. Escolhido nas mesmas fotos: otimista)
 SOBREPOSICAO_PCD = 0.3      # interseção ÷ área da caixa do auxílio
@@ -296,16 +298,27 @@ def associar_auxilios(deteccoes_do_quadro) -> dict[int, str]:
 
 def auxilios_por_pessoa(deteccoes) -> dict[int, str]:
     """{track_id: auxílio mais frequente} das pessoas com auxílio de mobilidade colado em ≥ MIN_QUADROS_PCD quadros
-    (uma detecção isolada não marca). Marcada, a pessoa vale assim no rastreamento todo."""
+    (uma detecção isolada não marca). Acompanhante: quem aparece junto (≥ MIN_QUADROS_PCD quadros em comum) com outra
+    pessoa que recebeu o auxílio muito mais vezes (a dele < DOMINANCIA_PCD × a do outro) não é marcado; ele só "herda"
+    a cadeira nos quadros em que quem está sentado não foi detectado. Marcada, a pessoa vale no rastreamento todo."""
     por_quadro: dict[int, list[Deteccao]] = {}
     for d in deteccoes:
         por_quadro.setdefault(d.quadro, []).append(d)
     contagem: dict[int, dict[str, int]] = {}
-    for dets in por_quadro.values():
+    quadros_de: dict[int, set[int]] = {}
+    for q, dets in por_quadro.items():
+        for t in {d.track_id for d in dets if d.classe == "person" and d.track_id is not None}:
+            quadros_de.setdefault(t, set()).add(q)
         for tid, classe in associar_auxilios(dets).items():
             c = contagem.setdefault(tid, {})
             c[classe] = c.get(classe, 0) + 1
-    return {t: max(c, key=c.get) for t, c in contagem.items() if sum(c.values()) >= MIN_QUADROS_PCD}
+    total = {t: sum(c.values()) for t, c in contagem.items() if sum(c.values()) >= MIN_QUADROS_PCD}
+
+    def acompanhante(t):
+        return any(total[u] > total[t] and total[t] < DOMINANCIA_PCD * total[u]
+                   and len(quadros_de.get(t, set()) & quadros_de.get(u, set())) >= MIN_QUADROS_PCD
+                   for u in total if u != t)
+    return {t: max(contagem[t], key=contagem[t].get) for t in total if not acompanhante(t)}
 
 
 GRUPOS_AUXILIO = {"wheelchair": "mobilidade_reduzida", "walker": "mobilidade_reduzida",

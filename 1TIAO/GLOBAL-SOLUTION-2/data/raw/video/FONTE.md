@@ -34,3 +34,20 @@ largura visível da faixa (~8 m) é estimada pelo número de listras; o polígon
 - Pexels 5009493 e 4095209: câmera em movimento, sem pedestres ou filmado à mão.
 - Pexels 30935166 (drone): câmera em movimento; pessoas vistas de cima viram pontos.
 - Pexels 39134141, 30347779 e 36306797: câmera em movimento (medido pela diferença entre quadros).
+
+# Vídeos da demonstração de pedestre com cadeira de rodas (notebook 09)
+
+| Arquivo local (fora do Git) | Pexels | Cena | Formato |
+|---|---|---|---|
+| `cadeirante_pexels_6646677.mp4` | https://www.pexels.com/video/a-man-riding-a-wheelchair-6646677/ | homem em cadeira de rodas, empurrado por uma acompanhante, de frente e de lado | 1920×1080, 24 fps, 10,9 s |
+| `cadeirante_pexels_6646724.mp4` | https://www.pexels.com/video/6646724/ | o mesmo homem, de costas, em close, empurrado por um acompanhante | 1920×1080, 24 fps, 10,4 s |
+
+Licença **Pexels** (uso livre, sem exigência de crédito; damos o crédito mesmo assim). Baixados em 13/11/2026.
+
+**Limitação:** a câmera acompanha as pessoas (deslocamento mediano de 25 e 45 px a cada 0,5 s, em 640 px de largura)
+e não há faixa de pedestres. Os vídeos servem só para **mostrar a identificação** do pedestre com cadeira de rodas,
+não para medir travessia.
+
+**Descartado como demonstração de PCD:** Pexels 8126402 (dois senhores atravessando em Los Angeles, câmera em
+movimento): andam normalmente, sem auxílio de mobilidade; não serve para mostrar "dificuldade motora", e inferir
+isso pela aparência seria errado (e dado sensível).
