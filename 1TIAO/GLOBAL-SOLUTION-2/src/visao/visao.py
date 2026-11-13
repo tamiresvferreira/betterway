@@ -495,3 +495,39 @@ def gravar_eventos(con, eventos, video_id: str) -> int:
         con.executemany("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, valor, payload_json, chave) "
                         "VALUES (?, 'yolo', NULL, ?, ?, ?, ?) ON CONFLICT(chave) DO NOTHING", linhas)
     return con.total_changes - antes
+
+
+# ------------------------------------------------------------------------------------------ leitura de vídeo
+def ler_video(caminho):
+    """(fps, largura, altura, gerador de quadros BGR). Lê em fluxo, sem carregar o vídeo na memória.
+    Inexistente → FileNotFoundError; vazio, corrompido ou sem fps → ValueError."""
+    import cv2
+    caminho = Path(caminho)
+    if not caminho.exists():
+        raise FileNotFoundError(f"vídeo não encontrado: {caminho}")
+    if caminho.stat().st_size == 0:
+        raise ValueError(f"vídeo vazio (0 bytes): {caminho}")
+    cap = cv2.VideoCapture(str(caminho))
+    try:
+        ok, quadro = cap.read() if cap.isOpened() else (False, None)
+        if not ok or quadro is None:
+            raise ValueError(f"vídeo corrompido ou ilegível: {caminho}")
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        largura, altura = quadro.shape[1], quadro.shape[0]
+    finally:
+        cap.release()
+    if not fps or fps <= 0 or not math.isfinite(fps):
+        raise ValueError(f"vídeo sem fps válido nos metadados: {caminho}")
+
+    def quadros():
+        c = cv2.VideoCapture(str(caminho))
+        try:
+            while True:
+                ok, q = c.read()
+                if not ok:
+                    return
+                yield q
+        finally:
+            c.release()
+
+    return float(fps), largura, altura, quadros()

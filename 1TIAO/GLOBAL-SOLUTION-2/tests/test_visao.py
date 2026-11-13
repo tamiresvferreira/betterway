@@ -448,3 +448,58 @@ def test_schema_igual_ao_banco_real(con, tmp_path):
     colunas = lambda c: [(r[1], r[2]) for r in c.execute("PRAGMA table_info(eventos)")]
     assert colunas(c2) == colunas(con)
     c2.close()
+
+
+# ---------------------------------------------------------------- Tarefa 6: leitura de vídeo e detector
+def test_video_inexistente(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        vs.ler_video(tmp_path / "nao_existe.mp4")
+
+
+def test_video_vazio(tmp_path):
+    p = tmp_path / "vazio.mp4"
+    p.write_bytes(b"")
+    with pytest.raises(ValueError, match="vídeo"):
+        vs.ler_video(p)
+
+
+def test_video_corrompido(tmp_path):
+    p = tmp_path / "lixo.mp4"
+    p.write_bytes(np.random.default_rng(1).integers(0, 256, 5000, dtype=np.uint8).tobytes())
+    with pytest.raises(ValueError, match="vídeo"):
+        vs.ler_video(p)
+
+
+def test_video_sintetico_e_gerador(tmp_path):
+    import cv2
+    p = tmp_path / "sint.mp4"
+    w = cv2.VideoWriter(str(p), cv2.VideoWriter_fourcc(*"mp4v"), 10, (64, 48))
+    for i in range(10):
+        w.write(np.full((48, 64, 3), i * 20, dtype=np.uint8))
+    w.release()
+    fps, largura, altura, quadros = vs.ler_video(p)
+    assert (round(fps), largura, altura) == (10, 64, 48)
+    assert inspect.isgenerator(quadros)
+    assert sum(1 for _ in quadros) == 10
+
+
+def test_quadro_sem_deteccao():
+    img = ruido()
+    assert vs.travessias([], faixa_ret(), 30) == []
+    assert vs.conflitos([], faixa_ret(), 30) == [] and vs.bloqueios([], faixa_ret(), 30) == []
+    assert np.array_equal(vs.borrar(img, []), img)
+
+
+@pytest.mark.slow
+def test_fumaca_modelo_real():
+    videos = sorted((RAIZ / "data" / "raw" / "video").glob("*.mp4"))
+    if not videos:
+        pytest.skip("sem vídeo em data/raw/video (Tarefa 7)")
+    import detector
+    classes = ["person", "car", "bus", "wheelchair"]
+    vistos = []
+    for i, (q, img, dets) in enumerate(detector.detectar(videos[0], classes, a_cada=1)):
+        vistos += dets
+        if i >= 29:
+            break
+    assert vistos and all(isinstance(d, vs.Deteccao) and d.classe in classes for d in vistos)
