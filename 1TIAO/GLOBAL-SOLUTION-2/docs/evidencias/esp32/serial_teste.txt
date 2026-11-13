@@ -1,0 +1,114 @@
+Via Segura SP - no da faixa (boot d476b0)
+[1747] MATRIZ "VIA SEGURA"
+[1747] FASE vermelho_total | modo normal
+[2047] FASE carros_verde | modo normal
+[13168] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[14072] FASE carros_verde | modo normal
+[15069] COMANDO INVALIDO: {"v":1,"modo":"voo"}
+[15073] EVENTO comando_invalido valor=0
+[15847] COMANDO ambulancia (id amb1)
+[15873] MATRIZ "AMBULANCIA - ABRA CAMINHO"
+[15873] EVENTO modo_alterado valor=4
+[15873] FASE carros_verde | modo ambulancia
+[18680] COMANDO ambulancia (id amb2)
+[18723] MATRIZ "VIA SEGURA"
+[18723] EVENTO modo_alterado valor=0
+[18723] FASE carros_verde | modo normal
+[22073] FASE carros_amarelo | modo normal
+[25073] FASE vermelho_total | modo normal
+[25652] BOTAO
+[25673] MATRIZ "TRAVESSIA ESTENDIDA"
+[25673] EVENTO botao_pressionado valor=0
+[27073] EVENTO travessia_estendida valor=12
+[27073] FASE pedestre_verde | modo normal
+[32548] COMANDO ambulancia (id 95a043bcdac6)
+[34680] COMANDO normal (id a2683d2a73af)
+[36074] COMANDO INVALIDO: {"v": 1, "modo": "voo"}
+[36085] EVENTO comando_invalido valor=0
+[39585] FASE pedestre_pisca | modo normal
+[39916] COMANDO pedestre (id 9be9f6f0cad7)
+[39935] EVENTO modo_alterado valor=1
+[39935] FASE pedestre_pisca | modo pedestre
+[43585] MATRIZ "PEDESTRE NA VIA - REDUZA"
+[43585] FASE vermelho_total | modo pedestre
+[45585] FASE carros_verde | modo pedestre
+[49149] COMANDO pedestre (id e23ffee18b9d)
+[60168] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[60972] FASE carros_verde | modo pedestre
+[64247] COMANDO escola (id d0e063796a40)
+[64272] MATRIZ "ESCOLA - DEVAGAR 30 KM/H"
+[64272] EVENTO modo_alterado valor=2
+[64272] FASE carros_verde | modo escola
+[65622] FASE carros_amarelo | modo escola
+[68622] FASE vermelho_total | modo escola
+[70622] FASE pedestre_verde | modo escola
+[81216] COMANDO chuva (id 5ea53485d188)
+[81222] MATRIZ "TRAVESSIA ESTENDIDA"
+[81222] EVENTO modo_alterado valor=3
+[81222] FASE pedestre_verde | modo chuva
+[83122] FASE pedestre_pisca | modo chuva
+[87128] MATRIZ "CHUVA - REDUZA"
+[87128] FASE vermelho_total | modo chuva
+[90128] FASE carros_verde | modo chuva
+[90616] COMANDO chuva (id 96baea31b0a4)
+[90628] MATRIZ "ALAGAMENTO A FRENTE"
+[100716] COMANDO ambulancia (id 5aed3de5e8de)
+[100728] MATRIZ "AMBULANCIA - ABRA CAMINHO"
+[100728] EVENTO modo_alterado valor=4
+[100728] FASE carros_verde | modo ambulancia
+[104315] COMANDO ambulancia (id fcab6e2d5abb)
+[108249] COMANDO ambulancia (id 2db0e0c97b0e)
+[110186] BOTAO
+[110228] MATRIZ "PRIORIDADE AMBULANCIA"
+[110228] EVENTO botao_pressionado valor=0
+[110228] EVENTO botao_recusado_ambulancia valor=28
+[111248] COMANDO ambulancia (id 46c5d8f62cfb)
+[112982] COMANDO ambulancia (id 8169525b606e)
+[113188] MATRIZ "AMBULANCIA - ABRA CAMINHO"
+[114447] COMANDO ambulancia (id 25411906e695)
+[116648] COMANDO ambulancia (id 034c01e51334)
+[116654] MATRIZ "TRAVESSIA ESTENDIDA"
+[116654] EVENTO modo_alterado valor=0
+[116654] EVENTO pedido_atendido_apos_ambulancia valor=0
+[116654] FASE carros_amarelo | modo normal
+[119414] COMANDO normal (id 76e25567995f)
+[119669] FASE vermelho_total | modo normal
+[121669] EVENTO travessia_estendida valor=12
+[121669] FASE pedestre_verde | modo normal
+[121785] BOTAO
+[121820] EVENTO botao_pressionado valor=0
+[123720] BOTAO
+[123720] EVENTO botao_pressionado valor=0
+[123885] BOTAO
+[124053] BOTAO
+[124219] BOTAO
+[124353] BOTAO
+[126316] COMANDO ambulancia (id 6e4feee0f2d3)
+[126322] MATRIZ "AMBULANCIA - ABRA CAMINHO"
+[126322] EVENTO modo_alterado valor=4
+[126322] FASE pedestre_verde | modo ambulancia
+[130501] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[131105] FASE pedestre_verde | modo ambulancia
+[134206] FASE pedestre_pisca | modo ambulancia
+[138206] FASE vermelho_total | modo ambulancia
+[140206] FASE carros_verde | modo ambulancia
+[144501] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[145072] FASE carros_verde | modo ambulancia
+[149501] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[150038] FASE carros_verde | modo ambulancia
+[154501] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[155104] FASE carros_verde | modo ambulancia
+[159501] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[160004] FASE carros_verde | modo ambulancia
+[161354] MATRIZ "VIA SEGURA"
+[161354] EVENTO modo_alterado valor=0
+[161354] FASE carros_amarelo | modo normal
+[164354] FASE vermelho_total | modo normal
+[165744] COMANDO chuva (id semcentral)
+[165754] MATRIZ "CHUVA - REDUZA"
+[165754] EVENTO modo_alterado valor=3
+[165754] FASE vermelho_total | modo chuva
+[167354] FASE pedestre_verde | modo chuva
+[171767] MQTT conectado a test.mosquitto.org; assinando viasegura/gs2026/no/largo-concordia/comando
+[172421] FASE pedestre_verde | modo chuva
+[175721] FASE pedestre_pisca | modo chuva
