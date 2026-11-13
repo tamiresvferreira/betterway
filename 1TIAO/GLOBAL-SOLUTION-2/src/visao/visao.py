@@ -130,3 +130,95 @@ class Faixa:
         da = _dist_segmento(ponto, p[self.lado_a[0]], p[self.lado_a[1]])
         db = _dist_segmento(ponto, p[self.lado_b[0]], p[self.lado_b[1]])
         return "A" if da <= db else "B"
+
+
+# ------------------------------------------------------------------------------------------ travessias
+@dataclass(frozen=True)
+class Travessia:
+    track_id: int
+    quadro_inicio: int
+    quadro_fim: int
+    duracao_s: float
+    velocidade_ms: float | None     # só para "concluida": comprimento da faixa ÷ duração
+    lado_entrada: str | None        # "A", "B" ou None (início desconhecido)
+    lado_saida: str | None          # "A", "B" ou None (não saiu)
+    status: str                     # concluida | retorno | nao_concluida | inicio_desconhecido | acima_do_teto
+    abaixo_1_2_ms: bool
+    pcd: bool
+
+
+def _validar_fps(fps) -> float:
+    if fps is None or isinstance(fps, bool) or not isinstance(fps, (int, float)) or not math.isfinite(fps) or fps <= 0:
+        raise ValueError(f"fps inválido ({fps!r}): informe o fps do vídeo, maior que zero")
+    return float(fps)
+
+
+def _por_track(deteccoes, classe="person") -> dict[int, list[Deteccao]]:
+    """Detecções de uma classe agrupadas por track_id, ordenadas por quadro, uma por quadro (a 1ª)."""
+    grupos: dict[int, dict[int, Deteccao]] = {}
+    for d in deteccoes:
+        if d.classe == classe and d.track_id is not None:
+            grupos.setdefault(d.track_id, {}).setdefault(d.quadro, d)
+    return {t: [q[k] for k in sorted(q)] for t, q in grupos.items()}
+
+
+def travessias(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Travessia]:
+    """Travessias de cada pessoa rastreada (ver spec §5, itens 6–14, e §6).
+
+    Máquina de estados por track_id: um estado (dentro/fora) só muda depois de N_CONFIRMA quadros observados
+    seguidos no novo estado (filtra o tremor na borda). Sumiço maior que TOLERANCIA_SUMICO_S encerra a travessia em
+    curso como "nao_concluida"; se a pessoa já estava dentro quando apareceu, o início é desconhecido.
+    """
+    fps = _validar_fps(fps)
+    max_gap = TOLERANCIA_SUMICO_S * fps
+    saida = []
+    for tid, dets in _por_track(deteccoes).items():
+        pts = [ponto_da_pessoa(d.caixa) for d in dets]
+        dentro = [faixa.contem(p) for p in pts]
+        quadros = [d.quadro for d in dets]
+        estado = None            # None = ainda não confirmado; True = dentro; False = fora
+        atual = None             # travessia em curso: dict(inicio, lado_entrada, ultimo)
+        corrida, corrida_ini = 0, 0
+
+        def fechar(fim_quadro, lado_saida, motivo=None):
+            ini = atual["inicio"]
+            dur = (fim_quadro - ini + 1) / fps
+            if motivo:
+                status = motivo
+            elif atual["lado_entrada"] is None:
+                status = "inicio_desconhecido"
+            elif dur > TETO_S:
+                status = "acima_do_teto"
+            elif lado_saida == atual["lado_entrada"]:
+                status = "retorno"
+            else:
+                status = "concluida"
+            vel = faixa.comprimento_m / dur if status == "concluida" else None
+            saida.append(Travessia(tid, ini, fim_quadro, dur, vel, atual["lado_entrada"], lado_saida, status,
+                                   bool(vel is not None and vel < VEL_IDOSO_MS), tid in pcd_ids))
+
+        for i, (q, den) in enumerate(zip(quadros, dentro)):
+            if i > 0 and q - quadros[i - 1] - 1 > max_gap:          # sumiço longo
+                if atual is not None:
+                    fechar(atual["ultimo"], None, "nao_concluida")
+                    atual = None
+                estado, corrida = None, 0
+            # corrida de quadros no mesmo estado observado
+            if i > 0 and den == dentro[i - 1] and not (q - quadros[i - 1] - 1 > max_gap):
+                corrida += 1
+            else:
+                corrida, corrida_ini = 1, i
+            if den and atual is not None:
+                atual["ultimo"] = q
+            if corrida >= N_CONFIRMA and den != estado:
+                if den:   # entrada confirmada
+                    lado = faixa.lado_mais_proximo(pts[corrida_ini]) if estado is False else None
+                    ultimo_dentro = max(quadros[j] for j in range(corrida_ini, i + 1))
+                    atual = {"inicio": quadros[corrida_ini], "lado_entrada": lado, "ultimo": ultimo_dentro}
+                elif atual is not None:   # saída confirmada
+                    fechar(atual["ultimo"], faixa.lado_mais_proximo(pts[corrida_ini]))
+                    atual = None
+                estado = den
+        if atual is not None:                                       # vídeo/rastreamento acabou com a pessoa dentro
+            fechar(atual["ultimo"], None, "nao_concluida")
+    return saida
