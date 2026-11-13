@@ -1,0 +1,17 @@
+﻿classe;vocabulário;limiar;recall;precisão;falso alarme
+wheelchair;nome simples;0.1;0.9090909090909091;0.7142857142857143;0.0
+wheelchair;nome simples;0.25;0.6363636363636364;0.7;0.0
+wheelchair;com sinônimos;0.1;1.0;0.7333333333333333;0.0
+wheelchair;com sinônimos;0.25;0.7272727272727273;0.8;0.0
+walker;nome simples;0.1;0.0;;0.0
+walker;nome simples;0.25;0.0;;0.0
+walker;com sinônimos;0.1;0.2;0.6666666666666666;0.0
+walker;com sinônimos;0.25;0.1;1.0;0.0
+crutch;nome simples;0.1;0.0;;0.0
+crutch;nome simples;0.25;0.0;;0.0
+crutch;com sinônimos;0.1;0.0;;0.0
+crutch;com sinônimos;0.25;0.0;;0.0
+cane;nome simples;0.1;0.0;;0.0
+cane;nome simples;0.25;0.0;;0.0
+cane;com sinônimos;0.1;0.18181818181818182;0.6666666666666666;0.0
+cane;com sinônimos;0.25;0.09090909090909091;1.0;0.0
