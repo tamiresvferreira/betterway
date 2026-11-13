@@ -293,17 +293,23 @@ def associar_auxilios(deteccoes_do_quadro) -> dict[int, str]:
     return marcadas
 
 
-def pessoas_pcd(deteccoes) -> set[int]:
-    """Pessoas (track_id) com auxílio de mobilidade colado em ≥ MIN_QUADROS_PCD quadros (uma detecção isolada não
-    marca). Marcada, a pessoa vale como PCD no rastreamento todo."""
+def auxilios_por_pessoa(deteccoes) -> dict[int, str]:
+    """{track_id: auxílio mais frequente} das pessoas com auxílio de mobilidade colado em ≥ MIN_QUADROS_PCD quadros
+    (uma detecção isolada não marca). Marcada, a pessoa vale assim no rastreamento todo."""
     por_quadro: dict[int, list[Deteccao]] = {}
     for d in deteccoes:
         por_quadro.setdefault(d.quadro, []).append(d)
-    contagem: dict[int, int] = {}
+    contagem: dict[int, dict[str, int]] = {}
     for dets in por_quadro.values():
-        for tid in associar_auxilios(dets):
-            contagem[tid] = contagem.get(tid, 0) + 1
-    return {t for t, n in contagem.items() if n >= MIN_QUADROS_PCD}
+        for tid, classe in associar_auxilios(dets).items():
+            c = contagem.setdefault(tid, {})
+            c[classe] = c.get(classe, 0) + 1
+    return {t: max(c, key=c.get) for t, c in contagem.items() if sum(c.values()) >= MIN_QUADROS_PCD}
+
+
+def pessoas_pcd(deteccoes) -> set[int]:
+    """Pessoas (track_id) que usam auxílio de mobilidade (ver auxilios_por_pessoa)."""
+    return set(auxilios_por_pessoa(deteccoes))
 
 
 # ------------------------------------------------------------------------------------------ conflitos e bloqueios
@@ -592,3 +598,73 @@ def ler_video(caminho):
             c.release()
 
     return float(fps), largura, altura, quadros()
+
+
+# ------------------------------------------------------------------------------------------ anotação visual
+ROTULOS_VEICULO = {"car": "Carro", "motorcycle": "Moto", "bus": "Ônibus", "truck": "Caminhão", "bicycle": "Bicicleta"}
+ROTULOS_AUXILIO = {"wheelchair": "cadeira de rodas", "walker": "andador", "crutch": "muleta", "cane": "bengala"}
+COR_PEDESTRE = (52, 104, 235)      # laranja forte (BGR) — mesma família de cor dos gráficos
+COR_CONFLITO = (40, 40, 220)       # vermelho
+COR_VEICULO = (214, 120, 42)       # azul
+COR_FORA = (170, 170, 170)         # cinza: pessoa fora da faixa
+COR_FAIXA = (0, 230, 255)          # amarelo
+
+
+def rotulo(d: Deteccao, na_faixa: bool, auxilio: str | None = None, conflito_kmh: float | None = None) -> str | None:
+    """Texto curto e respeitoso para a caixa: descreve o auxílio que a pessoa usa, não uma condição dela.
+    Pessoa fora da faixa e placas não recebem rótulo."""
+    if d.classe == "person":
+        if not na_faixa:
+            return None
+        return "Pedestre" + (f" · {ROTULOS_AUXILIO[auxilio]}" if auxilio in ROTULOS_AUXILIO else "")
+    if d.classe in ROTULOS_VEICULO:
+        return ROTULOS_VEICULO[d.classe] + (f" · {conflito_kmh:.0f} km/h" if conflito_kmh is not None else "")
+    return None
+
+
+def _fonte(tamanho: int):
+    from PIL import ImageFont
+    from matplotlib import font_manager
+    return ImageFont.truetype(font_manager.findfont("DejaVu Sans"), tamanho)
+
+
+def anotar(imagem, deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] | None = None,
+           conflitos_kmh: dict[int, float] | None = None):
+    """Cópia da imagem para mostrar (vídeo, GIF, PDF): PRIMEIRO borra cabeças e placas, DEPOIS desenha a faixa, as
+    caixas e os rótulos (nítidos por cima). Pessoa na faixa: caixa laranja grossa + "Pedestre" (com o auxílio, se
+    houver); fora da faixa: caixa cinza fina, sem rótulo; veículo: azul; veículo em conflito: vermelho + km/h.
+    `auxilios`: {track_id: classe do auxílio}; `conflitos_kmh`: {track_id do veículo: km/h}."""
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageDraw
+    auxilios, conflitos_kmh = auxilios or {}, conflitos_kmh or {}
+    out = borrar(imagem, deteccoes_do_quadro)
+    h = out.shape[0]
+    grossa, fina = max(3, h // 240), max(1, h // 600)
+    cv2.polylines(out, [np.array(faixa.poligono, np.int32)], True, COR_FAIXA, max(2, h // 480))
+    textos = []
+    for d in deteccoes_do_quadro:
+        x1, y1, x2, y2 = map(int, d.caixa)
+        if d.classe == "person":
+            dentro = faixa.contem(ponto_da_pessoa(d.caixa))
+            cor, esp = (COR_PEDESTRE, grossa) if dentro else (COR_FORA, fina)
+            txt = rotulo(d, dentro, auxilios.get(d.track_id))
+        elif d.classe in ROTULOS_VEICULO:
+            kmh = conflitos_kmh.get(d.track_id)
+            cor, esp = (COR_CONFLITO, grossa) if kmh is not None else (COR_VEICULO, max(2, fina))
+            txt = rotulo(d, False, conflito_kmh=kmh)
+        else:
+            continue
+        cv2.rectangle(out, (x1, y1), (x2, y2), cor, esp)
+        if txt:
+            textos.append((txt, x1, y1, cor))
+    if textos:
+        pil = Image.fromarray(cv2.cvtColor(out, cv2.COLOR_BGR2RGB))
+        desenho, fonte = ImageDraw.Draw(pil), _fonte(max(14, h // 55))
+        for txt, x1, y1, cor in textos:
+            l, t, r, b = desenho.textbbox((0, 0), txt, font=fonte)
+            x0, y0 = max(0, x1), max(0, y1 - (b - t) - 8)
+            desenho.rectangle((x0, y0, x0 + (r - l) + 8, y0 + (b - t) + 8), fill=cor[::-1])
+            desenho.text((x0 + 4 - l, y0 + 4 - t), txt, font=fonte, fill=(255, 255, 255))
+        out = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
+    return out

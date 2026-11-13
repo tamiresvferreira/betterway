@@ -571,3 +571,31 @@ def test_travessia_rapida_demais_para_pedestre():
     rapida = vs.travessias(trajeto(1, atravessa(90)), faixa_ret(), fps=30)[0]    # 12 m em 3 s = 4 m/s
     normal = vs.travessias(trajeto(2, atravessa(300)), faixa_ret(), fps=30)[0]   # 1,2 m/s
     assert rapida.incompativel_pedestre is True and normal.incompativel_pedestre is False
+
+
+# ---------------------------------------------------------------- rótulos e anotação visual
+def test_rotulos_em_portugues():
+    assert vs.rotulo(D("person", (0, 0, 10, 10), 1), na_faixa=True) == "Pedestre"
+    assert vs.rotulo(D("person", (0, 0, 10, 10), 1), na_faixa=True, auxilio="wheelchair") == "Pedestre · cadeira de rodas"
+    assert vs.rotulo(D("person", (0, 0, 10, 10), 1), na_faixa=True, auxilio="cane") == "Pedestre · bengala"
+    assert vs.rotulo(D("person", (0, 0, 10, 10), 1), na_faixa=False) is None          # calçada: sem rótulo
+    assert vs.rotulo(D("bus", (0, 0, 10, 10), 3), na_faixa=False) == "Ônibus"
+    assert vs.rotulo(D("motorcycle", (0, 0, 10, 10), 4), na_faixa=True, conflito_kmh=25.4) == "Moto · 25 km/h"
+    assert vs.rotulo(D("license plate", (0, 0, 10, 10)), na_faixa=False) is None
+
+
+def test_auxilios_por_pessoa():
+    assert vs.auxilios_por_pessoa(_com_auxilio(5)) == {1: "wheelchair"}
+    assert vs.auxilios_por_pessoa(_com_auxilio(1)) == {}
+
+
+def test_anotar_borra_antes_e_escreve_rotulo():
+    img = ruido(400, 300)
+    pessoa = D("person", (30, 150, 70, 300), 1)        # pés em (50, 300): dentro da faixa de teste
+    f = faixa_de(RET, resolucao=(300, 400), lado_a=(0, 1), lado_b=(2, 3))
+    copia = img.copy()
+    out = vs.anotar(img, [pessoa], f)
+    assert np.array_equal(img, copia)                                   # entrada intacta
+    assert out.shape == img.shape
+    assert borrada(img, out, (156, 183, 36, 64))                        # miolo da cabeça (sem a linha da caixa)
+    assert not np.array_equal(out[120:148, 30:120], img[120:148, 30:120])   # rótulo escrito acima da caixa
