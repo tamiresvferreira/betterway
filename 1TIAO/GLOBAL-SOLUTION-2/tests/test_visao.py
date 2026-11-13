@@ -729,3 +729,12 @@ def test_anotar_sem_faixa_borra_extras_de_privacidade():
     rosto = vs.Deteccao(0, "face", (300, 300, 380, 380), 1.0, None)       # rosto achado pela pose, fora de qualquer caixa
     out = vs.anotar(img, [], None, privadas_extra=[rosto])
     assert not np.array_equal(out[300:380, 300:380], img[300:380, 300:380])
+
+
+def test_bicicleta_que_e_a_cadeira_de_rodas_sai():
+    cadeira = vs.Deteccao(4, "wheelchair", (100, 200, 300, 500), 0.8, None)
+    bici_falsa = vs.Deteccao(4, "bicycle", (120, 300, 290, 500), 0.4, 7)      # dentro da cadeira
+    bici_real = vs.Deteccao(4, "bicycle", (600, 300, 800, 500), 0.7, 8)
+    bici_outro_quadro = vs.Deteccao(5, "bicycle", (120, 300, 290, 500), 0.4, 7)
+    saida = vs.sem_bicicleta_na_cadeira([cadeira, bici_falsa, bici_real, bici_outro_quadro])
+    assert bici_falsa not in saida and bici_real in saida and bici_outro_quadro in saida and cadeira in saida

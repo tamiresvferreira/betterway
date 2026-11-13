@@ -340,6 +340,19 @@ def auxilios_do_ajustado(caixas, classes, confs, quadro: int) -> list[Deteccao]:
             for c, k, p in zip(caixas, classes, confs) if k == "pedestre_cadeira_rodas" and p >= CONF_AJUSTADO]
 
 
+def sem_bicicleta_na_cadeira(deteccoes) -> list[Deteccao]:
+    """Tira as 'bicicletas' que são a própria cadeira de rodas (o YOLO-World confunde as rodas): bicicleta com metade ou
+    mais da área dentro de uma cadeira de rodas do mesmo quadro. Sem isso, o cadeirante ganharia rótulo de bicicleta
+    e poderia ser descartado como condutor."""
+    cadeiras: dict[int, list] = {}
+    for d in deteccoes:
+        if d.classe == "wheelchair":
+            cadeiras.setdefault(d.quadro, []).append(d.caixa)
+    return [d for d in deteccoes
+            if not (d.classe == "bicycle" and _area(d.caixa) > 0 and any(
+                _intersecao(d.caixa, c) >= SOBREPOSICAO_CONDUTOR * _area(d.caixa) for c in cadeiras.get(d.quadro, [])))]
+
+
 def pessoas_pcd(deteccoes) -> set[int]:
     """Pessoas (track_id) que usam auxílio de mobilidade (ver auxilios_por_pessoa)."""
     return set(auxilios_por_pessoa(deteccoes))
