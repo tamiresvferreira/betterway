@@ -21,3 +21,6 @@ src/simulacao/saidas/
 !data/raw/video/
 data/raw/video/*
 !data/raw/video/FONTE.md
+
+# imagens do conjunto de avaliação de PCD: só fontes e rótulos vão para o Git (LGPD)
+data/avaliacao_pcd/img/
