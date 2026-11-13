@@ -169,6 +169,25 @@ void aplicar(const Saida& s, uint32_t agora) {
   }
 }
 
+// ---------------------------------------------------------------- comando pela serial (teste sem rede / plano B)
+// O mesmo JSON do tópico de comando, uma linha por comando. Serve para testar no Wokwi sem login (sem internet) e
+// para a apresentação se o broker público cair.
+void lerSerial() {
+  static char buf[320];
+  static size_t n = 0;
+  while (Serial.available()) {
+    char ch = (char)Serial.read();
+    if (ch == '') continue;
+    if (ch == '
+') {
+      if (n > 0) aoReceber(nullptr, (byte*)buf, n);
+      n = 0;
+    } else if (n < sizeof(buf) - 1) {
+      buf[n++] = ch;
+    }
+  }
+}
+
 // ---------------------------------------------------------------- botão (repique elétrico de 50 ms)
 bool botaoApertado(uint32_t agora) {
   static int estavel = HIGH, ultimoLido = HIGH;
@@ -206,6 +225,7 @@ void loop() {
     Serial.printf("[%lu] BOTAO\n", agora);
     no.botao(agora);
   }
+  lerSerial();
   conectarSePreciso(agora);
   mqtt.loop();
   if (agora - ultimoPasso >= 50) {
