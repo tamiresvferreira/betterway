@@ -177,9 +177,8 @@ void lerSerial() {
   static size_t n = 0;
   while (Serial.available()) {
     char ch = (char)Serial.read();
-    if (ch == '') continue;
-    if (ch == '
-') {
+    if (ch == '\r') continue;
+    if (ch == '\n') {
       if (n > 0) aoReceber(nullptr, (byte*)buf, n);
       n = 0;
     } else if (n < sizeof(buf) - 1) {
