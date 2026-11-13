@@ -8,6 +8,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "estudo_b_risco_vida"))
 # Permite "import visao" a partir de src/visao/
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "visao"))
+# Permite "import mensagens" etc. a partir de src/central/
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "central"))
 
 
 @pytest.fixture
