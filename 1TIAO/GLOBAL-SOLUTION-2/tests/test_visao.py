@@ -179,3 +179,90 @@ def test_deteccao_duplicada_no_quadro():
 def test_pcd_marca_a_travessia():
     t = vs.travessias(trajeto(1, atravessa(300)), faixa_ret(), fps=30, pcd_ids={1})
     assert t[0].pcd is True
+
+
+# ---------------------------------------------------------------- Tarefa 3: PCD, conflitos e bloqueios
+def D(classe, caixa, track_id=None, quadro=0, conf=0.9):
+    return vs.Deteccao(quadro, classe, caixa, conf, track_id)
+
+
+def test_cadeira_vazia():
+    assert vs.associar_auxilios([D("wheelchair", (95, 170, 165, 260))]) == {}
+
+
+def test_acompanhante():
+    sentada = D("person", (100, 100, 160, 250), 1)          # cobre 76% da cadeira
+    empurrando = D("person", (140, 90, 200, 250), 2)        # cobre 32% (passa do limiar, mas é menor)
+    cadeira = D("wheelchair", (95, 170, 165, 260))
+    assert vs.associar_auxilios([sentada, empurrando, cadeira]) == {1: "wheelchair"}
+
+
+def test_limiar_relativo_ao_tamanho():
+    pequena, grande = D("person", (500, 500, 520, 550), 1), D("person", (100, 100, 200, 350), 2)
+    cad_pequena, cad_grande = D("wheelchair", (498, 530, 522, 555)), D("wheelchair", (95, 250, 205, 360))
+    assert vs.associar_auxilios([pequena, grande, cad_pequena, cad_grande]) == {1: "wheelchair", 2: "wheelchair"}
+    deslocada = D("wheelchair", (538, 530, 562, 555))       # 40 px ao lado da pessoa pequena
+    assert vs.associar_auxilios([pequena, deslocada]) == {}
+
+
+def _com_auxilio(n_quadros_com, total=20, classe="wheelchair", conf=0.9):
+    dets = []
+    for q in range(total):
+        dets.append(vs.Deteccao(q, "person", (100, 100, 160, 250), 0.9, 1))
+        if q < n_quadros_com:
+            dets.append(vs.Deteccao(q, classe, (95, 170, 165, 260), conf, None))
+    return dets
+
+
+def test_persistencia_pcd():
+    assert vs.pessoas_pcd(_com_auxilio(5)) == {1}
+    assert vs.pessoas_pcd(_com_auxilio(1)) == set()
+
+
+def test_confianca_baixa_ignorada():
+    assert vs.pessoas_pcd(_com_auxilio(20, conf=0.2)) == set()
+
+
+@pytest.mark.parametrize("classe", ["walker", "crutch", "cane"])
+def test_outros_auxilios(classe):
+    pessoa = D("person", (100, 100, 160, 250), 1)
+    assert vs.associar_auxilios([pessoa, D(classe, (95, 170, 165, 260))]) == {1: classe}
+    assert vs.associar_auxilios([pessoa, D(classe, (600, 600, 660, 700))]) == {}
+
+
+def test_conflito_deduplicado():
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(40)]
+    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(40)]
+    c = vs.conflitos(dets, faixa_ret(), fps=30)
+    assert len(c) == 1 and c[0].track_veiculo == 7 and c[0].track_pedestre == 1
+
+
+@pytest.mark.parametrize("quadro_carro, esperado", [(39, 1), (40, 0)])
+def test_janela_de_conflito(quadro_carro, esperado):
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(10)]          # dentro até o quadro 9
+    dets += [vs.Deteccao(q, "person", (30, 1200, 70, 1300), 0.9, 1) for q in range(10, 60)]   # fora (y=1300)
+    dets += [vs.Deteccao(quadro_carro, "car", (10, 650, 90, 700), 0.9, 7)]
+    assert len(vs.conflitos(dets, faixa_ret(), fps=30)) == esperado
+
+
+@pytest.mark.parametrize("classe, esperado", [("car", 1), ("motorcycle", 1), ("bus", 1), ("truck", 1), ("bicycle", 0)])
+def test_classes_de_veiculo(classe, esperado):
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(5)]
+    dets += [vs.Deteccao(q, classe, (10, 650, 90, 700), 0.9, 7) for q in range(5)]
+    assert len(vs.conflitos(dets, faixa_ret(), fps=30)) == esperado
+    if classe == "bicycle":
+        assert vs.contagem_bicicletas(dets, faixa_ret()) == 1
+
+
+@pytest.mark.parametrize("n, esperado", [(60, 1), (59, 0)])
+def test_bloqueio(n, esperado):
+    dets = [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(n)]
+    assert len(vs.bloqueios(dets, faixa_ret(), fps=30)) == esperado
+    assert vs.conflitos(dets, faixa_ret(), fps=30) == []
+
+
+def test_severidade_pcd():
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(5)]
+    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(5)]
+    assert vs.conflitos(dets, faixa_ret(), fps=30, pcd_ids={1})[0].severidade == "alta"
+    assert vs.conflitos(dets, faixa_ret(), fps=30)[0].severidade == "normal"

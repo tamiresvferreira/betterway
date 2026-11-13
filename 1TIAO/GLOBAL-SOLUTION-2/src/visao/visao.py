@@ -222,3 +222,128 @@ def travessias(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Traves
         if atual is not None:                                       # vídeo/rastreamento acabou com a pessoa dentro
             fechar(atual["ultimo"], None, "nao_concluida")
     return saida
+
+
+# ------------------------------------------------------------------------------------------ PCD
+def _area(c) -> float:
+    return max(0.0, c[2] - c[0]) * max(0.0, c[3] - c[1])
+
+
+def _intersecao(a, b) -> float:
+    return _area((max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])))
+
+
+def _centro(c) -> tuple[float, float]:
+    return ((c[0] + c[2]) / 2, (c[1] + c[3]) / 2)
+
+
+def associar_auxilios(deteccoes_do_quadro) -> dict[int, str]:
+    """Num quadro: qual pessoa rastreada está com cada auxílio de mobilidade (cadeira de rodas, andador, muleta,
+    bengala). Regra relativa ao tamanho (vale perto e longe da câmera): interseção ÷ área do auxílio ≥
+    SOBREPOSICAO_PCD e distância entre centros ≤ DIST_PCD_REL × altura da pessoa. Se mais de uma pessoa servir
+    (acompanhante), fica a de maior sobreposição. Auxílio sem ninguém perto não cria pessoa."""
+    pessoas = [d for d in deteccoes_do_quadro if d.classe == "person" and d.track_id is not None]
+    marcadas: dict[int, str] = {}
+    for a in deteccoes_do_quadro:
+        if a.classe not in AUXILIOS or a.conf < CONF_MIN_AUXILIO or _area(a.caixa) == 0:
+            continue
+        melhor, melhor_sob = None, 0.0
+        for p in pessoas:
+            sob = _intersecao(p.caixa, a.caixa) / _area(a.caixa)
+            (cx, cy), (ax, ay) = _centro(p.caixa), _centro(a.caixa)
+            perto = math.hypot(cx - ax, cy - ay) <= DIST_PCD_REL * (p.caixa[3] - p.caixa[1])
+            if sob >= SOBREPOSICAO_PCD and perto and sob > melhor_sob:
+                melhor, melhor_sob = p.track_id, sob
+        if melhor is not None:
+            marcadas[melhor] = a.classe
+    return marcadas
+
+
+def pessoas_pcd(deteccoes) -> set[int]:
+    """Pessoas (track_id) com auxílio de mobilidade colado em ≥ MIN_QUADROS_PCD quadros (uma detecção isolada não
+    marca). Marcada, a pessoa vale como PCD no rastreamento todo."""
+    por_quadro: dict[int, list[Deteccao]] = {}
+    for d in deteccoes:
+        por_quadro.setdefault(d.quadro, []).append(d)
+    contagem: dict[int, int] = {}
+    for dets in por_quadro.values():
+        for tid in associar_auxilios(dets):
+            contagem[tid] = contagem.get(tid, 0) + 1
+    return {t for t, n in contagem.items() if n >= MIN_QUADROS_PCD}
+
+
+# ------------------------------------------------------------------------------------------ conflitos e bloqueios
+@dataclass(frozen=True)
+class Conflito:
+    quadro: int
+    track_veiculo: int
+    classe_veiculo: str
+    track_pedestre: int
+    severidade: str          # "alta" (pedestre PCD) ou "normal"
+
+
+@dataclass(frozen=True)
+class Bloqueio:
+    quadro_inicio: int
+    quadro_fim: int
+    track_veiculo: int
+
+
+def _na_faixa(deteccoes, faixa: Faixa, classes) -> dict[int, dict[int, str]]:
+    """quadro → {track_id: classe} dos objetos das classes dadas com o ponto da base dentro da faixa."""
+    out: dict[int, dict[int, str]] = {}
+    for d in deteccoes:
+        if d.classe in classes and d.track_id is not None and faixa.contem(ponto_da_pessoa(d.caixa)):
+            out.setdefault(d.quadro, {})[d.track_id] = d.classe
+    return out
+
+
+def conflitos(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Conflito]:
+    """Veículo motorizado (carro, moto, ônibus, caminhão) na faixa enquanto há pedestre nela ou que saiu há no
+    máximo JANELA_CONFLITO_S. Um conflito por par veículo × pedestre (deduplicado). Bicicleta não gera conflito."""
+    fps = _validar_fps(fps)
+    janela = JANELA_CONFLITO_S * fps
+    veic = _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO)
+    ped = _na_faixa(deteccoes, faixa, {"person"})
+    ultimo_dentro: dict[int, int] = {}
+    vistos, saida = set(), []
+    for q in sorted(set(veic) | set(ped)):
+        for tid in ped.get(q, {}):
+            ultimo_dentro[tid] = q
+        for tv, classe in veic.get(q, {}).items():
+            for tp, ult in ultimo_dentro.items():
+                if q - ult <= janela and (tv, tp) not in vistos:
+                    vistos.add((tv, tp))
+                    saida.append(Conflito(q, tv, classe, tp, "alta" if tp in pcd_ids else "normal"))
+    return saida
+
+
+def bloqueios(deteccoes, faixa: Faixa, fps) -> list[Bloqueio]:
+    """Veículo motorizado na faixa SEM pedestre nela por ≥ BLOQUEIO_S seguidos: obriga o pedestre a desviar."""
+    fps = _validar_fps(fps)
+    minimo = BLOQUEIO_S * fps
+    veic = _na_faixa(deteccoes, faixa, VEICULOS_CONFLITO)
+    ped = _na_faixa(deteccoes, faixa, {"person"})
+    corridas: dict[int, list[int]] = {}
+    saida = []
+
+    def encerrar(tv):
+        q = corridas.pop(tv)
+        if q[1] - q[0] + 1 >= minimo:
+            saida.append(Bloqueio(q[0], q[1], tv))
+
+    for q in sorted(veic):
+        livres = set() if ped.get(q) else set(veic[q])
+        for tv in list(corridas):
+            if tv not in livres or corridas[tv][1] != q - 1:
+                encerrar(tv)
+        for tv in livres:
+            corridas.setdefault(tv, [q, q])[1] = q
+    for tv in list(corridas):
+        encerrar(tv)
+    return saida
+
+
+def contagem_bicicletas(deteccoes, faixa: Faixa) -> int:
+    """Bicicletas (ids únicos) que passaram pela faixa: contadas à parte, não geram conflito."""
+    return len({tid for q in _na_faixa(deteccoes, faixa, {"bicycle"}).values() for tid in q})
