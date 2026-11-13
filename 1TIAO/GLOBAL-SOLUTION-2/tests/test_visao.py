@@ -266,3 +266,77 @@ def test_severidade_pcd():
     dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(5)]
     assert vs.conflitos(dets, faixa_ret(), fps=30, pcd_ids={1})[0].severidade == "alta"
     assert vs.conflitos(dets, faixa_ret(), fps=30)[0].severidade == "normal"
+
+
+# ---------------------------------------------------------------- Tarefa 4: privacidade
+import inspect
+
+import numpy as np
+
+
+def ruido(h=200, w=300):
+    return np.random.default_rng(0).integers(0, 256, size=(h, w, 3), dtype=np.uint8)
+
+
+def cabeca(caixa, h_img=200, w_img=300):
+    x1, y1, x2, y2 = caixa
+    yc = y1 + (y2 - y1) * vs.FRACAO_CABECA
+    return (max(int(y1), 0), min(int(round(yc)), h_img), max(int(x1), 0), min(int(x2), w_img))
+
+
+def borrada(orig, nova, regiao):
+    a, b, c, d = regiao
+    return nova[a:b, c:d].std() <= vs.LIMIAR_BORRAO * orig[a:b, c:d].std()
+
+
+def test_todas_as_cabecas():
+    img = ruido()
+    caixas = [(10, 20, 70, 180), (120, 30, 170, 190), (220, 10, 280, 170)]
+    out = vs.borrar(img, [D("person", c, i) for i, c in enumerate(caixas)])
+    assert all(borrada(img, out, cabeca(c)) for c in caixas)
+
+
+def test_caixa_na_borda():
+    img = ruido()
+    # cabeça cortada pela borda de cima/esquerda e pela borda direita
+    out = vs.borrar(img, [D("person", (-20, -10, 40, 150), 1), D("person", (280, 150, 330, 260), 2)])
+    assert borrada(img, out, cabeca((-20, -10, 40, 150)))
+    assert borrada(img, out, cabeca((280, 150, 330, 260)))
+    assert out.shape == img.shape
+
+
+def test_sem_pessoas_identica():
+    img = ruido()
+    assert np.array_equal(vs.borrar(img, []), img)
+    assert np.array_equal(vs.borrar(img, [D("car", (10, 10, 100, 100), 3)]), img)   # carro: só a placa é borrada
+
+
+def test_entrada_intacta():
+    img = ruido()
+    copia = img.copy()
+    vs.borrar(img, [D("person", (10, 20, 70, 180), 1)])
+    assert np.array_equal(img, copia)
+
+
+def test_placa_borrada():
+    img = ruido()
+    out = vs.borrar(img, [D("license plate", (100, 100, 160, 130))])
+    assert borrada(img, out, (100, 130, 100, 160))
+
+
+def test_salvar_quadro_grava_borrado(tmp_path):
+    import cv2
+    img = ruido()
+    caixa = (10, 20, 70, 180)
+    caminho = vs.salvar_quadro(img, [D("person", caixa, 1)], tmp_path / "q.png")
+    lido = cv2.imread(str(caminho))
+    assert borrada(img, lido, cabeca(caixa))
+
+
+def test_nenhuma_outra_funcao_grava_imagem():
+    gravadoras = {"salvar_quadro", "gravar_video_borrado"}
+    for nome, f in inspect.getmembers(vs, inspect.isfunction):
+        if f.__module__ != vs.__name__ or nome in gravadoras:
+            continue
+        fonte = inspect.getsource(f)
+        assert "imwrite" not in fonte and "VideoWriter" not in fonte, f"{nome} grava imagem sem borrar"

@@ -347,3 +347,64 @@ def bloqueios(deteccoes, faixa: Faixa, fps) -> list[Bloqueio]:
 def contagem_bicicletas(deteccoes, faixa: Faixa) -> int:
     """Bicicletas (ids únicos) que passaram pela faixa: contadas à parte, não geram conflito."""
     return len({tid for q in _na_faixa(deteccoes, faixa, {"bicycle"}).values() for tid in q})
+
+
+# ------------------------------------------------------------------------------------------ privacidade (LGPD)
+BLOCO_PX = 10      # tamanho do bloco da pixelização; regiões menores que isso viram uma tarja de cor única
+
+
+def _regioes_privadas(deteccoes_do_quadro, h: int, w: int) -> list[tuple[int, int, int, int]]:
+    """(y1, y2, x1, x2) a borrar: quarto superior de cada pessoa (cabeça) e cada placa, recortados à imagem."""
+    regioes = []
+    for d in deteccoes_do_quadro:
+        x1, y1, x2, y2 = d.caixa
+        if d.classe == "person":
+            y2 = y1 + (y2 - y1) * FRACAO_CABECA
+        elif d.classe != "license plate":
+            continue
+        r = (max(int(y1), 0), min(int(round(y2)), h), max(int(x1), 0), min(int(x2), w))
+        if r[1] > r[0] and r[3] > r[2]:
+            regioes.append(r)
+    return regioes
+
+
+def borrar(imagem, deteccoes_do_quadro):
+    """Cópia da imagem com cabeças e placas pixelizadas (blocos de BLOCO_PX). A entrada não é alterada."""
+    import cv2
+    out = imagem.copy()
+    h, w = out.shape[:2]
+    for y1, y2, x1, x2 in _regioes_privadas(deteccoes_do_quadro, h, w):
+        reg = out[y1:y2, x1:x2]
+        pequeno = cv2.resize(reg, (max(1, (x2 - x1) // BLOCO_PX), max(1, (y2 - y1) // BLOCO_PX)),
+                             interpolation=cv2.INTER_AREA)
+        out[y1:y2, x1:x2] = cv2.resize(pequeno, (x2 - x1, y2 - y1), interpolation=cv2.INTER_NEAREST)
+    return out
+
+
+def salvar_quadro(imagem, deteccoes_do_quadro, caminho) -> Path:
+    """ÚNICA forma de gravar um quadro em disco: sempre borra cabeças e placas antes."""
+    import cv2
+    caminho = Path(caminho)
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    if not cv2.imwrite(str(caminho), borrar(imagem, deteccoes_do_quadro)):
+        raise OSError(f"não foi possível gravar {caminho}")
+    return caminho
+
+
+def gravar_video_borrado(quadros_e_deteccoes, caminho, fps) -> Path:
+    """Grava um vídeo com cada quadro borrado. `quadros_e_deteccoes`: iterável de (imagem, deteccoes_do_quadro)."""
+    import cv2
+    fps = _validar_fps(fps)
+    caminho = Path(caminho)
+    caminho.parent.mkdir(parents=True, exist_ok=True)
+    escritor = None
+    try:
+        for img, dets in quadros_e_deteccoes:
+            if escritor is None:
+                h, w = img.shape[:2]
+                escritor = cv2.VideoWriter(str(caminho), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
+            escritor.write(borrar(img, dets))
+    finally:
+        if escritor is not None:
+            escritor.release()
+    return caminho
