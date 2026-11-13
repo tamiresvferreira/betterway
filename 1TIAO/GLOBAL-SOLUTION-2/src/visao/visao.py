@@ -25,7 +25,8 @@ MOV_MIN_REL = 0.2           # em movimento: a base andou >= 20% da altura da cai
 VEL_CONFLITO_ALTA_KMH = 30  # conflito com veículo a >= 30 km/h na faixa = severidade alta
 VEL_MAX_PEDESTRE_MS = 3.5   # travessia mais rápida que isso não é de pedestre andando (provável condutor não detectado)
 MIN_QUADROS_PCD = 5         # quadros com auxílio colado para marcar a pessoa como PCD
-CONF_MIN_AUXILIO = 0.25     # confiança mínima das classes de auxílio
+CONF_MIN_AUXILIO = 0.10     # confiança mínima das classes de auxílio (0,10: 10/11 cadeirantes nas 58 fotos, sem alarme
+                            # nas 25 negativas; errar para o lado de proteger. Escolhido nas mesmas fotos: otimista)
 SOBREPOSICAO_PCD = 0.3      # interseção ÷ área da caixa do auxílio
 DIST_PCD_REL = 0.6          # distância entre centros ≤ 0,6 × altura da pessoa
 FRACAO_CABECA = 0.25        # quarto superior da caixa da pessoa = cabeça (borrão)
@@ -307,6 +308,38 @@ def auxilios_por_pessoa(deteccoes) -> dict[int, str]:
     return {t: max(c, key=c.get) for t, c in contagem.items() if sum(c.values()) >= MIN_QUADROS_PCD}
 
 
+GRUPOS_AUXILIO = {"wheelchair": "mobilidade_reduzida", "walker": "mobilidade_reduzida",
+                  "crutch": "mobilidade_reduzida", "cane": "orientacao"}
+ACOES_GRUPO = {"mobilidade_reduzida": {"mais_tempo"},
+               # a bengala branca (pessoa cega) e a de apoio não se distinguem bem na imagem: aciona as duas ações
+               "orientacao": {"mais_tempo", "sinal_sonoro"}}
+
+
+def grupo_do_auxilio(auxilio: str | None) -> str | None:
+    """Agrupa na DECISÃO, não na detecção: o auxílio visto vira o grupo de necessidade na travessia."""
+    return GRUPOS_AUXILIO.get(auxilio)
+
+
+def acoes_na_faixa(auxilio: str | None, velocidade_ms: float | None) -> set[str]:
+    """O que a faixa deve fazer pela pessoa: mais tempo (mobilidade reduzida, ou qualquer um abaixo de 1,2 m/s) e
+    sinal sonoro (orientação). Sem auxílio e sem lentidão medida: nada."""
+    acoes = set(ACOES_GRUPO.get(grupo_do_auxilio(auxilio), set()))
+    if velocidade_ms is not None and velocidade_ms < VEL_IDOSO_MS:
+        acoes.add("mais_tempo")
+    return acoes
+
+
+CONF_AJUSTADO = 0.25   # confiança mínima do modelo ajustado (YOLO11s, notebook 08) para "pedestre_cadeira_rodas"
+
+
+def auxilios_do_ajustado(caixas, classes, confs, quadro: int) -> list[Deteccao]:
+    """Converte a saída do modelo ajustado em detecções de auxílio 'wheelchair' (só a classe pedestre_cadeira_rodas,
+    com confiança ≥ CONF_AJUSTADO). Nos vídeos de cadeirante ele etiquetou 90% e 82% dos quadros, contra 61% e 6% do
+    YOLO-World."""
+    return [Deteccao(quadro, "wheelchair", tuple(c), float(p), None)
+            for c, k, p in zip(caixas, classes, confs) if k == "pedestre_cadeira_rodas" and p >= CONF_AJUSTADO]
+
+
 def pessoas_pcd(deteccoes) -> set[int]:
     """Pessoas (track_id) que usam auxílio de mobilidade (ver auxilios_por_pessoa)."""
     return set(auxilios_por_pessoa(deteccoes))
@@ -538,10 +571,13 @@ def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: F
     travessia (com status), conflito_veiculo_pedestre (com severidade), bloqueio_faixa e contagem_minuto."""
     fps = _validar_fps(fps)
     ev = []
+    aux = auxilios_por_pessoa(deteccoes)
     for tid, q in _primeiro_na_faixa(deteccoes, faixa).items():
         ev.append(Evento("pedestre_na_faixa", q, tid, None, {}))
         if tid in pcd_ids:
-            ev.append(Evento("pcd_na_faixa", q, tid, None, {}))
+            a = aux.get(tid)
+            ev.append(Evento("pcd_na_faixa", q, tid, None, {"auxilio": a, "grupo": grupo_do_auxilio(a),
+                                                             "acoes": sorted(acoes_na_faixa(a, None))}))
     for t in travessias_:
         ev.append(Evento("travessia", t.quadro_inicio, t.track_id, t.duracao_s,
                          {"status": t.status, "quadro_fim": t.quadro_fim, "velocidade_ms": t.velocidade_ms,
@@ -676,29 +712,30 @@ def _fonte(tamanho: int):
     return ImageFont.truetype(font_manager.findfont("DejaVu Sans"), tamanho)
 
 
-def itens_anotacao(deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] | None = None,
-                   conflitos_kmh: dict[int, float] | None = None) -> list[ItemAnotacao]:
+def itens_anotacao(deteccoes_do_quadro, faixa: Faixa | None, auxilios: dict[int, str] | None = None,
+                   conflitos_kmh: dict[int, float] | None = None, altura_img: int | None = None) -> list[ItemAnotacao]:
     """O que desenhar num quadro (sem desenhar): condutores de moto/bicicleta não viram "Pedestre" (o veículo é que
     recebe o rótulo); veículos pequenos, ao fundo, ficam só com a caixa, sem rótulo, para não poluir."""
     auxilios, conflitos_kmh = auxilios or {}, conflitos_kmh or {}
-    altura_img = faixa.resolucao[1]
+    # faixa=None: demonstração sem faixa (vídeo de calçada) — toda pessoa é tratada como pedestre
+    altura_img = altura_img or (faixa.resolucao[1] if faixa is not None else None)
     itens = []
     for d in sem_condutores(deteccoes_do_quadro):
         if d.classe == "person":
-            dentro = faixa.contem(ponto_da_pessoa(d.caixa))
+            dentro = faixa is None or faixa.contem(ponto_da_pessoa(d.caixa))
             itens.append(ItemAnotacao(d.caixa, COR_PEDESTRE if dentro else COR_FORA, dentro,
                                       rotulo(d, dentro, auxilios.get(d.track_id)), d.track_id))
         elif d.classe in ROTULOS_VEICULO:
             kmh = conflitos_kmh.get(d.track_id)
-            grande = (d.caixa[3] - d.caixa[1]) >= VEIC_ROTULO_MIN_ALT * altura_img
+            grande = altura_img is None or (d.caixa[3] - d.caixa[1]) >= VEIC_ROTULO_MIN_ALT * altura_img
             txt = rotulo(d, False, conflito_kmh=kmh) if (grande or kmh is not None) else None
             itens.append(ItemAnotacao(d.caixa, COR_CONFLITO if kmh is not None else COR_VEICULO, kmh is not None,
                                       txt, d.track_id))
     return itens
 
 
-def anotar(imagem, deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] | None = None,
-           conflitos_kmh: dict[int, float] | None = None):
+def anotar(imagem, deteccoes_do_quadro, faixa: Faixa | None, auxilios: dict[int, str] | None = None,
+           conflitos_kmh: dict[int, float] | None = None, privadas_extra=()):
     """Cópia da imagem para mostrar (vídeo, GIF, PDF): PRIMEIRO borra cabeças e placas, DEPOIS desenha a faixa, as
     caixas e os rótulos (nítidos por cima). Pessoa na faixa: caixa laranja grossa + "Pedestre" (com o auxílio, se
     houver); fora da faixa: caixa cinza fina, sem rótulo; veículo: azul; veículo em conflito: vermelho + km/h.
@@ -706,12 +743,15 @@ def anotar(imagem, deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] |
     import cv2
     import numpy as np
     from PIL import Image, ImageDraw
-    out = borrar(imagem, deteccoes_do_quadro)       # borra TODAS as pessoas (inclusive condutores) e placas
+    # borra TODAS as pessoas (inclusive condutores), placas e as regiões extras (rostos pela pose, pessoas de outro
+    # modelo), que não viram caixa nem rótulo
+    out = borrar(imagem, [*deteccoes_do_quadro, *privadas_extra])
     h = out.shape[0]
     grossa, fina = max(3, h // 240), max(2, h // 600)
-    cv2.polylines(out, [np.array(faixa.poligono, np.int32)], True, COR_FAIXA, max(2, h // 480))
+    if faixa is not None:
+        cv2.polylines(out, [np.array(faixa.poligono, np.int32)], True, COR_FAIXA, max(2, h // 480))
     textos = []
-    for it in itens_anotacao(deteccoes_do_quadro, faixa, auxilios, conflitos_kmh):
+    for it in itens_anotacao(deteccoes_do_quadro, faixa, auxilios, conflitos_kmh, altura_img=h):
         x1, y1, x2, y2 = map(int, it.caixa)
         cv2.rectangle(out, (x1, y1), (x2, y2), it.cor, grossa if it.grossa else fina)
         if it.texto:

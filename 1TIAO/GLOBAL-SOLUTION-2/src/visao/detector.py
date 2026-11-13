@@ -19,7 +19,7 @@ def detectar(caminho_video, classes=CLASSES_PADRAO, a_cada: int = 1, conf: float
 
     O índice é o do vídeo original (com a_cada > 1 os quadros pulados simplesmente não aparecem; as funções de
     travessia usam o índice e o fps original). `conf` baixo de propósito: o filtro de confiança dos auxílios fica em
-    visao.CONF_MIN_AUXILIO, calibrado no conjunto de avaliação.
+    visao.CONF_MIN_AUXILIO (0,10), calibrado no conjunto de avaliação.
     """
     from ultralytics import YOLOWorld
     if a_cada < 1:

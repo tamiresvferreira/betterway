@@ -220,7 +220,7 @@ def test_persistencia_pcd():
 
 
 def test_confianca_baixa_ignorada():
-    assert vs.pessoas_pcd(_com_auxilio(20, conf=0.2)) == set()
+    assert vs.pessoas_pcd(_com_auxilio(20, conf=0.05)) == set()   # abaixo de CONF_MIN_AUXILIO (0,10)
 
 
 @pytest.mark.parametrize("classe", ["walker", "crutch", "cane"])
@@ -680,3 +680,52 @@ def test_rosto_pela_pose_ignora_pontos_incertos_e_corpo():
     xy2, cf2 = _pontos({1: (490, 290), 2: (510, 290)})
     cf2[1] = 0.1                                                        # olho esquerdo incerto
     assert vs.rostos_pela_pose([xy2], [cf2], [(400, 250, 600, 800)], quadro=0) == []
+
+
+# ---------------------------------------------------------------- grupos e ações, modelo ajustado, demonstração
+def test_limiar_auxilio_010():
+    assert vs.CONF_MIN_AUXILIO == 0.10
+
+
+def test_grupo_e_acoes_pela_necessidade():
+    for aux in ("wheelchair", "walker", "crutch"):
+        assert vs.grupo_do_auxilio(aux) == "mobilidade_reduzida"
+        assert vs.acoes_na_faixa(aux, None) == {"mais_tempo"}
+    assert vs.grupo_do_auxilio("cane") == "orientacao"
+    assert vs.acoes_na_faixa("cane", None) == {"mais_tempo", "sinal_sonoro"}   # bengala branca × de apoio: as duas
+    assert vs.acoes_na_faixa(None, 1.0) == {"mais_tempo"}                       # sem auxílio, mas devagar
+    assert vs.acoes_na_faixa(None, 1.5) == set() and vs.acoes_na_faixa(None, None) == set()
+    assert vs.grupo_do_auxilio(None) is None
+
+
+def test_evento_pcd_leva_grupo_e_acoes():
+    ev = [e for e in _cenario() if e.tipo == "pcd_na_faixa"]
+    assert ev and ev[0].payload["auxilio"] == "wheelchair"
+    assert ev[0].payload["grupo"] == "mobilidade_reduzida" and ev[0].payload["acoes"] == ["mais_tempo"]
+
+
+def test_modelo_ajustado_vira_auxilio_cadeira():
+    caixas = [(100, 100, 300, 500), (400, 100, 500, 500), (600, 100, 700, 500)]
+    dets = vs.auxilios_do_ajustado(caixas, ["pedestre_cadeira_rodas", "pedestre", "pedestre_cadeira_rodas"],
+                                   [0.8, 0.9, 0.1], quadro=3)
+    assert [(d.classe, d.caixa, d.quadro) for d in dets] == [("wheelchair", (100, 100, 300, 500), 3)]
+
+
+def test_cadeira_do_ajustado_vai_para_quem_esta_sentado_nao_para_acompanhante():
+    sentado = vs.Deteccao(0, "person", (100, 150, 300, 500), 0.9, 1)
+    acompanhante = vs.Deteccao(0, "person", (260, 50, 380, 520), 0.9, 2)
+    cadeira = vs.auxilios_do_ajustado([(95, 140, 310, 505)], ["pedestre_cadeira_rodas"], [0.9], quadro=0)
+    assert vs.associar_auxilios([sentado, acompanhante, *cadeira]) == {1: "wheelchair"}
+
+
+def test_demonstracao_sem_faixa_rotula_todas_as_pessoas():
+    p1, p2 = vs.Deteccao(0, "person", (10, 10, 50, 200), 0.9, 1), vs.Deteccao(0, "person", (300, 10, 340, 200), 0.9, 2)
+    itens = {(i.texto, i.track_id, i.grossa) for i in vs.itens_anotacao([p1, p2], None, {1: "wheelchair"})}
+    assert ("Pedestre · cadeira de rodas", 1, True) in itens and ("Pedestre", 2, True) in itens
+
+
+def test_anotar_sem_faixa_borra_extras_de_privacidade():
+    img = np.random.default_rng(3).integers(0, 256, (400, 400, 3), dtype=np.uint8)
+    rosto = vs.Deteccao(0, "face", (300, 300, 380, 380), 1.0, None)       # rosto achado pela pose, fora de qualquer caixa
+    out = vs.anotar(img, [], None, privadas_extra=[rosto])
+    assert not np.array_equal(out[300:380, 300:380], img[300:380, 300:380])
