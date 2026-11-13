@@ -599,3 +599,17 @@ def test_anotar_borra_antes_e_escreve_rotulo():
     assert out.shape == img.shape
     assert borrada(img, out, (156, 183, 36, 64))                        # miolo da cabeça (sem a linha da caixa)
     assert not np.array_equal(out[120:148, 30:120], img[120:148, 30:120])   # rótulo escrito acima da caixa
+
+
+def test_itens_condutor_nao_vira_pedestre_e_carro_longe_sem_rotulo():
+    f = faixa_de(RET, resolucao=(1000, 1000), lado_a=(0, 1), lado_b=(2, 3))
+    piloto = D("person", (20, 400, 80, 560), 1)                    # pés dentro da faixa, mas montado na moto
+    moto = D("motorcycle", (10, 450, 95, 580), 9)
+    pedestre = D("person", (30, 600, 70, 760), 2)
+    carro_perto = D("car", (200, 500, 500, 700), 5)                # 200 px de altura = 20% da imagem
+    carro_longe = D("car", (600, 100, 650, 130), 6)                # 30 px = 3%: estacionado ao fundo
+    itens = {(i.texto, i.track_id) for i in vs.itens_anotacao([piloto, moto, pedestre, carro_perto, carro_longe], f)}
+    assert ("Pedestre", 2) in itens
+    assert not any(t == "Pedestre" and tid == 1 for t, tid in itens)       # piloto não é pedestre
+    assert ("Moto", 9) in itens and ("Carro", 5) in itens
+    assert (None, 6) in itens                                               # caixa fina, sem rótulo

@@ -608,6 +608,16 @@ COR_CONFLITO = (40, 40, 220)       # vermelho
 COR_VEICULO = (214, 120, 42)       # azul
 COR_FORA = (170, 170, 170)         # cinza: pessoa fora da faixa
 COR_FAIXA = (0, 230, 255)          # amarelo
+VEIC_ROTULO_MIN_ALT = 0.08         # veículo com caixa menor que 8% da altura da imagem (ao fundo): sem rótulo
+
+
+@dataclass(frozen=True)
+class ItemAnotacao:
+    caixa: tuple
+    cor: tuple
+    grossa: bool
+    texto: str | None
+    track_id: int | None
 
 
 def rotulo(d: Deteccao, na_faixa: bool, auxilio: str | None = None, conflito_kmh: float | None = None) -> str | None:
@@ -628,6 +638,27 @@ def _fonte(tamanho: int):
     return ImageFont.truetype(font_manager.findfont("DejaVu Sans"), tamanho)
 
 
+def itens_anotacao(deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] | None = None,
+                   conflitos_kmh: dict[int, float] | None = None) -> list[ItemAnotacao]:
+    """O que desenhar num quadro (sem desenhar): condutores de moto/bicicleta não viram "Pedestre" (o veículo é que
+    recebe o rótulo); veículos pequenos, ao fundo, ficam só com a caixa, sem rótulo, para não poluir."""
+    auxilios, conflitos_kmh = auxilios or {}, conflitos_kmh or {}
+    altura_img = faixa.resolucao[1]
+    itens = []
+    for d in sem_condutores(deteccoes_do_quadro):
+        if d.classe == "person":
+            dentro = faixa.contem(ponto_da_pessoa(d.caixa))
+            itens.append(ItemAnotacao(d.caixa, COR_PEDESTRE if dentro else COR_FORA, dentro,
+                                      rotulo(d, dentro, auxilios.get(d.track_id)), d.track_id))
+        elif d.classe in ROTULOS_VEICULO:
+            kmh = conflitos_kmh.get(d.track_id)
+            grande = (d.caixa[3] - d.caixa[1]) >= VEIC_ROTULO_MIN_ALT * altura_img
+            txt = rotulo(d, False, conflito_kmh=kmh) if (grande or kmh is not None) else None
+            itens.append(ItemAnotacao(d.caixa, COR_CONFLITO if kmh is not None else COR_VEICULO, kmh is not None,
+                                      txt, d.track_id))
+    return itens
+
+
 def anotar(imagem, deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] | None = None,
            conflitos_kmh: dict[int, float] | None = None):
     """Cópia da imagem para mostrar (vídeo, GIF, PDF): PRIMEIRO borra cabeças e placas, DEPOIS desenha a faixa, as
@@ -637,27 +668,16 @@ def anotar(imagem, deteccoes_do_quadro, faixa: Faixa, auxilios: dict[int, str] |
     import cv2
     import numpy as np
     from PIL import Image, ImageDraw
-    auxilios, conflitos_kmh = auxilios or {}, conflitos_kmh or {}
-    out = borrar(imagem, deteccoes_do_quadro)
+    out = borrar(imagem, deteccoes_do_quadro)       # borra TODAS as pessoas (inclusive condutores) e placas
     h = out.shape[0]
-    grossa, fina = max(3, h // 240), max(1, h // 600)
+    grossa, fina = max(3, h // 240), max(2, h // 600)
     cv2.polylines(out, [np.array(faixa.poligono, np.int32)], True, COR_FAIXA, max(2, h // 480))
     textos = []
-    for d in deteccoes_do_quadro:
-        x1, y1, x2, y2 = map(int, d.caixa)
-        if d.classe == "person":
-            dentro = faixa.contem(ponto_da_pessoa(d.caixa))
-            cor, esp = (COR_PEDESTRE, grossa) if dentro else (COR_FORA, fina)
-            txt = rotulo(d, dentro, auxilios.get(d.track_id))
-        elif d.classe in ROTULOS_VEICULO:
-            kmh = conflitos_kmh.get(d.track_id)
-            cor, esp = (COR_CONFLITO, grossa) if kmh is not None else (COR_VEICULO, max(2, fina))
-            txt = rotulo(d, False, conflito_kmh=kmh)
-        else:
-            continue
-        cv2.rectangle(out, (x1, y1), (x2, y2), cor, esp)
-        if txt:
-            textos.append((txt, x1, y1, cor))
+    for it in itens_anotacao(deteccoes_do_quadro, faixa, auxilios, conflitos_kmh):
+        x1, y1, x2, y2 = map(int, it.caixa)
+        cv2.rectangle(out, (x1, y1), (x2, y2), it.cor, grossa if it.grossa else fina)
+        if it.texto:
+            textos.append((it.texto, x1, y1, it.cor))
     if textos:
         pil = Image.fromarray(cv2.cvtColor(out, cv2.COLOR_BGR2RGB))
         desenho, fonte = ImageDraw.Draw(pil), _fonte(max(14, h // 55))
