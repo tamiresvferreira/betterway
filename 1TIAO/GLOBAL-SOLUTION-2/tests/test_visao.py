@@ -520,3 +520,22 @@ def test_fumaca_modelo_real():
         if i >= 29:
             break
     assert vistos and all(isinstance(d, vs.Deteccao) and d.classe in classes for d in vistos)
+
+
+# ---------------------------------------------------------------- condutor de moto/bicicleta não é pedestre
+def test_condutor_de_moto_nao_e_pedestre():
+    piloto = D("person", (300, 10, 380, 150), 1)            # caixa da pessoa quase toda dentro da da moto
+    moto = D("motorcycle", (280, 50, 420, 170), 9)
+    pedestre = D("person", (100, 20, 160, 160), 2)         # ao lado, sem sobreposição
+    ciclista, bike = D("person", (600, 0, 660, 140), 3), D("bicycle", (590, 60, 680, 160), 8)
+    restantes = vs.sem_condutores([piloto, moto, pedestre, ciclista, bike])
+    assert {d.track_id for d in restantes if d.classe == "person"} == {2}
+    assert {d.classe for d in restantes} == {"person", "motorcycle", "bicycle"}   # veículos continuam
+
+
+def test_condutor_nao_gera_conflito_com_a_propria_moto():
+    dets = []
+    for q in range(10):
+        dy = 10 * q
+        dets += [D("person", (30, 520 + dy, 70, 640 + dy), 1, q), D("motorcycle", (20, 560 + dy, 80, 660 + dy), 9, q)]
+    assert vs.conflitos(vs.sem_condutores(dets), faixa_ret(), fps=30) == []

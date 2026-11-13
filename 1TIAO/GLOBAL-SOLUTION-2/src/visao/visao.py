@@ -30,6 +30,8 @@ FRACAO_CABECA = 0.25        # quarto superior da caixa da pessoa = cabeça (borr
 LIMIAR_BORRAO = 0.25        # desvio-padrão da região borrada ≤ 25% do original
 
 VEICULOS_CONFLITO = {"car", "motorcycle", "bus", "truck"}
+VEICULOS_MONTADOS = {"motorcycle", "bicycle"}     # quem está em cima é condutor, não pedestre
+SOBREPOSICAO_CONDUTOR = 0.5                        # fração da caixa da pessoa dentro da caixa da moto/bicicleta
 AUXILIOS = {"wheelchair", "walker", "crutch", "cane"}
 CHAVES_FAIXA = ("poligono", "resolucao", "lado_a", "lado_b", "comprimento_m")
 
@@ -223,6 +225,24 @@ def travessias(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Traves
                 estado = den
         if atual is not None:                                       # vídeo/rastreamento acabou com a pessoa dentro
             fechar(atual["ultimo"], None, "nao_concluida")
+    return saida
+
+
+# ------------------------------------------------------------------------------------------ condutores
+def sem_condutores(deteccoes) -> list[Deteccao]:
+    """Remove as "pessoas" que são condutores de moto ou bicicleta: caixa da pessoa com ≥ SOBREPOSICAO_CONDUTOR da área
+    dentro da caixa de uma moto/bicicleta no mesmo quadro. O detector marca o piloto como "person"; sem isso ele vira
+    pedestre na faixa e a própria moto vira "conflito" com ele. Os veículos continuam na lista."""
+    montados: dict[int, list] = {}
+    for d in deteccoes:
+        if d.classe in VEICULOS_MONTADOS:
+            montados.setdefault(d.quadro, []).append(d.caixa)
+    saida = []
+    for d in deteccoes:
+        if d.classe == "person" and _area(d.caixa) > 0 and any(
+                _intersecao(d.caixa, v) / _area(d.caixa) >= SOBREPOSICAO_CONDUTOR for v in montados.get(d.quadro, [])):
+            continue
+        saida.append(d)
     return saida
 
 

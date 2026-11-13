@@ -1,0 +1,11 @@
+{
+  "video": "data/raw/video/cdmx_faixa_pexels_25775484.mp4",
+  "descricao": "Faixa de pedestres em primeiro plano, atravessada da esquerda (lado A) para a direita (lado B) ou o contrário; só o trecho visível no quadro vertical. As bordas laterais ficam 90 px para dentro da imagem, para a pessoa ser vista fora da faixa antes de sair do quadro (confirma a saída).",
+  "resolucao": [1080, 1920],
+  "poligono": [[90, 1370], [990, 1370], [990, 1530], [90, 1530]],
+  "lado_a": [3, 0],
+  "lado_b": [1, 2],
+  "comprimento_m": 6.7,
+  "comprimento_metodo": "estimativa: largura visível da zebra (~8 listras × ~1 m, norma mexicana) × 900/1080 px do trecho dentro do polígono",
+  "y_metodo": "y de 1370 a 1530: faixa dos pés das pessoas medida nas detecções (percentis 25–95: 1379–1488)"
+}
