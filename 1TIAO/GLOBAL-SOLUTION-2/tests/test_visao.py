@@ -624,3 +624,59 @@ def test_itens_condutor_nao_vira_pedestre_e_carro_longe_sem_rotulo():
     assert not any(t == "Pedestre" and tid == 1 for t, tid in itens)       # piloto não é pedestre
     assert ("Moto", 9) in itens and ("Carro", 5) in itens
     assert (None, 6) in itens                                               # caixa fina, sem rótulo
+
+
+def test_borrao_anonimiza_pessoa_grande_em_close():
+    """Com bloco fixo de 10 px, um rosto de 300 px continuava reconhecível; o bloco precisa crescer com a pessoa:
+    no máximo vs.BLOCOS_MAX blocos na largura da caixa, qualquer que seja o tamanho."""
+    rng = np.random.default_rng(0)
+    img = rng.integers(0, 256, (1080, 1920, 3), dtype=np.uint8)
+    pessoa = vs.Deteccao(0, "person", (600, 0, 1200, 1080), 0.9, 1)          # 600 px de largura, em close
+    out = vs.borrar(img, [pessoa])
+    linha = out[100, 600:1200]                                                # dentro da região da cabeça
+    trocas = int((np.abs(np.diff(linha.astype(int), axis=0)).sum(axis=1) > 0).sum())
+    assert trocas + 1 <= vs.BLOCOS_MAX
+
+
+def test_borrao_pessoa_pequena_continua_com_blocos_de_10():
+    img = np.random.default_rng(1).integers(0, 256, (400, 400, 3), dtype=np.uint8)
+    pessoa = vs.Deteccao(0, "person", (100, 100, 140, 260), 0.9, 1)          # 40 px de largura, longe
+    out = vs.borrar(img, [pessoa])
+    linha = out[110, 100:140]
+    trocas = int((np.abs(np.diff(linha.astype(int), axis=0)).sum(axis=1) > 0).sum())
+    assert trocas + 1 <= 4 and not np.array_equal(out[110, 100:140], img[110, 100:140])
+
+
+def test_rosto_detectado_e_borrado_inteiro():
+    """Em close, a cabeça nem sempre está no quarto de cima da caixa da pessoa (sentada, cortada pela borda):
+    uma detecção 'face' é borrada inteira, como a placa."""
+    img = np.random.default_rng(2).integers(0, 256, (600, 600, 3), dtype=np.uint8)
+    rosto = vs.Deteccao(0, "face", (200, 400, 320, 540), 0.5, None)
+    out = vs.borrar(img, [rosto])
+    assert not np.array_equal(out[400:540, 200:320], img[400:540, 200:320])
+    assert np.array_equal(out[:390], img[:390])
+
+
+def _pontos(vis):
+    """17 pontos COCO; `vis` = {índice: (x, y)} com confiança 0.9, o resto com 0."""
+    xy, cf = np.zeros((17, 2)), np.zeros(17)
+    for i, p in vis.items():
+        xy[i], cf[i] = p, 0.9
+    return xy, cf
+
+
+def test_rosto_pela_pose_cobre_os_pontos_com_folga():
+    xy, cf = _pontos({0: (500, 300), 1: (490, 290), 2: (510, 290), 3: (475, 295), 4: (525, 295)})
+    (r,) = vs.rostos_pela_pose([xy], [cf], [(400, 250, 600, 800)], quadro=7)
+    x1, y1, x2, y2 = r.caixa
+    assert r.classe == "face" and r.quadro == 7
+    assert x1 < 475 and x2 > 525 and y1 < 290 and y2 > 300
+    assert (x2 - x1) >= 0.12 * 550            # tamanho mínimo proporcional à pessoa (perfil com pontos colados)
+
+
+def test_rosto_pela_pose_ignora_pontos_incertos_e_corpo():
+    xy, cf = _pontos({0: (500, 300), 5: (450, 400), 6: (550, 400)})   # só o nariz é do rosto: não basta
+    assert vs.rostos_pela_pose([xy], [cf], [(400, 250, 600, 800)], quadro=0) == []
+    xy2, cf2 = _pontos({1: (490, 290), 2: (510, 290)})
+    cf2[1] = 0.1                                                        # olho esquerdo incerto
+    assert vs.rostos_pela_pose([xy2], [cf2], [(400, 250, 600, 800)], quadro=0) == []

@@ -417,16 +417,42 @@ def contagem_bicicletas(deteccoes, faixa: Faixa) -> int:
 
 # ------------------------------------------------------------------------------------------ privacidade (LGPD)
 BLOCO_PX = 10      # tamanho do bloco da pixelização; regiões menores que isso viram uma tarja de cor única
+BLOCOS_MAX = 6                     # no máximo 6 blocos na largura da região: em close, o bloco cresce (rosto de 300 px fica irreconhecível)
+
+
+CLASSES_PRIVADAS_INTEIRAS = {"license plate", "face"}   # borradas por inteiro (o rosto vem do vocabulário do YOLO-World)
+
+
+PONTOS_ROSTO = (0, 1, 2, 3, 4)   # nariz, olhos e orelhas no padrão COCO de pose
+CONF_PONTO_ROSTO = 0.3
+FOLGA_ROSTO = 2.5                # a caixa do rosto é o vão entre os pontos multiplicado por isto
+ROSTO_MIN_REL = 0.12             # ... e nunca menor que 12% da altura da pessoa (perfil, pontos colados)
+
+
+def rostos_pela_pose(pontos_xy, pontos_conf, caixas_pessoa, quadro: int) -> list[Deteccao]:
+    """Caixas 'face' a partir de um modelo de pose (nariz, olhos, orelhas). Em close, com a pessoa sentada ou cortada
+    pela borda, a cabeça não está no quarto de cima da caixa; a pose acha o rosto onde ele estiver. Precisa de pelo
+    menos 2 pontos do rosto com confiança ≥ CONF_PONTO_ROSTO (de costas, sem rosto visível, não gera caixa)."""
+    rostos = []
+    for xy, cf, caixa in zip(pontos_xy, pontos_conf, caixas_pessoa):
+        pts = [tuple(xy[i]) for i in PONTOS_ROSTO if cf[i] >= CONF_PONTO_ROSTO]
+        if len(pts) < 2:
+            continue
+        xs, ys = [x for x, _ in pts], [y for _, y in pts]
+        cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+        lado = max(FOLGA_ROSTO * max(max(xs) - min(xs), max(ys) - min(ys)), ROSTO_MIN_REL * (caixa[3] - caixa[1]))
+        rostos.append(Deteccao(quadro, "face", (cx - lado / 2, cy - lado / 2, cx + lado / 2, cy + lado / 2), 1.0, None))
+    return rostos
 
 
 def _regioes_privadas(deteccoes_do_quadro, h: int, w: int) -> list[tuple[int, int, int, int]]:
-    """(y1, y2, x1, x2) a borrar: quarto superior de cada pessoa (cabeça) e cada placa, recortados à imagem."""
+    """(y1, y2, x1, x2) a borrar: quarto superior de cada pessoa (cabeça), cada rosto e cada placa, recortados à imagem."""
     regioes = []
     for d in deteccoes_do_quadro:
         x1, y1, x2, y2 = d.caixa
         if d.classe == "person":
             y2 = y1 + (y2 - y1) * FRACAO_CABECA
-        elif d.classe != "license plate":
+        elif d.classe not in CLASSES_PRIVADAS_INTEIRAS:
             continue
         r = (max(int(y1), 0), min(int(round(y2)), h), max(int(x1), 0), min(int(x2), w))
         if r[1] > r[0] and r[3] > r[2]:
@@ -435,13 +461,15 @@ def _regioes_privadas(deteccoes_do_quadro, h: int, w: int) -> list[tuple[int, in
 
 
 def borrar(imagem, deteccoes_do_quadro):
-    """Cópia da imagem com cabeças e placas pixelizadas (blocos de BLOCO_PX). A entrada não é alterada."""
+    """Cópia da imagem com cabeças e placas pixelizadas (blocos de pelo menos BLOCO_PX, e no máximo BLOCOS_MAX
+    blocos na largura da região). A entrada não é alterada."""
     import cv2
     out = imagem.copy()
     h, w = out.shape[:2]
     for y1, y2, x1, x2 in _regioes_privadas(deteccoes_do_quadro, h, w):
         reg = out[y1:y2, x1:x2]
-        pequeno = cv2.resize(reg, (max(1, (x2 - x1) // BLOCO_PX), max(1, (y2 - y1) // BLOCO_PX)),
+        bloco = max(BLOCO_PX, -(-(x2 - x1) // BLOCOS_MAX))   # proporcional ao tamanho, nunca menor que BLOCO_PX
+        pequeno = cv2.resize(reg, (max(1, -(-(x2 - x1) // bloco)), max(1, -(-(y2 - y1) // bloco))),
                              interpolation=cv2.INTER_AREA)
         out[y1:y2, x1:x2] = cv2.resize(pequeno, (x2 - x1, y2 - y1), interpolation=cv2.INTER_NEAREST)
     return out
