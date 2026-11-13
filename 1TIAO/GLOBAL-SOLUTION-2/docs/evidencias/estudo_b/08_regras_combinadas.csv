@@ -1,0 +1,10 @@
+﻿regra;acertos (de 11);recall;precisão;alarme sem auxílio (25);alarme outros auxílios (22)
+YOLO-World ≥ 0,10;10;0.91;0.71;0;4
+ajustado ≥ 0,50;8;0.73;0.62;2;3
+ajustado ≥ 0.25 E YOLO-World ≥ 0.02;8;0.73;0.73;0;3
+ajustado ≥ 0.35 E YOLO-World ≥ 0.02;8;0.73;0.73;0;3
+ajustado ≥ 0.50 E YOLO-World ≥ 0.02;8;0.73;0.73;0;3
+ajustado ≥ 0.25 E YOLO-World ≥ 0.05;8;0.73;0.73;0;3
+ajustado ≥ 0.35 E YOLO-World ≥ 0.05;8;0.73;0.73;0;3
+ajustado ≥ 0.50 E YOLO-World ≥ 0.05;8;0.73;0.73;0;3
+YOLO-World ≥ 0,10 OU ajustado ≥ 0,70;10;0.91;0.62;2;4
