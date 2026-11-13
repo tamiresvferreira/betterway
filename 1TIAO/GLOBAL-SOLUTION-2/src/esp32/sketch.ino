@@ -215,6 +215,9 @@ void setup() {
   mqtt.setServer(BROKER, PORTA);
   mqtt.setCallback(aoReceber);
   mqtt.setBufferSize(512);
+  // keepalive de 60 s (padrão 15 s): no Wokwi a simulação roda abaixo do tempo real e o broker derrubava a
+  // conexão a cada ~15 s simulados (visto na aceitação: reconexões em 130, 144, 149 s)
+  mqtt.setKeepAlive(60);
   Serial.printf("Via Segura SP - no da faixa (boot %s)\n", boot);
 }
 
