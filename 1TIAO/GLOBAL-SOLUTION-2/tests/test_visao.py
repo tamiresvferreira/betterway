@@ -408,6 +408,17 @@ def test_idempotencia(con):
     assert n1 == len(ev) and n2 == 0 and _contar(con) == len(ev)
 
 
+def test_reprocessar_video_substitui_resultado_antigo(con):
+    """Rodar de novo com outros parâmetros não pode deixar eventos da execução anterior; outro vídeo fica intacto."""
+    antigo = [vs.Evento("pedestre_na_faixa", q, 1, None, {}) for q in (5, 6, 7)]
+    novo = [vs.Evento("pedestre_na_faixa", 9, 2, None, {})]
+    vs.gravar_eventos(con, antigo, "video_a")
+    vs.gravar_eventos(con, antigo, "video_b")
+    assert vs.substituir_eventos(con, novo, "video_a") == 1
+    chaves = {c for (c,) in con.execute("SELECT chave FROM eventos")}
+    assert sum(c.startswith("video_a:") for c in chaves) == 1 and sum(c.startswith("video_b:") for c in chaves) == 3
+
+
 def test_mesmo_veiculo_dois_pedestres_no_mesmo_quadro(con):
     ev = [vs.Evento("conflito_veiculo_pedestre", 10, 7, None, {"track_pedestre": 1}),
           vs.Evento("conflito_veiculo_pedestre", 10, 7, None, {"track_pedestre": 2})]

@@ -542,7 +542,7 @@ def _json_padrao(o):
     raise TypeError(f"tipo não serializável: {type(o).__name__}")
 
 
-def gravar_eventos(con, eventos, video_id: str) -> int:
+def gravar_eventos(con, eventos, video_id: str, _substituir: bool = False) -> int:
     """Grava os eventos (origem 'yolo', marcados como demonstração) numa única transação e devolve quantos entraram.
     Reprocessar o mesmo vídeo não duplica (chave única); qualquer erro desfaz o lote inteiro."""
     from datetime import datetime
@@ -557,11 +557,21 @@ def gravar_eventos(con, eventos, video_id: str) -> int:
         linhas.append((agora, e.tipo, None if e.valor is None else float(e.valor),
                        json.dumps(payload, ensure_ascii=False, default=_json_padrao),
                        f"{video_id}:{q}:{tid}:{e.tipo}{extra}"))
-    antes = con.total_changes
     with con:   # transação: commit no fim, rollback em qualquer erro
+        if _substituir:
+            prefixo = f"{video_id}:"
+            con.execute("DELETE FROM eventos WHERE origem = 'yolo' AND substr(chave, 1, ?) = ?",
+                        (len(prefixo), prefixo))
+        antes = con.total_changes
         con.executemany("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, valor, payload_json, chave) "
                         "VALUES (?, 'yolo', NULL, ?, ?, ?, ?) ON CONFLICT(chave) DO NOTHING", linhas)
     return con.total_changes - antes
+
+
+def substituir_eventos(con, eventos, video_id: str) -> int:
+    """Reprocessamento de um vídeo: apaga os eventos anteriores DESTE vídeo e grava os novos, na mesma transação
+    (se a gravação falhar, os antigos voltam). Evita que execuções com parâmetros antigos fiquem no banco."""
+    return gravar_eventos(con, eventos, video_id, _substituir=True)
 
 
 # ------------------------------------------------------------------------------------------ leitura de vídeo

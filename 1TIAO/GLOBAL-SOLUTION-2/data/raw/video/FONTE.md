@@ -19,7 +19,7 @@ banco (`payload_json`) e no PDF.
 
 **Limitação de enquadramento:** o quadro vertical mostra só o trecho da faixa que cabe na imagem, não a rua inteira
 de calçada a calçada. A "travessia" medida é a do trecho visível (da borda esquerda à direita do quadro), e o
-comprimento (~8 m) é estimado pelo número de listras.
+largura visível da faixa (~8 m) é estimada pelo número de listras; o polígono usado vai de x=90 a x=990 (6,7 m), recuado das bordas para que a pessoa seja vista entrando e saindo.
 
 **Descartados (com motivo):**
 - **Shibuya Crossing**, Tóquio (Wikimedia Commons, CC BY 2.0, Emran Kassim). Foi o 1º escolhido e o notebook chegou a
