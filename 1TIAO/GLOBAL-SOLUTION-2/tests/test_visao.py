@@ -761,3 +761,30 @@ def test_dois_cadeirantes_lado_a_lado_ficam_os_dois():
         if q % 3:
             dets.append(vs.Deteccao(q, "wheelchair", (495, 140, 710, 505), 0.9, None))
     assert vs.auxilios_por_pessoa(dets) == {1: "wheelchair", 2: "wheelchair"}
+
+
+# ---------------------------------------------------------------- revisão final
+def test_segundo_cadeirante_longe_nao_vira_acompanhante():
+    """Revisão: 'aparecer junto' tem de ser 'estar perto'. Dois cadeirantes em pontos distantes da cena, um com a
+    cadeira detectada bem mais vezes que o outro, continuam os dois marcados."""
+    dets = []
+    for q in range(60):
+        dets.append(vs.Deteccao(q, "person", (0, 150, 200, 500), 0.9, 1))
+        dets.append(vs.Deteccao(q, "wheelchair", (0, 140, 210, 505), 0.9, None))
+        dets.append(vs.Deteccao(q, "person", (800, 150, 1000, 500), 0.9, 2))
+        if q < 20:
+            dets.append(vs.Deteccao(q, "wheelchair", (795, 140, 1010, 505), 0.9, None))
+    assert vs.auxilios_por_pessoa(dets) == {1: "wheelchair", 2: "wheelchair"}
+
+
+def test_cadeirante_com_cadeira_vista_como_bicicleta_nao_e_condutor():
+    """Revisão: a regra da bicicleta-que-é-cadeira precisa valer dentro de sem_condutores (sistema todo, não só a demo)
+    e na contagem de bicicletas."""
+    f = faixa_de(RET, resolucao=(1000, 1000), lado_a=(0, 1), lado_b=(2, 3))
+    dets = []
+    for q in range(10):
+        dets.append(vs.Deteccao(q, "person", (20, 400, 90, 560), 0.9, 1))
+        dets.append(vs.Deteccao(q, "wheelchair", (10, 420, 100, 570), 0.8, None))
+        dets.append(vs.Deteccao(q, "bicycle", (15, 430, 95, 570), 0.4, 9))
+    assert any(d.classe == "person" for d in vs.sem_condutores(dets))
+    assert vs.contagem_bicicletas(dets, f) == 0

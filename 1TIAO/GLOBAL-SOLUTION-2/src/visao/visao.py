@@ -248,6 +248,7 @@ def sem_condutores(deteccoes) -> list[Deteccao]:
     """Remove as "pessoas" que são condutores de moto ou bicicleta: caixa da pessoa com ≥ SOBREPOSICAO_CONDUTOR da área
     dentro da caixa de uma moto/bicicleta no mesmo quadro. O detector marca o piloto como "person"; sem isso ele vira
     pedestre na faixa e a própria moto vira "conflito" com ele. Os veículos continuam na lista."""
+    deteccoes = sem_bicicleta_na_cadeira(deteccoes)   # cadeira de rodas vista como "bicicleta" não faz condutor
     montados: dict[int, list] = {}
     for d in deteccoes:
         if d.classe in VEICULOS_MONTADOS:
@@ -305,18 +306,27 @@ def auxilios_por_pessoa(deteccoes) -> dict[int, str]:
     for d in deteccoes:
         por_quadro.setdefault(d.quadro, []).append(d)
     contagem: dict[int, dict[str, int]] = {}
-    quadros_de: dict[int, set[int]] = {}
+    caixas_de: dict[int, dict[int, tuple]] = {}   # track_id -> {quadro: caixa}
     for q, dets in por_quadro.items():
-        for t in {d.track_id for d in dets if d.classe == "person" and d.track_id is not None}:
-            quadros_de.setdefault(t, set()).add(q)
+        for d in dets:
+            if d.classe == "person" and d.track_id is not None:
+                caixas_de.setdefault(d.track_id, {})[q] = d.caixa
         for tid, classe in associar_auxilios(dets).items():
             c = contagem.setdefault(tid, {})
             c[classe] = c.get(classe, 0) + 1
     total = {t: sum(c.values()) for t, c in contagem.items() if sum(c.values()) >= MIN_QUADROS_PCD}
 
+    def perto(a, b):
+        (ax, ay), (bx, by) = _centro(a), _centro(b)
+        alt = max(a[3] - a[1], b[3] - b[1])
+        return _intersecao(a, b) > 0 or math.hypot(ax - bx, ay - by) <= DIST_PCD_REL * alt
+
+    def juntos(t, u):   # quadros em que as duas pessoas aparecem PERTO uma da outra (não só na mesma cena)
+        ct, cu = caixas_de.get(t, {}), caixas_de.get(u, {})
+        return sum(1 for q in ct.keys() & cu.keys() if perto(ct[q], cu[q]))
+
     def acompanhante(t):
-        return any(total[u] > total[t] and total[t] < DOMINANCIA_PCD * total[u]
-                   and len(quadros_de.get(t, set()) & quadros_de.get(u, set())) >= MIN_QUADROS_PCD
+        return any(total[u] > total[t] and total[t] < DOMINANCIA_PCD * total[u] and juntos(t, u) >= MIN_QUADROS_PCD
                    for u in total if u != t)
     return {t: max(contagem[t], key=contagem[t].get) for t in total if not acompanhante(t)}
 
@@ -471,7 +481,7 @@ def bloqueios(deteccoes, faixa: Faixa, fps) -> list[Bloqueio]:
 
 def contagem_bicicletas(deteccoes, faixa: Faixa) -> int:
     """Bicicletas (ids únicos) que passaram pela faixa: contadas à parte, não geram conflito."""
-    return len({tid for q in _na_faixa(deteccoes, faixa, {"bicycle"}).values() for tid in q})
+    return len({tid for q in _na_faixa(sem_bicicleta_na_cadeira(deteccoes), faixa, {"bicycle"}).values() for tid in q})
 
 
 # ------------------------------------------------------------------------------------------ privacidade (LGPD)
