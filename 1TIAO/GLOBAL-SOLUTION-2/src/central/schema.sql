@@ -52,8 +52,10 @@ CREATE TABLE IF NOT EXISTS eventos (
     cluster_id   INTEGER REFERENCES clusters(cluster_id),
     tipo         TEXT    NOT NULL,
     valor        REAL,
-    payload_json TEXT
+    payload_json TEXT,
+    chave        TEXT          -- vídeo:quadro:track:tipo — evita duplicar eventos ao reprocessar (src/visao)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_eventos_chave ON eventos(chave);
 
 -- Alertas e mudanças de modo decididos pela central (SIMULADOS)
 CREATE TABLE IF NOT EXISTS alertas (

@@ -270,6 +270,7 @@ def test_severidade_pcd():
 
 # ---------------------------------------------------------------- Tarefa 4: privacidade
 import inspect
+import json
 
 import numpy as np
 
@@ -340,3 +341,110 @@ def test_nenhuma_outra_funcao_grava_imagem():
             continue
         fonte = inspect.getsource(f)
         assert "imwrite" not in fonte and "VideoWriter" not in fonte, f"{nome} grava imagem sem borrar"
+
+
+# ---------------------------------------------------------------- Tarefa 5: eventos no banco
+import shutil
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[1]
+SCHEMA = RAIZ / "src" / "central" / "schema.sql"
+
+
+@pytest.fixture
+def con():
+    c = sqlite3.connect(":memory:")
+    c.executescript(SCHEMA.read_text(encoding="utf-8"))
+    yield c
+    c.close()
+
+
+def _cenario():
+    """Travessia simples do id 1 (PCD), conflito do carro 7 com o id 1 e bloqueio do carro 8 depois."""
+    f = faixa_ret()
+    ys = atravessa(300)
+    dets = trajeto(1, ys)
+    dets += [vs.Deteccao(q, "wheelchair", (30, ys[q] - 40, 70, ys[q]), 0.9, None) for q in range(3, 13)]  # junto aos pés
+    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 7) for q in range(150, 160)]
+    dets += [vs.Deteccao(q, "car", (10, 650, 90, 700), 0.9, 8) for q in range(400, 470)]
+    pcd = {1}
+    return vs.eventos_de(vs.travessias(dets, f, 30, pcd), vs.conflitos(dets, f, 30, pcd), vs.bloqueios(dets, f, 30),
+                         pcd, dets, f, 30)
+
+
+def _contar(con):
+    return con.execute("SELECT COUNT(*) FROM eventos").fetchone()[0]
+
+
+def test_tipos_de_evento():
+    tipos = {e.tipo for e in _cenario()}
+    assert {"pedestre_na_faixa", "pcd_na_faixa", "travessia", "contagem_minuto", "conflito_veiculo_pedestre",
+            "bloqueio_faixa"} <= tipos
+
+
+def test_idempotencia(con):
+    ev = _cenario()
+    n1 = vs.gravar_eventos(con, ev, "video_teste")
+    n2 = vs.gravar_eventos(con, ev, "video_teste")
+    assert n1 == len(ev) and n2 == 0 and _contar(con) == len(ev)
+
+
+def test_mesmo_veiculo_dois_pedestres_no_mesmo_quadro(con):
+    ev = [vs.Evento("conflito_veiculo_pedestre", 10, 7, None, {"track_pedestre": 1}),
+          vs.Evento("conflito_veiculo_pedestre", 10, 7, None, {"track_pedestre": 2})]
+    assert vs.gravar_eventos(con, ev, "v") == 2
+
+
+def test_transacao(con):
+    ev = _cenario()
+    ruim = ev[:2] + [vs.Evento(None, 5, 1, None, {})] + ev[2:]
+    with pytest.raises(sqlite3.IntegrityError):
+        vs.gravar_eventos(con, ruim, "video_teste")
+    assert _contar(con) == 0
+
+
+def test_nao_concluida_entra(con):
+    t = vs.Travessia(1, 0, 10, 0.4, None, "A", None, "nao_concluida", False, False)
+    vs.gravar_eventos(con, vs.eventos_de([t], [], [], set(), [], faixa_ret(), 30), "v")
+    payloads = [json.loads(p) for (p,) in con.execute("SELECT payload_json FROM eventos WHERE tipo = 'travessia'")]
+    assert payloads[0]["status"] == "nao_concluida"
+
+
+def test_origem_invalida_recusada(con):
+    with pytest.raises(sqlite3.IntegrityError):
+        con.execute("INSERT INTO eventos (timestamp, origem, tipo) VALUES ('2026-11-12T10:00:00-03:00', 'camera', 'x')")
+
+
+def test_timestamp_iso_sao_paulo(con):
+    vs.gravar_eventos(con, _cenario()[:1], "v")
+    ts = con.execute("SELECT timestamp FROM eventos").fetchone()[0]
+    assert ts.endswith("-03:00")
+    datetime.fromisoformat(ts)
+
+
+def test_payload_com_numpy(con):
+    ev = [vs.Evento("travessia", np.int64(3), np.int64(1), np.float32(1.5), {"x": np.int64(3), "y": np.float64(0.5)})]
+    assert vs.gravar_eventos(con, ev, "v") == 1
+
+
+def test_payload_marca_demonstracao(con):
+    vs.gravar_eventos(con, _cenario(), "video_teste")
+    for (p,) in con.execute("SELECT payload_json FROM eventos"):
+        d = json.loads(p)
+        assert d["demonstracao"] is True and d["video_id"] == "video_teste"
+    assert con.execute("SELECT COUNT(*) FROM eventos WHERE origem != 'yolo'").fetchone()[0] == 0
+
+
+def test_schema_igual_ao_banco_real(con, tmp_path):
+    real = RAIZ / "data" / "processed" / "seguranca_viaria.db"
+    if not real.exists():
+        pytest.skip("banco real não gerado (rode os notebooks 03–06)")
+    copia = tmp_path / "copia.db"
+    shutil.copy(real, copia)                     # migra uma cópia: o teste não mexe no banco do projeto
+    c2 = sqlite3.connect(copia)
+    vs.migrar(c2)
+    colunas = lambda c: [(r[1], r[2]) for r in c.execute("PRAGMA table_info(eventos)")]
+    assert colunas(c2) == colunas(con)
+    c2.close()

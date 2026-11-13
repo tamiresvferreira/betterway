@@ -408,3 +408,90 @@ def gravar_video_borrado(quadros_e_deteccoes, caminho, fps) -> Path:
         if escritor is not None:
             escritor.release()
     return caminho
+
+
+# ------------------------------------------------------------------------------------------ eventos no banco
+@dataclass(frozen=True)
+class Evento:
+    tipo: str
+    quadro: int
+    track_id: int | None
+    valor: float | None
+    payload: dict
+
+
+def migrar(con) -> None:
+    """Acrescenta à tabela `eventos` a coluna `chave` e o índice único, se faltarem (banco criado pelo notebook 03).
+    Não apaga nada."""
+    colunas = {r[1] for r in con.execute("PRAGMA table_info(eventos)")}
+    with con:
+        if "chave" not in colunas:
+            con.execute("ALTER TABLE eventos ADD COLUMN chave TEXT")
+        con.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_eventos_chave ON eventos(chave)")
+
+
+def _primeiro_na_faixa(deteccoes, faixa) -> dict[int, int]:
+    """track_id → primeiro quadro com os pés da pessoa na faixa."""
+    primeiro: dict[int, int] = {}
+    for d in deteccoes:
+        if d.classe == "person" and d.track_id is not None and faixa.contem(ponto_da_pessoa(d.caixa)):
+            primeiro[d.track_id] = min(primeiro.get(d.track_id, d.quadro), d.quadro)
+    return primeiro
+
+
+def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: Faixa, fps) -> list[Evento]:
+    """Eventos para a tabela `eventos`: pedestre_na_faixa e pcd_na_faixa (1º quadro de cada pessoa na faixa),
+    travessia (com status), conflito_veiculo_pedestre (com severidade), bloqueio_faixa e contagem_minuto."""
+    fps = _validar_fps(fps)
+    ev = []
+    for tid, q in _primeiro_na_faixa(deteccoes, faixa).items():
+        ev.append(Evento("pedestre_na_faixa", q, tid, None, {}))
+        if tid in pcd_ids:
+            ev.append(Evento("pcd_na_faixa", q, tid, None, {}))
+    for t in travessias_:
+        ev.append(Evento("travessia", t.quadro_inicio, t.track_id, t.duracao_s,
+                         {"status": t.status, "quadro_fim": t.quadro_fim, "velocidade_ms": t.velocidade_ms,
+                          "lado_entrada": t.lado_entrada, "lado_saida": t.lado_saida,
+                          "abaixo_1_2_ms": t.abaixo_1_2_ms, "pcd": t.pcd}))
+    for c in conflitos_:
+        ev.append(Evento("conflito_veiculo_pedestre", c.quadro, c.track_veiculo, None,
+                         {"track_pedestre": c.track_pedestre, "classe_veiculo": c.classe_veiculo,
+                          "severidade": c.severidade}))
+    for b in bloqueios_:
+        ev.append(Evento("bloqueio_faixa", b.quadro_inicio, b.track_veiculo, (b.quadro_fim - b.quadro_inicio + 1) / fps,
+                         {"quadro_fim": b.quadro_fim}))
+    por_min: dict[int, set] = {}
+    for d in deteccoes:
+        if d.classe == "person" and d.track_id is not None and faixa.contem(ponto_da_pessoa(d.caixa)):
+            por_min.setdefault(int(d.quadro // (60 * fps)), set()).add(d.track_id)
+    for m, ids in sorted(por_min.items()):
+        ev.append(Evento("contagem_minuto", int(m * 60 * fps), None, float(len(ids)), {"minuto": m}))
+    return ev
+
+
+def _json_padrao(o):
+    if hasattr(o, "item"):          # tipos numpy (np.int64, np.float32, ...)
+        return o.item()
+    raise TypeError(f"tipo não serializável: {type(o).__name__}")
+
+
+def gravar_eventos(con, eventos, video_id: str) -> int:
+    """Grava os eventos (origem 'yolo', marcados como demonstração) numa única transação e devolve quantos entraram.
+    Reprocessar o mesmo vídeo não duplica (chave única); qualquer erro desfaz o lote inteiro."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    agora = datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(timespec="seconds")
+    linhas = []
+    for e in eventos:
+        q = int(e.quadro)
+        tid = None if e.track_id is None else int(e.track_id)
+        extra = f":p{int(e.payload['track_pedestre'])}" if e.tipo == "conflito_veiculo_pedestre" else ""
+        payload = {**e.payload, "demonstracao": True, "video_id": video_id, "quadro": q, "track_id": tid}
+        linhas.append((agora, e.tipo, None if e.valor is None else float(e.valor),
+                       json.dumps(payload, ensure_ascii=False, default=_json_padrao),
+                       f"{video_id}:{q}:{tid}:{e.tipo}{extra}"))
+    antes = con.total_changes
+    with con:   # transação: commit no fim, rollback em qualquer erro
+        con.executemany("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, valor, payload_json, chave) "
+                        "VALUES (?, 'yolo', NULL, ?, ?, ?, ?) ON CONFLICT(chave) DO NOTHING", linhas)
+    return con.total_changes - antes
