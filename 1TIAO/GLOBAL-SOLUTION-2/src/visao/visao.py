@@ -22,6 +22,8 @@ JANELA_CONFLITO_S = 1.0     # pedestre que saiu há até 1 s ainda conta no conf
 BLOQUEIO_S = 2.0            # veículo parado na faixa vazia por >= 2 s = bloqueio
 JANELA_MOV_S = 0.5          # janela para dizer se um veículo está em movimento
 MOV_MIN_REL = 0.2           # em movimento: a base andou >= 20% da altura da caixa dentro da janela
+VEL_CONFLITO_ALTA_KMH = 30  # conflito com veículo a >= 30 km/h na faixa = severidade alta
+VEL_MAX_PEDESTRE_MS = 3.5   # travessia mais rápida que isso não é de pedestre andando (provável condutor não detectado)
 MIN_QUADROS_PCD = 5         # quadros com auxílio colado para marcar a pessoa como PCD
 CONF_MIN_AUXILIO = 0.25     # confiança mínima das classes de auxílio
 SOBREPOSICAO_PCD = 0.3      # interseção ÷ área da caixa do auxílio
@@ -129,6 +131,14 @@ class Faixa:
                 dentro = not dentro
         return dentro
 
+    def px_por_m(self) -> float:
+        """Escala da faixa: distância entre os meios das bordas de calçada A e B ÷ comprimento real. Só vale perto da
+        faixa (fora dela a perspectiva muda a escala)."""
+        p = self.poligono
+        (ax1, ay1), (ax2, ay2) = p[self.lado_a[0]], p[self.lado_a[1]]
+        (bx1, by1), (bx2, by2) = p[self.lado_b[0]], p[self.lado_b[1]]
+        return math.hypot((ax1 + ax2) / 2 - (bx1 + bx2) / 2, (ay1 + ay2) / 2 - (by1 + by2) / 2) / self.comprimento_m
+
     def lado_mais_proximo(self, ponto) -> str:
         p = self.poligono
         da = _dist_segmento(ponto, p[self.lado_a[0]], p[self.lado_a[1]])
@@ -149,6 +159,7 @@ class Travessia:
     status: str                     # concluida | retorno | nao_concluida | inicio_desconhecido | acima_do_teto
     abaixo_1_2_ms: bool
     pcd: bool
+    incompativel_pedestre: bool = False   # concluída rápido demais para quem anda (> VEL_MAX_PEDESTRE_MS)
 
 
 def _validar_fps(fps) -> float:
@@ -199,7 +210,8 @@ def travessias(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Traves
                 status = "concluida"
             vel = faixa.comprimento_m / dur if status == "concluida" else None
             saida.append(Travessia(tid, ini, fim_quadro, dur, vel, atual["lado_entrada"], lado_saida, status,
-                                   bool(vel is not None and vel < VEL_IDOSO_MS), tid in pcd_ids))
+                                   bool(vel is not None and vel < VEL_IDOSO_MS), tid in pcd_ids,
+                                   bool(vel is not None and vel > VEL_MAX_PEDESTRE_MS)))
 
         for i, (q, den) in enumerate(zip(quadros, dentro)):
             if i > 0 and q - quadros[i - 1] - 1 > max_gap:          # sumiço longo
@@ -301,7 +313,8 @@ class Conflito:
     track_veiculo: int
     classe_veiculo: str
     track_pedestre: int
-    severidade: str          # "alta" (pedestre PCD) ou "normal"
+    severidade: str          # "alta" (pedestre PCD ou veículo >= VEL_CONFLITO_ALTA_KMH) ou "normal"
+    velocidade_kmh: float | None = None   # velocidade do veículo na faixa (escala da faixa)
 
 
 @dataclass(frozen=True)
@@ -320,20 +333,21 @@ def _na_faixa(deteccoes, faixa: Faixa, classes) -> dict[int, dict[int, str]]:
     return out
 
 
-def _veiculos_em_movimento(deteccoes, fps) -> set[tuple[int, int]]:
-    """(quadro, track_id) dos veículos motorizados em movimento: a base da caixa andou ≥ MOV_MIN_REL × altura da caixa
-    em relação à observação mais antiga dentro de JANELA_MOV_S. Sem observação anterior na janela = não se sabe = não
-    conta como movimento."""
+def _veiculos_em_movimento(deteccoes, fps) -> dict[tuple[int, int], float]:
+    """{(quadro, track_id): velocidade em px/s} dos veículos motorizados em movimento: a base da caixa andou
+    ≥ MOV_MIN_REL × altura da caixa em relação à observação mais antiga dentro de JANELA_MOV_S. Sem observação anterior
+    na janela = não se sabe = não conta como movimento."""
     janela = JANELA_MOV_S * fps
-    movendo = set()
+    movendo: dict[tuple[int, int], float] = {}
     for tid, dets in _por_track([d for d in deteccoes if d.classe in VEICULOS_CONFLITO], classe=None).items():
         for j, d in enumerate(dets):
             anteriores = [a for a in dets[:j] if d.quadro - a.quadro <= janela]
             if not anteriores:
                 continue
             (x0, y0), (x1, y1) = ponto_da_pessoa(anteriores[0].caixa), ponto_da_pessoa(d.caixa)
-            if math.hypot(x1 - x0, y1 - y0) >= MOV_MIN_REL * (d.caixa[3] - d.caixa[1]):
-                movendo.add((d.quadro, tid))
+            desloc = math.hypot(x1 - x0, y1 - y0)
+            if desloc >= MOV_MIN_REL * (d.caixa[3] - d.caixa[1]):
+                movendo[(d.quadro, tid)] = desloc * fps / (d.quadro - anteriores[0].quadro)
     return movendo
 
 
@@ -356,7 +370,9 @@ def conflitos(deteccoes, faixa: Faixa, fps, pcd_ids=frozenset()) -> list[Conflit
             for tp, ult in ultimo_dentro.items():
                 if q - ult <= janela and (tv, tp) not in vistos:
                     vistos.add((tv, tp))
-                    saida.append(Conflito(q, tv, classe, tp, "alta" if tp in pcd_ids else "normal"))
+                    kmh = movendo[(q, tv)] / faixa.px_por_m() * 3.6
+                    alta = tp in pcd_ids or kmh >= VEL_CONFLITO_ALTA_KMH
+                    saida.append(Conflito(q, tv, classe, tp, "alta" if alta else "normal", round(kmh, 1)))
     return saida
 
 
@@ -496,11 +512,12 @@ def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: F
         ev.append(Evento("travessia", t.quadro_inicio, t.track_id, t.duracao_s,
                          {"status": t.status, "quadro_fim": t.quadro_fim, "velocidade_ms": t.velocidade_ms,
                           "lado_entrada": t.lado_entrada, "lado_saida": t.lado_saida,
-                          "abaixo_1_2_ms": t.abaixo_1_2_ms, "pcd": t.pcd}))
+                          "abaixo_1_2_ms": t.abaixo_1_2_ms, "pcd": t.pcd,
+                          "incompativel_pedestre": t.incompativel_pedestre}))
     for c in conflitos_:
         ev.append(Evento("conflito_veiculo_pedestre", c.quadro, c.track_veiculo, None,
                          {"track_pedestre": c.track_pedestre, "classe_veiculo": c.classe_veiculo,
-                          "severidade": c.severidade}))
+                          "severidade": c.severidade, "velocidade_kmh": c.velocidade_kmh}))
     for b in bloqueios_:
         ev.append(Evento("bloqueio_faixa", b.quadro_inicio, b.track_veiculo, (b.quadro_fim - b.quadro_inicio + 1) / fps,
                          {"quadro_fim": b.quadro_fim}))

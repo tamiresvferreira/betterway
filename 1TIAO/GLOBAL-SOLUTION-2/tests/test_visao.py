@@ -539,3 +539,35 @@ def test_condutor_nao_gera_conflito_com_a_propria_moto():
         dy = 10 * q
         dets += [D("person", (30, 520 + dy, 70, 640 + dy), 1, q), D("motorcycle", (20, 560 + dy, 80, 660 + dy), 9, q)]
     assert vs.conflitos(vs.sem_condutores(dets), faixa_ret(), fps=30) == []
+
+
+# ---------------------------------------------------------------- velocidade (escala da faixa)
+def test_escala_da_faixa():
+    # meio da borda A (50, 0) até o meio da borda B (50, 1200): 1200 px em 12 m
+    assert faixa_ret().px_por_m() == pytest.approx(100.0)
+
+
+def andando_rapido(px_por_quadro, quadros, track_id=7):
+    return [vs.Deteccao(q, "car", (10, 300 + px_por_quadro * q, 90, 350 + px_por_quadro * q), 0.9, track_id) for q in quadros]
+
+
+def test_velocidade_do_veiculo_no_conflito():
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(20)]
+    dets += andando_rapido(10, list(range(20)))          # 10 px/quadro × 30 fps ÷ 100 px/m = 3 m/s = 10,8 km/h
+    c = vs.conflitos(dets, faixa_ret(), fps=30)[0]
+    assert c.velocidade_kmh == pytest.approx(10.8, abs=0.5)
+    assert c.severidade == "normal"
+
+
+def test_veiculo_rapido_tem_severidade_alta():
+    dets = [vs.Deteccao(q, "person", (30, 500, 70, 600), 0.9, 1) for q in range(20)]
+    dets += andando_rapido(30, list(range(20)))          # 30 px/quadro → 9 m/s = 32,4 km/h (≥ 30 km/h)
+    c = vs.conflitos(dets, faixa_ret(), fps=30)[0]
+    assert c.velocidade_kmh == pytest.approx(32.4, abs=1.0)
+    assert c.severidade == "alta"
+
+
+def test_travessia_rapida_demais_para_pedestre():
+    rapida = vs.travessias(trajeto(1, atravessa(90)), faixa_ret(), fps=30)[0]    # 12 m em 3 s = 4 m/s
+    normal = vs.travessias(trajeto(2, atravessa(300)), faixa_ret(), fps=30)[0]   # 1,2 m/s
+    assert rapida.incompativel_pedestre is True and normal.incompativel_pedestre is False
