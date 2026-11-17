@@ -24,3 +24,6 @@ data/raw/video/*
 
 # imagens do conjunto de avaliação de PCD: só fontes e rótulos vão para o Git (LGPD)
 data/avaliacao_pcd/img/
+
+# SUMO: rede do mapa real (gerada a partir do OSM, descartada no Estudo A)
+src/simulacao/rede/largo_concordia*.net.xml
