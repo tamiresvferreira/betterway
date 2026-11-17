@@ -10,7 +10,7 @@ Nó instalado na faixa de pedestres (no piloto, o Largo da Concórdia): semáfor
 
 ## Como rodar
 
-1. Abra o projeto no Wokwi: **LINK_WOKWI** (ou crie um projeto ESP32 em wokwi.com e envie os 5 arquivos desta pasta:
+1. Abra o projeto no Wokwi: **https://wokwi.com/projects/480902516851985409** (ou crie um projeto ESP32 em wokwi.com e envie os 5 arquivos desta pasta:
    `sketch.ino`, `logica.h`, `logica.cpp`, `diagram.json`, `libraries.txt`).
 2. **Entre na sua conta do Wokwi** antes de iniciar: sem login, o ESP32 simulado não tem internet (o gateway recusa
    usuário anônimo) e o MQTT não conecta. O nó funciona do mesmo jeito sem rede (botão e ciclo).
