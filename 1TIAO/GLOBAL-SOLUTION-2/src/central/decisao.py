@@ -54,4 +54,5 @@ def decidir(e: Entradas) -> Decisao:
         return Decisao("escola", {}, f"horário de entrada/saída de escola ({e.quando:%H:%M}, cenário)")
     if e.pessoas_na_faixa > 0:
         return Decisao("pedestre", {"faixa_ocupada": True}, f"visão: {e.pessoas_na_faixa} registros de pessoa na faixa")
-    return Decisao("normal", {}, "sem chuva, fora do horário de escola, sem pedestre nem ambulância")
+    chuva = "chuva: sem dado" if e.chuva_mm_h is None else "sem chuva"     # falta de dado não vira fato
+    return Decisao("normal", {}, f"{chuva}, fora do horário de escola, sem pedestre nem ambulância")

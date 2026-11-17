@@ -46,7 +46,7 @@ BRACO_M = 300
 FLUXOS = [("O", "L", 900), ("L", "O", 800), ("N", "S", 250), ("S", "N", 200)]
 PEDESTRES_H = 160            # pessoas/h atravessando a avenida (as duas direções)
 FRACAO_REDUZIDA = 0.15       # parte delas com mobilidade reduzida (estimativa)
-# 6 ambulâncias por rodada, espaçadas 67 s (o ciclo tem ~90 s): chegam em momentos diferentes do semáforo
+# 6 ambulâncias por rodada, espaçadas 67 s (o ciclo tem 75 s): chegam em momentos diferentes do semáforo
 AMBULANCIAS = [(f"amb{k}", 300 + 67 * k) for k in range(6)]
 
 
@@ -93,7 +93,9 @@ def _programa_fixo():
     fases = []
     for f in logic.phases:
         dur = f.duration
-        if "G" in f.state and "y" not in f.state:
+        # só os verdes principais (as fases longas do programa estimado, 37 s); as transições de 5 s e os amarelos
+        # ficam como estão (antes, a regra alongava também as de 5 s e o ciclo ia a 145 s)
+        if f.duration > 10:
             dur = VERDE_PEDESTRE_S if any(f.state[i] in "Gg" for i in idx) else VERDE_AVENIDA_S
         fases.append(traci.trafficlight.Phase(dur, f.state, dur, dur))
     traci.trafficlight.setProgramLogic(TLS, traci.trafficlight.Logic(logic.programID, logic.type, 0, fases))
@@ -110,10 +112,12 @@ def _demanda(pasta: Path, semente: int, ambulancia: bool, duracao: int) -> Path:
     for i, (a, b, vph) in enumerate(FLUXOS):
         ET.SubElement(r, "flow", id=f"f{i}", type="carro", begin="0", end=str(duracao), vehsPerHour=str(vph),
                       **{"from": f"{a}C", "to": f"C{b}", "departLane": "best", "departSpeed": "max"})
+    # pessoas e ambulâncias entram JUNTAS, em ordem de partida: o SUMO descarta, sem aviso com --no-warnings, todo
+    # elemento que vem fora de ordem (antes, 32 de 87 pessoas sumiam nas rodadas da ambulância)
+    eventos = []
     if ambulancia:
         for aid, dep in AMBULANCIAS:
-            ET.SubElement(r, "trip", id=aid, type="ambulancia", depart=str(dep),
-                          **{"from": "OC", "to": "CL", "departLane": "best"})
+            eventos.append((float(dep), "amb", aid))
     # pedestres atravessando a avenida: da calçada norte para a sul e vice-versa
     t, n = 0.0, 0
     while True:
@@ -122,9 +126,16 @@ def _demanda(pasta: Path, semente: int, ambulancia: bool, duracao: int) -> Path:
             break
         tipo = "pedestre_reduzida" if rng.random() < FRACAO_REDUZIDA else "pedestre"
         de, para = ("NC", "CS") if rng.random() < 0.5 else ("SC", "CN")
-        p = ET.SubElement(r, "person", id=f"p{n}", type=tipo, depart=f"{t:.1f}", departPos=str(BRACO_M - 15))
-        ET.SubElement(p, "walk", arrivalPos="15", **{"from": de, "to": para})
+        eventos.append((round(t, 1), "pessoa", (f"p{n}", tipo, de, para)))
         n += 1
+    for dep, tipo_ev, dado in sorted(eventos, key=lambda e: e[0]):
+        if tipo_ev == "amb":
+            ET.SubElement(r, "trip", id=dado, type="ambulancia", depart=f"{dep:.1f}",
+                          **{"from": "OC", "to": "CL", "departLane": "best"})
+        else:
+            pid, tipo, de, para = dado
+            p = ET.SubElement(r, "person", id=pid, type=tipo, depart=f"{dep:.1f}", departPos=str(BRACO_M - 15))
+            ET.SubElement(p, "walk", arrivalPos="15", **{"from": de, "to": para})
     arq = pasta / "demanda.rou.xml"
     ET.ElementTree(r).write(arq, encoding="utf-8")
     return arq

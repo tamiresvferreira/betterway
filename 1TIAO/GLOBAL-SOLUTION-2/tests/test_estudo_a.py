@@ -46,3 +46,31 @@ def test_metricas_completas_e_coerentes():
     for k in ("carros", "atraso_medio_carro_s", "co2_medio_g_por_carro", "espera_media_pedestre_s"):
         assert m[k] == m[k] and m[k] >= 0                       # não é NaN nem negativo
     assert m["carros"] > 100
+
+
+# ---------------------------------------------------------------- revisão conjunta
+@pytest.mark.slow
+def test_demanda_em_ordem_de_partida(tmp_path):
+    """Revisão: elementos fora de ordem de partida são DESCARTADOS pelo SUMO (32 de 87 pessoas na rodada da
+    ambulância). A rodada da ambulância tem de ter as mesmas pessoas que a de pedestre, mesma semente."""
+    import xml.etree.ElementTree as ET
+    rou = a._demanda(tmp_path, 1, ambulancia=True, duracao=900)
+    partidas = [float(e.get("depart", e.get("begin", 0))) for e in ET.parse(rou).getroot()
+                if e.tag in ("vehicle", "trip", "person", "flow")]
+    assert partidas == sorted(partidas)
+    amb, ped = a.rodar("ambulancia", False, 1, 900), a.rodar("pedestre", False, 1, 900)
+    assert amb["pessoas"] == ped["pessoas"]
+
+
+@pytest.mark.slow
+def test_ciclo_do_tempo_fixo_tem_cerca_de_75s():
+    """Revisão: as fases curtas de transição (5 s) não podem virar 40 s (o ciclo ia a 145 s)."""
+    a.traci.start([str(a.SUMO_PKG / "bin" / "sumo.exe"), "-n", str(a.gerar_rede("static")), "--no-warnings",
+                   "--no-step-log"])
+    try:
+        a._programa_fixo()
+        fases = a.traci.trafficlight.getAllProgramLogics(a.TLS)[0].phases
+        assert 70 <= sum(f.duration for f in fases) <= 80
+        assert sorted(f.duration for f in fases) == [3, 3, 5, 5, a.VERDE_PEDESTRE_S, a.VERDE_AVENIDA_S]
+    finally:
+        a.traci.close()

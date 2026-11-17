@@ -89,3 +89,17 @@ def test_demo_usa_chuva_real_quando_chove_de_verdade():
     assert e.chuva_mm_h == 4.0 and not e.chuva_simulada
     e2, _ = c.entradas_demo(160, chuva_real=None, pessoas_visao=0)
     assert e2.chuva_simulada and e2.chuva_mm_h == 6.0
+
+
+# ---------------------------------------------------------------- revisão conjunta
+def test_fim_da_ambulancia_e_enviado_mesmo_se_o_laco_pular_a_janela(ambiente):
+    """Revisão: o 'fim' só existia numa janela de 1 s; um passo atrasado (publish lento) pulava direto para normal."""
+    ce, con, env = ambiente
+    ce.passo(d.Entradas(quando=SEG_10H, ambulancia_eta_s=3), 0)
+    ce.passo(d.Entradas(quando=SEG_10H), 6)                 # a janela do 'passou' foi pulada
+    assert [(x["modo"], x.get("fim", False)) for x in env] == [("ambulancia", False), ("ambulancia", True),
+                                                               ("normal", False)]
+
+
+def test_agora_e_horario_de_sao_paulo():
+    assert c.agora().utcoffset().total_seconds() == -3 * 3600

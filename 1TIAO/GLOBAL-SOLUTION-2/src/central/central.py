@@ -62,6 +62,11 @@ def entradas_demo(t: float, chuva_real: float | None, pessoas_visao: int) -> tup
     return d.Entradas(**e), quando.strftime("%H:%M")
 
 
+def agora() -> datetime:
+    """Hora de São Paulo (com fuso), qualquer que seja o fuso do computador."""
+    return datetime.now(m.FUSO)
+
+
 # ---------------------------------------------------------------- laço
 class Central:
     def __init__(self, con, publicar, risco_fn=None, agora_fn=None):
@@ -70,13 +75,20 @@ class Central:
         self.agora_fn = agora_fn or (lambda: datetime.now(m.FUSO))
         self._chave = self._alerta = None
         self._ultimo_envio = -1e9
+        self._ambulancia_aberta = False   # mandou modo ambulância e ainda não mandou o "fim"
 
     def passo(self, e: d.Entradas, t_s: float) -> d.Decisao:
         r = d.decidir(e)
+        # a ambulância saiu da decisão sem o "fim" (o passo pulou a janela de 1 s): manda o "fim" antes do novo modo
+        if self._ambulancia_aberta and r.modo != "ambulancia":
+            self.publicar(m.comando("ambulancia", fim=True))
+            self._ambulancia_aberta = False
         chave = (r.modo, r.campos.get("alagamento"), r.campos.get("faixa_ocupada"), bool(r.campos.get("fim")))
         intervalo = REENVIO_AMBULANCIA_S if "eta_s" in r.campos else REENVIO_S
         if chave != self._chave or t_s - self._ultimo_envio >= intervalo:
             enviado = bool(self.publicar(m.comando(r.modo, **r.campos)))
+            if r.modo == "ambulancia":
+                self._ambulancia_aberta = not r.campos.get("fim", False)
             self._ultimo_envio = t_s
             if (r.modo, r.campos.get("alagamento")) != self._alerta:
                 self._gravar_alerta(r, e, enviado)
@@ -132,7 +144,7 @@ def main(argv=None):
     a = p.parse_args(argv)
     con = sqlite3.connect(a.db)
     central = Central(con, _publicador(a.broker, 1883))
-    chuva_real = f.chuva_prevista_mm_h(LAT, LON, datetime.now())
+    chuva_real = f.chuva_prevista_mm_h(LAT, LON, agora())
     print(f"chuva prevista agora no Largo da Concórdia (Open-Meteo): "
           f"{'sem dado' if chuva_real is None else f'{chuva_real:.1f} mm/h'}")
     ultimo = None
@@ -144,9 +156,9 @@ def main(argv=None):
     while True:
         t = time.monotonic() - t0
         if a.ao_vivo:
-            agora = datetime.now()
+            quando = agora()
             if time.monotonic() - chuva_t > 600:
-                chuva_real, chuva_t = f.chuva_prevista_mm_h(LAT, LON, agora), time.monotonic()
+                chuva_real, chuva_t = f.chuva_prevista_mm_h(LAT, LON, quando), time.monotonic()
             amb = {}
             if a.ambulancia:
                 eta = f.eta_ambulancia(t, *a.ambulancia)
@@ -154,10 +166,9 @@ def main(argv=None):
                     amb["ambulancia_eta_s"] = eta
                 elif t < a.ambulancia[0] / (a.ambulancia[1] / 3.6) + 1:
                     amb["ambulancia_passou"] = True
-            e = d.Entradas(quando=agora, chuva_mm_h=chuva_real,
-                           pessoas_na_faixa=f.pessoas_na_faixa(con, desde=datetime.now(m.FUSO) - timedelta(minutes=1)),
-                           **amb)
-            hora = agora.strftime("%H:%M")
+            e = d.Entradas(quando=quando, chuva_mm_h=chuva_real,
+                           pessoas_na_faixa=f.pessoas_na_faixa(con, desde=quando - timedelta(minutes=1)), **amb)
+            hora = quando.strftime("%H:%M")
         else:
             if t > DURACAO_DEMO_S:
                 break

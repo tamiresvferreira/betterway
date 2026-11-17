@@ -64,3 +64,9 @@ def test_prioridade():
     assert d.decidir(E(ambulancia_eta_s=20, **tudo)).modo == "ambulancia"
     assert d.decidir(E(**tudo)).modo == "chuva"
     assert d.decidir(E(quando=SEG_7H, pessoas_na_faixa=2)).modo == "escola"
+
+
+def test_falta_de_dado_nao_vira_fato():
+    """Revisão: sem a chuva (API fora), o motivo não pode dizer 'sem chuva'."""
+    assert "sem dado" in d.decidir(E(chuva_mm_h=None)).motivo
+    assert "sem dado" not in d.decidir(E(chuva_mm_h=0.0)).motivo
