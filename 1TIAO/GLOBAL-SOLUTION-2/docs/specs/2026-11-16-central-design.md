@@ -56,16 +56,16 @@ decididos no próprio nó).
 - Ambulância: o `eta_s` é reenviado a cada 10 s enquanto ela se aproxima.
 - Erros de fonte (API fora, banco sem eventos) não derrubam a central: entram como "sem dado" no motivo.
 
-**`--demo` (padrão, ~6 min):** relógio de cenário que começa às 06:50 de um dia útil; trechos:
+**`--demo` (padrão, ~6 min):** relógio de cenário que começa às 06:30 de um dia útil; trechos:
 
 | Hora do cenário | Duração real | O que acontece |
 |---|---|---|
-| 06:50 | 30 s | normal |
+| 06:30 | 30 s | normal (06:50 caía na janela de escola, que começa 06:45) |
 | 07:00 | 60 s | escola |
 | 07:40 | 60 s | pedestres (eventos `pedestre_na_faixa` da visão, vídeo da Cidade do México) |
 | 08:00 | 45 s | chuva (previsão real do Open-Meteo no log; se < 2,5 mm/h, chuva SIMULADA de 6 mm/h) |
 | 08:20 | 45 s | alagamento (chuva SIMULADA de 12 mm/h) |
-| 08:40 | ~75 s | ambulância SIMULADA: 750 m a 40 km/h (eta cai de ~67 s a 0), depois "fim" |
+| 08:40 | ~75 s | ambulância SIMULADA: 600 m a 40 km/h (eta cai de 54 s a 0; entra direto no limite de 60 s), depois "fim" |
 | 09:00 | 30 s | normal |
 
 **`--ao-vivo`:** relógio real, chuva real (consulta a cada 10 min), eventos da visão do último minuto,
