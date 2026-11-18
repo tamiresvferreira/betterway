@@ -62,13 +62,13 @@ def test_sem_login_so_aparece_a_entrada_sem_textos_extras(banco):
 def test_senha_errada_nao_entra(banco):
     at = _entrar("transito1", "errada-errada")
     assert at.error and at.error[0].value == au.MSG_INCORRETO
-    assert "Percebe quando a situação de um acidente se repete" not in _texto(at)
+    assert "Evita acidentes antes que aconteçam" not in _texto(at)
 
 
 def test_gestao_abre_na_visao_geral_e_o_painel_le_a_situacao(banco):
     at = _entrar("gestao1")
     assert not at.exception
-    assert "Percebe quando a situação de um acidente se repete" in _texto(at)
+    assert "Evita acidentes antes que aconteçam" in _texto(at)
     at = _ir(at, "painel")
     assert not at.exception, at.exception
     assert "Leitura da situação" in _texto(at)

@@ -13,7 +13,8 @@ import pandas as pd
 
 RAIZ = Path(__file__).resolve().parents[2]
 EVID_A = RAIZ / "docs" / "evidencias" / "estudo_a"
-CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância", "transito": "Trânsito"}
+CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância", "transito": "Trânsito",
+         "conflito": "Acidente evitado"}
 
 
 def parados_na_avenida(quadros: list) -> float:
@@ -29,6 +30,15 @@ def _num(v: float, casas: int = 1) -> str:
 
 def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict:
     """Texto das pílulas de cada lado e a nota de custo, a partir do resumo do estudo (e da cena, no trânsito)."""
+    if cena == "conflito":
+        c = resumo[resumo.comparacao == "completo"].set_index("sistema")
+        sem, com = c.loc["sem"], c.loc["com"]
+        rs = sem.na_faixa_carros_verde_reduzida + sem.na_faixa_carros_verde_comum
+        rc = com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum
+        return {"rotulo": "Pessoas na faixa com os carros da avenida em verde, por rodada de 30 minutos",
+                "sem": _num(rs), "com": _num(rc, 0),
+                "nota": "Quem começa a atravessar no fim do verde ainda está na faixa quando os carros recebem o "
+                        "verde. A BetterWay vê a pessoa pela câmera e só libera a avenida com a faixa vazia."}
     if cena == "transito":
         c = resumo[resumo.comparacao == "completo"].set_index("sistema")
         so = resumo[resumo.comparacao == "semaforo"].set_index("sistema").loc["com"]
@@ -128,6 +138,11 @@ display:flex;align-items:baseline;gap:12px}
 .lado.com .pilula b{color:var(--verde)}
 .pilula span{font-size:13px;color:var(--muted);line-height:1.35}
 .pe{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}
+.sms{position:absolute;top:10px;right:10px;max-width:260px;background:rgba(26,29,33,.9);backdrop-filter:blur(6px);
+border:1px solid var(--ambar);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.4;display:none}
+.sms b{color:var(--ambar);display:block;font-size:14px;margin-bottom:2px}
+.sms .msg{margin-top:6px;padding:8px;border-radius:10px;background:#343A41;color:var(--fundo)}
+.sms .rot{color:var(--muted);font-size:12px;margin-top:6px}
 .giro{animation:giro .5s steps(1) infinite}
 @keyframes giro{50%{fill:#2F6BFF}}
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
@@ -147,7 +162,7 @@ display:flex;align-items:baseline;gap:12px}
     <div class="pilula"><b id="met-sem"></b><span id="rot-sem"></span></div></section>
   <section class="lado com"><div class="topo"><span class="selo">✓</span>Com a BetterWay<span class="sub">semáforo que reage</span></div>
     <div class="mapa"><svg id="svg-com" viewBox="-30 -21 60 42" role="img" aria-label="Cruzamento com a BetterWay"></svg>
-      <div class="sinais" id="sinais-com"></div></div><div class="aviso" id="aviso-com" aria-live="polite"></div>
+      <div class="sinais" id="sinais-com"></div><div class="sms" id="sms-com" aria-live="polite"></div></div><div class="aviso" id="aviso-com" aria-live="polite"></div>
     <div class="pilula"><b id="met-com"></b><span id="rot-com"></span></div></section>
 </div>
 <div class="pe" id="pe"></div></div>
@@ -250,7 +265,8 @@ function desenhar(lado, ctx, f){
   ctx.luzes.forEach(l => { l.setAttribute("fill", verdeAv ? COR.verde : COR.alerta); });
   const prox = new Map(qb.carros.map(c => [c[0], c])), proxP = new Map(qb.pessoas.map(p => [p[0], p]));
   const vistos = new Set();
-  let amb = null;
+  let amb = null, ambW = null;
+  const veic = [];
   for (const c of qa.carros) {
     const [id, x0, y0, a0, tipo, comp, vel] = c, n = prox.get(id) || c;
     const x = lerp(x0, n[1], t), y = lerp(y0, n[2], t), a = lerpAng(a0, n[3], t);
@@ -259,7 +275,8 @@ function desenhar(lado, ctx, f){
       if (tipo === "ambulancia") { o.rotulo = el("text", {"font-size":1.5, "font-weight":700, fill:"#F4F4EF", "text-anchor":"middle",
         "paint-order":"stroke", stroke:"#1A1D21", "stroke-width":.45, "font-family":"Montserrat"}, ctx.camada); o.rotulo.textContent = "Ambulância"; } }
     o.setAttribute("transform", `translate(${x},${-y}) rotate(${a})`);
-    if (o.rotulo) { o.rotulo.setAttribute("x", x); o.rotulo.setAttribute("y", -y - 2.6); amb = [x, -y]; }
+    if (o.rotulo) { o.rotulo.setAttribute("x", x); o.rotulo.setAttribute("y", -y - 2.6); amb = [x, -y]; ambW = {x, y, a}; }
+    veic.push({o, x, y, a, tipo});
     vistos.add(id);
   }
   for (const p of qa.pessoas) {
@@ -282,6 +299,28 @@ function desenhar(lado, ctx, f){
     vistos.add(id);
   }
   for (const [id, o] of ctx.objs) if (!vistos.has(id)) { o.remove(); if (o.rotulo) o.rotulo.remove(); ctx.objs.delete(id); }
+  if (lado === "com" && D.cena === "ambulancia") {
+    let n = 0;
+    const rad = ambW ? ambW.a * Math.PI / 180 : 0, hx = Math.sin(rad), hy = Math.cos(rad);
+    for (const v of veic) {
+      let aviso = false;
+      if (ambW && v.tipo !== "ambulancia") {
+        const rx = v.x - ambW.x, ry = v.y - ambW.y, frente = rx * hx + ry * hy, lado_ = Math.abs(rx * hy - ry * hx);
+        const dif = Math.abs(((v.a - ambW.a + 540) % 360) - 180);
+        aviso = frente > 2 && lado_ < 10 && dif < 45;
+      }
+      if (aviso && !v.o.anel) v.o.anel = el("circle", {r: 2.6, fill: "none", stroke: "#FFB000", "stroke-width": .35, cy: 2.4}, v.o);
+      if (v.o.anel) v.o.anel.style.display = aviso ? "" : "none";
+      if (aviso) n++;
+    }
+    const sms = document.getElementById("sms-com");
+    if (ambW) {
+      sms.style.display = "block";
+      sms.innerHTML = `<b>Alerta aos motoristas no caminho</b>${n} ${n === 1 ? "motorista à frente avisado" : "motoristas à frente avisados"} nesta cena` +
+        `<div class="msg">Ambulância chegando pela avenida. Abra caminho com segurança.</div>` +
+        `<div class="rot">Simulado. Na rua, o aviso iria para quem está até 1 km à frente da ambulância, por alerta de celular da região, sem identificar ninguém.</div>`;
+    } else sms.style.display = "none";
+  }
   // rastro de prioridade da ambulância (só com a BetterWay, com o verde aberto para ela)
   if (lado === "com" && amb && verdeAv) { ctx.trilha.push(amb); if (ctx.trilha.length > 40) ctx.trilha.shift(); }
   else if (!amb) ctx.trilha = [];

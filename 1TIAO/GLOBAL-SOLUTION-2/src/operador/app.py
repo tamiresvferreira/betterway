@@ -224,27 +224,37 @@ def pagina_visao_geral() -> None:
       <div class="chamada">Mais seguro para quem atravessa, <span class="fim">mais rápido para quem dirige.</span></div>
       <p>Veja a BetterWay funcionando no Largo da Concórdia, no Brás: o que ela percebe, o que ela decide e o que muda
       no cruzamento.</p></div></div>""")
-    _bloco("to live", "vida", "Percebe quando a situação de um acidente se repete",
-           "A plataforma cruza o histórico de atropelamentos do local com a chuva, a câmera e o modelo de risco, e "
-           "explica a conclusão. Exemplo: uma terça às 17h40, com chuva.")
+    # dobra 1 · to live: menos acidentes
+    _bloco("to live", "vida", "Evita acidentes antes que aconteçam",
+           "Quando a situação de agora repete a dos atropelamentos do local, a plataforma avisa e reforça a travessia.")
     agora = datetime.now(m.FUSO).replace(tzinfo=None)
     terca = (agora - timedelta(days=agora.weekday()) + timedelta(days=1)).replace(hour=17, minute=40, second=0,
                                                                                    microsecond=0)
     html(_cartao_leitura(_calcular_leitura(terca, 5.0, agora), terca, simulado=True))
-    _bloco("to be free", "pedestre", "Dá tempo a quem precisa atravessar",
-           "A câmera reconhece quem anda com cadeira de rodas, andador, muleta ou bengala, e o semáforo segura o verde "
-           "até a pessoa chegar do outro lado.")
-    _player("pedestre")
-    _bloco("to move", "ambulancia", "Faz o trânsito andar e abre caminho para a ambulância",
-           "Quando a rua de lado fica vazia, o verde volta para a avenida sem esperar o tempo fixo, mas nunca com "
-           "alguém na faixa. Quando uma ambulância se aproxima, ela ganha prioridade.")
-    cena = st.segmented_control("Situação", ["transito", "ambulancia"], default="transito", key="cena_mover",
-                                format_func={"transito": "Trânsito", "ambulancia": "Ambulância"}.get,
-                                label_visibility="collapsed") or "transito"
-    _player(cena)
+    _subbloco("Ninguém fica na faixa com os carros em verde",
+              "Quem começa a atravessar no fim do verde ainda está na faixa quando os carros recebem o verde. A "
+              "BetterWay vê a pessoa e só libera a avenida com a faixa vazia.")
+    _player("conflito")
+    # dobra 2 · to move: trânsito andando e ambulância chegando antes
+    _bloco("to move", "rota", "Faz o trânsito andar",
+           "Quando a rua de lado está vazia, o verde volta para a avenida sem esperar o tempo fixo.")
+    _player("transito")
+    _subbloco("Abre caminho para a ambulância",
+              "O semáforo dá prioridade a ela com a faixa vazia, e os motoristas à frente recebem um alerta para abrir "
+              "espaço.")
+    _player("ambulancia")
     _barras_sistema()
+    # dobra 3 · to be free: tempo para quem precisa
+    _bloco("to be free", "pedestre", "Dá tempo a quem precisa atravessar",
+           "A câmera reconhece cadeira de rodas, andador, muleta ou bengala, e o verde espera a pessoa chegar.")
+    _player("pedestre")
     st.page_link(PAGINAS["sobre"], label="Como a BetterWay funciona, de onde vêm os dados e como protegemos a "
                                          "privacidade", icon=":material/arrow_forward:")
+
+
+def _subbloco(titulo: str, texto: str) -> None:
+    html(f'<div style="margin:26px 0 10px;max-width:80ch"><div style="font-size:18px;font-weight:600">{es.esc(titulo)}'
+         f'</div><p class="bw-nota" style="font-size:15px;color:#D9DAD5;margin:4px 0 0">{es.esc(texto)}</p></div>')
 
 
 def _player(cena: str) -> None:
@@ -325,6 +335,8 @@ def pagina_painel() -> None:
     st.title("Painel do ponto crítico")
     st.caption("Largo da Concórdia, Brás. A leitura junta histórico, chuva, câmera e modelo, e é refeita a cada minuto.")
     with st.expander("Simular um horário (para apresentar a leitura)"):
+        st.caption("Escolha um dia, uma hora e a chuva para ver como a leitura muda. Só a leitura muda: o histórico, a "
+                   "câmera e o modelo continuam os mesmos, e a linha do tempo marca a leitura como simulada.")
         sim = st.toggle("Usar horário simulado", key="sim_on")
         a, b, c = st.columns(3)
         dia = a.selectbox("Dia", DIAS, index=1, key="sim_dia")
@@ -340,6 +352,14 @@ def pagina_painel() -> None:
     rk = risco_em(quando.replace(second=0, microsecond=0).isoformat(), chuva or 0.0)
     lt.registrar(conexao(), leit, quando, simulado=sim)
     html(_cartao_leitura(leit, quando, sim))
+    if leit.nivel != "normal":
+        html('<div class="bw-grid">'
+             f'<div class="bw-card"><span class="icone">{es.icone("pedestre")}</span><h3>Mais tempo na faixa</h3>'
+             '<p>O verde do pedestre se estende para quem ainda está atravessando.</p></div>'
+             f'<div class="bw-card"><span class="icone">{es.icone("escudo")}</span><h3>Avenida espera a faixa vazia</h3>'
+             '<p>Os carros só recebem o verde quando não há ninguém na faixa.</p></div>'
+             f'<div class="bw-card"><span class="icone">{es.icone("alerta")}</span><h3>Aviso aos motoristas</h3>'
+             '<p>O painel de LED do nó avisa que há gente atravessando.</p></div></div>')
 
     no = no_ao_vivo()
     abertas = oc.listar(conexao(), ["pendente", "confirmada", "despachada"])
@@ -544,7 +564,7 @@ def _barras_sistema() -> None:
     so = r.loc[("semaforo", "com")]
     risco_s = s.na_faixa_carros_verde_reduzida + s.na_faixa_carros_verde_comum
     risco_c = c.na_faixa_carros_verde_reduzida + c.na_faixa_carros_verde_comum
-    html('<div class="bw-secao" style="margin-top:20px">Tudo ligado junto: hoje × BetterWay</div>')
+    html('<div class="bw-secao" style="margin-top:20px">Tudo ligado junto: hoje e com a BetterWay</div>')
     html('<div class="bw-grid">' +
          _barras("Pessoas na faixa com os carros em verde (por rodada)", risco_s, risco_c, "") +
          _barras("Espera de quem atravessa", s.espera_media_pedestre_s, c.espera_media_pedestre_s, "s") +
@@ -576,6 +596,18 @@ def pagina_sala() -> None:
     u = st.session_state["usuario"]
     st.title("Sala de controle")
     st.caption("O nó da faixa do Largo da Concórdia ao vivo: o que o semáforo está fazendo agora e o que ele relatou.")
+    with st.expander("Como funciona a sala de controle"):
+        html("""<div class="bw-tempo">
+          <div><span class="h">Nó</span><span>A caixa ligada ao semáforo da faixa (um ESP32). Ela recebe as ordens da
+            central e manda de volta o que está fazendo.</span></div>
+          <div><span class="h">Modo</span><span>O jeito de operar agora: normal, pedestre, escola, chuva ou
+            ambulância. A central escolhe sozinha pelo horário, pela chuva e pela câmera.</span></div>
+          <div><span class="h">Semáforo</span><span>O desenho mostra a luz acesa agora para os carros e para o
+            pedestre, escrita ao lado.</span></div>
+          <div><span class="h">Relatos</span><span>Tudo o que o nó avisou: botão de travessia apertado, verde
+            estendido, ambulância chegando.</span></div>
+          <div><span class="h">Quem muda</span><span>Só a equipe de Trânsito pode trocar o modo à mão. Gestão e Saúde
+            acompanham.</span></div></div>""")
     no = no_ao_vivo()
 
     @st.fragment(run_every=3)
