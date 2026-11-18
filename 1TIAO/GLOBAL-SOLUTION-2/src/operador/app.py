@@ -183,7 +183,7 @@ def tela_login() -> None:
             _segunda_etapa(st.session_state["login_pendente"])
         else:
             with st.form("login"):
-                nome = st.text_input("Usuário")
+                nome = st.text_input("E-mail ou usuário")
                 senha = st.text_input("Senha", type="password")
                 entrar = st.form_submit_button("Entrar", type="primary", width="stretch")
             if entrar:
@@ -842,24 +842,114 @@ def pagina_confirmadas() -> None:
 
 
 # ---------------------------------------------------------------- equipe (gestão)
+def _avatar(pf, tamanho: int = 56) -> str:
+    import base64
+    if pf.foto:
+        src = "data:image/jpeg;base64," + base64.b64encode(pf.foto).decode()
+        return (f'<img src="{src}" alt="" width="{tamanho}" height="{tamanho}" '
+                f'style="border-radius:50%;object-fit:cover;flex:none">')
+    return (f'<span style="width:{tamanho}px;height:{tamanho}px;border-radius:50%;background:{es.VERDE_ESC};'
+            f'color:{es.CLARO};display:grid;place-items:center;font-weight:700;font-size:{tamanho // 2.4:.0f}px;'
+            f'flex:none">{es.esc(pf.primeiro_nome[:1].upper())}</span>')
+
+
+def _linha_pessoa(pf, extra: str = "") -> str:
+    credencial = " · ".join(x for x in (pf.cargo, pf.orgao, PERFIS.get(pf.area)) if x)
+    return (f'<div class="bw-card" style="display:flex;gap:14px;align-items:center;margin-bottom:10px">{_avatar(pf)}'
+            f'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:16px">{es.esc(pf.nome)}</div>'
+            f'<div class="bw-nota">{es.esc(credencial)}</div></div>{extra}</div>')
+
+
+def pagina_perfil() -> None:
+    u = st.session_state["usuario"]
+    con = conexao()
+    pf = au.perfil(con, u.usuario)
+    st.title("Meu perfil")
+    detalhes = " · ".join(x for x in (pf.email, f"matrícula {pf.matricula}" if pf.matricula else None) if x)
+    html(_linha_pessoa(pf, f'<span class="bw-nota">{es.esc(detalhes)}</span>'))
+    st.caption("Área, cargo, órgão e matrícula são definidos pela Gestão. Os outros dados você mesmo atualiza.")
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        st.subheader("Seus dados")
+        with st.form("meus_dados"):
+            nome = st.text_input("Nome completo", pf.nome)
+            trat = st.text_input("Como quer ser chamado(a) na plataforma", pf.nome_tratamento or "")
+            tel = st.text_input("Telefone de contato (opcional)", pf.telefone or "")
+            turno = st.selectbox("Turno", ["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"],
+                                 index=(["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"].index(pf.turno)
+                                        if pf.turno in ("Manhã", "Tarde", "Noite", "Plantão 12 × 36") else 0))
+            salvar = st.form_submit_button("Salvar dados", type="primary")
+        if salvar:
+            try:
+                au.atualizar_perfil(con, u.usuario, por=u.usuario, nome=nome, nome_tratamento=trat, telefone=tel,
+                                    turno=turno)
+                st.session_state["usuario"] = au.Usuario(u.usuario, nome.strip() or u.nome, u.perfil)
+                st.toast("Dados salvos")
+                st.rerun()
+            except (PermissionError, ValueError) as erro:
+                st.error(str(erro).capitalize() + ".")
+        st.subheader("Foto")
+        foto = st.file_uploader("Escolha uma foto (JPG ou PNG, até 5 MB)", type=["jpg", "jpeg", "png"])
+        if foto is not None and st.button("Usar esta foto", type="primary"):
+            try:
+                au.salvar_foto(con, u.usuario, foto.getvalue(), por=u.usuario)
+                st.toast("Foto atualizada")
+                st.rerun()
+            except (PermissionError, ValueError) as erro:
+                st.error(str(erro).capitalize() + ".")
+        st.caption("A foto é cortada em quadrado e reduzida. Ela aparece só para a sua equipe, dentro da plataforma.")
+    with c2:
+        st.subheader("Segurança")
+        html(f'<p class="bw-nota">Entrada com senha e código do aplicativo: '
+             f'<b>{"ligada" if pf.tem_codigo else "só senha (peça um novo convite à Gestão)"}</b>.</p>')
+        with st.form("senha", clear_on_submit=True):
+            atual = st.text_input("Senha atual", type="password")
+            nova = st.text_input("Senha nova (mínimo de 8 caracteres)", type="password")
+            nova2 = st.text_input("Repita a senha nova", type="password")
+            trocar = st.form_submit_button("Trocar senha")
+        if trocar:
+            if nova != nova2:
+                st.error("As senhas novas não conferem.")
+            else:
+                try:
+                    au.trocar_senha(con, u.usuario, atual, nova)
+                    st.success("Senha trocada.")
+                except ValueError as erro:
+                    st.error(str(erro).capitalize() + ".")
+        st.subheader("Seus últimos acessos")
+        nomes = {"entrada": "Entrou", "saida": "Saiu", "falha": "Senha errada", "codigo_errado": "Código errado",
+                 "bloqueio": "Bloqueado por tentativas", "expirou": "Sessão expirou", "convite": "Convite criado",
+                 "convite_aceito": "Ativou o acesso"}
+        itens = "".join(f'<div><span class="h">{datetime.fromisoformat(a["timestamp"]):%d/%m %H:%M}</span>'
+                        f'<span>{es.esc(nomes.get(a["evento"], a["evento"]))}</span></div>'
+                        for a in au.meus_acessos(con, u.usuario))
+        html(f'<div class="bw-tempo">{itens}</div>')
+        st.caption("Se aparecer um acesso que você não fez, troque a senha e avise a Gestão.")
+
+
 def pagina_equipe() -> None:
     u = st.session_state["usuario"]
     st.title("Equipe")
     st.caption("Convide quem vai usar a plataforma. A pessoa recebe um link, cria a própria senha e liga o código do "
                "aplicativo autenticador. Ninguém entra só com a senha.")
     con = conexao()
-    with st.form("convidar", clear_on_submit=True):
-        a, b = st.columns(2)
-        usuario_ = a.text_input("Usuário (para entrar)")
-        nome = b.text_input("Nome que aparece na tela")
-        c, d = st.columns(2)
-        email = c.text_input("E-mail")
-        perfil = d.selectbox("Perfil", list(PERFIS), format_func=PERFIS.get)
-        enviar = st.form_submit_button("Gerar convite", type="primary")
+    with st.expander("Convidar uma pessoa", expanded=False):
+        with st.form("convidar", clear_on_submit=True):
+            a, b = st.columns(2)
+            nome = a.text_input("Nome completo", key="conv_nome")
+            email = b.text_input("E-mail institucional", key="conv_email")
+            c, d = st.columns(2)
+            area = c.selectbox("Área", list(PERFIS), format_func=PERFIS.get)
+            cargo = d.text_input("Cargo ou função", key="conv_cargo")
+            e, f = st.columns(2)
+            orgao = e.text_input("Órgão ou equipe", key="conv_orgao")
+            matricula = f.text_input("Matrícula (opcional)", key="conv_matricula")
+            enviar = st.form_submit_button("Gerar convite", type="primary")
     if enviar:
         try:
             exigir(u.perfil, "convidar")
-            token = au.convidar(con, usuario_, perfil, nome, email)
+            token = au.convidar_pessoa(con, email=email, area=area, nome=nome, cargo=cargo, orgao=orgao,
+                                       matricula=matricula)
             st.session_state["ultimo_convite"] = (email, f"http://localhost:8611/?convite={token}")
         except (SemPermissao, ValueError) as erro:
             st.error(str(erro).capitalize() + ".")
@@ -869,20 +959,29 @@ def pagina_equipe() -> None:
         st.code(link, language=None)
         st.caption("Nesta versão, copie o link e envie à pessoa. Na versão final, ele sai por e-mail automaticamente.")
     st.subheader("Quem tem acesso")
-    linhas = con.execute("SELECT usuario, nome, perfil, ativo, totp, convite_expira FROM usuarios ORDER BY perfil, usuario")
-    itens = []
-    for usu, nm, pf, ativo, tem_totp, expira in linhas:
-        if not ativo:
-            sit = "Desativado"
-        elif expira:
-            sit = f"Convite enviado, vale até {datetime.fromisoformat(expira):%d/%m %H:%M}"
-        elif tem_totp:
-            sit = "Ativo, com código do aplicativo"
+    for pf in au.equipe(con):
+        if not pf.ativo:
+            sit, cor = "Desativado", es.MUTED
+        elif pf.convite_pendente:
+            sit, cor = "Convite enviado", es.AMBAR
+        elif pf.tem_codigo:
+            sit, cor = "Ativo, com código do aplicativo", es.VERDE
         else:
-            sit = "Ativo só com senha (conta antiga)"
-        itens.append(f'<li><span class="av">{es.esc(usu[:1].upper())}</span><b>{es.esc(nm)}</b>'
-                     f'<span>{es.esc(PERFIS[pf])} · {es.esc(usu)}</span><time>{es.esc(sit)}</time></li>')
-    html('<ul class="bw-acessos">' + "".join(itens) + "</ul>")
+            sit, cor = "Ativo só com senha (conta antiga)", es.AMBAR
+        html(_linha_pessoa(pf, f'<span style="color:{cor};font-size:14px;font-weight:600">{sit}</span>'))
+        if pf.ativo and pf.usuario != u.usuario:
+            with st.popover(f"Gerenciar {pf.primeiro_nome}"):
+                with st.form(f"g_{pf.usuario}"):
+                    nova_area = st.selectbox("Área", list(PERFIS), index=list(PERFIS).index(pf.area),
+                                             format_func=PERFIS.get, key=f"ga_{pf.usuario}")
+                    novo_cargo = st.text_input("Cargo ou função", pf.cargo or "", key=f"gc_{pf.usuario}")
+                    ok = st.form_submit_button("Salvar")
+                if ok:
+                    au.atualizar_perfil(con, pf.usuario, por=u.usuario, area=nova_area, cargo=novo_cargo)
+                    st.rerun()
+                if st.button("Desativar acesso", key=f"gd_{pf.usuario}"):
+                    au.desativar(con, pf.usuario, por=u.usuario)
+                    st.rerun()
 
 
 # ---------------------------------------------------------------- navegação
@@ -901,9 +1000,9 @@ PAGINAS = {
     "equipe": st.Page(pagina_equipe, title="Equipe", icon=":material/group:", url_path="equipe"),
     "sair": st.Page(sair, title="Sair", icon=":material/logout:", url_path="sair"),
 }
-POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "sobre", "sair"],
-              "transito": ["visao", "camera", "cameras", "sala", "sobre", "sair"],
-              "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "sair"]}
+POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "sobre", "perfil", "sair"],
+              "transito": ["visao", "camera", "cameras", "sala", "sobre", "perfil", "sair"],
+              "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "perfil", "sair"]}
 
 
 def main() -> None:
@@ -914,6 +1013,9 @@ def main() -> None:
         st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
         return
     st.logo(str(MARCA / "betterway-logo-horizontal-escuro.png"), size="large")
+    pf = au.perfil(conexao(), u.usuario)
+    PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil",
+                                icon=":material/account_circle:", url_path="perfil")
     nav = st.navigation([PAGINAS[k] for k in POR_PERFIL[u.perfil]], position="top")
     alvo = st.session_state.pop("ir_para", None)          # atalho interno (e para os testes)
     if alvo in POR_PERFIL[u.perfil]:

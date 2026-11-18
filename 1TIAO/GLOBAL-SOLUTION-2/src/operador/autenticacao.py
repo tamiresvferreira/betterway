@@ -4,7 +4,7 @@ Contas criadas pela Gestão por convite (link de uso único, 24 h, guardado só 
 senha e liga o segundo fator (código de 6 dígitos de um aplicativo autenticador, TOTP). Senha com scrypt e sal por
 usuário, comparação em tempo constante, bloqueio após 5 erros (de senha ou de código), sessão de 30 min.
 
-    python src/operador/autenticacao.py convidar <usuario> <perfil> "<nome>" <email>   # imprime o link do convite
+    python src/operador/autenticacao.py convidar <email> <area> "<nome completo>" --cargo "..."   # imprime o link
     python src/operador/autenticacao.py criar <usuario> <perfil> "<nome exibido>"     # conta sem convite (testes)
     python src/operador/autenticacao.py listar
     python src/operador/autenticacao.py desativar <usuario>
@@ -72,7 +72,9 @@ class Resultado:
     precisa_codigo: bool = False      # senha certa; falta o código do aplicativo
 
 
-_COLUNAS_NOVAS = {"email": "TEXT", "totp": "TEXT", "convite_hash": "TEXT", "convite_expira": "TEXT"}
+_COLUNAS_NOVAS = {"email": "TEXT", "totp": "TEXT", "convite_hash": "TEXT", "convite_expira": "TEXT",
+                  "nome_tratamento": "TEXT", "cargo": "TEXT", "orgao": "TEXT", "matricula": "TEXT",
+                  "telefone": "TEXT", "turno": "TEXT", "foto": "BLOB", "atualizado_em": "TEXT"}
 
 
 def migrar(con: sqlite3.Connection) -> None:
@@ -212,7 +214,7 @@ def registrar_acesso(con, usuario: str, evento: str, agora: datetime | None = No
 
 def autenticar(con, usuario: str, senha: str, agora: datetime | None = None) -> Resultado:
     agora = _agora(agora)
-    usuario = (usuario or "").strip().lower()
+    usuario = _resolver(con, usuario)
     linha = con.execute("SELECT nome, perfil, hash, sal, tentativas, bloqueado_ate, totp FROM usuarios "
                         "WHERE usuario = ? AND ativo = 1", (usuario,)).fetchone()
     if linha is None or not linha[2]:            # inexistente ou convite ainda não aceito
@@ -250,10 +252,11 @@ def main(argv=None):
     c.add_argument("perfil", choices=sorted(PERFIS))
     c.add_argument("nome")
     cv = sub.add_parser("convidar")
-    cv.add_argument("usuario")
-    cv.add_argument("perfil", choices=sorted(PERFIS))
-    cv.add_argument("nome")
     cv.add_argument("email")
+    cv.add_argument("area", choices=sorted(PERFIS))
+    cv.add_argument("nome")
+    cv.add_argument("--cargo", default="")
+    cv.add_argument("--orgao", default="")
     cv.add_argument("--base", default="http://localhost:8611")
     sub.add_parser("listar")
     dsat = sub.add_parser("desativar")
@@ -272,7 +275,7 @@ def main(argv=None):
         print(f"usuário {a.usuario} criado ({PERFIS[a.perfil]})")
     elif a.cmd == "convidar":
         try:
-            token = convidar(con, a.usuario, a.perfil, a.nome, a.email)
+            token = convidar_pessoa(con, email=a.email, area=a.area, nome=a.nome, cargo=a.cargo, orgao=a.orgao)
         except ValueError as erro:
             sys.exit(str(erro))
         print(f"convite para {a.email} (vale {CONVITE_H} h, uma vez): {a.base}/?convite={token}")
@@ -287,3 +290,151 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------- perfil de cada pessoa
+_PESSOAIS = {"nome", "nome_tratamento", "telefone", "turno"}            # a própria pessoa edita
+_DA_GESTAO = {"nome", "area", "cargo", "orgao", "matricula"}             # só a Gestão edita
+FOTO_PX, FOTO_MAX_BYTES = 256, 5 * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class Perfil:
+    usuario: str
+    nome: str
+    nome_tratamento: str | None
+    email: str | None
+    area: str
+    cargo: str | None
+    orgao: str | None
+    matricula: str | None
+    telefone: str | None
+    turno: str | None
+    foto: bytes | None
+    tem_codigo: bool
+    ativo: bool
+    convite_pendente: bool
+
+    @property
+    def primeiro_nome(self) -> str:
+        return (self.nome_tratamento or self.nome or self.usuario).split()[0]
+
+
+def _resolver(con, identificacao: str | None) -> str:
+    """Aceita o usuário ou o e-mail."""
+    ident = (identificacao or "").strip().lower()
+    if "@" in ident:
+        linha = con.execute("SELECT usuario FROM usuarios WHERE lower(email) = ?", (ident,)).fetchone()
+        return linha[0] if linha else ident
+    return ident
+
+
+def usuario_de_email(con, email: str) -> str:
+    import re
+    base = re.sub(r"[^a-z0-9._-]", "", email.split("@")[0].lower()) or "pessoa"
+    candidato, n = base, 2
+    while con.execute("SELECT 1 FROM usuarios WHERE usuario = ?", (candidato,)).fetchone():
+        candidato, n = f"{base}.{n}", n + 1
+    return candidato
+
+
+def convidar_pessoa(con, *, email: str, area: str, nome: str, cargo: str = "", orgao: str = "", matricula: str = "",
+                    agora: datetime | None = None) -> str:
+    """Convite com os dados do perfil; o usuário de login sai do e-mail (e a pessoa também entra pelo e-mail)."""
+    if con.execute("SELECT 1 FROM usuarios WHERE lower(email) = ?", ((email or "").strip().lower(),)).fetchone():
+        raise ValueError("já existe uma conta com este e-mail")
+    usuario = usuario_de_email(con, email or "")
+    token = convidar(con, usuario, area, nome, email, agora=agora)
+    with con:
+        con.execute("UPDATE usuarios SET cargo = ?, orgao = ?, matricula = ? WHERE usuario = ?",
+                    (cargo.strip() or None, orgao.strip() or None, matricula.strip() or None, usuario))
+    return token
+
+
+def perfil(con, usuario: str) -> Perfil | None:
+    linha = con.execute("SELECT usuario, nome, nome_tratamento, email, perfil, cargo, orgao, matricula, telefone, "
+                        "turno, foto, totp, ativo, convite_hash FROM usuarios WHERE usuario = ?",
+                        (_resolver(con, usuario),)).fetchone()
+    if linha is None:
+        return None
+    u, nome, trat, email, area, cargo, orgao, mat, tel, turno, foto, segredo, ativo, conv = linha
+    return Perfil(u, nome, trat, email, area, cargo, orgao, mat, tel, turno, foto, bool(segredo), bool(ativo),
+                  bool(conv))
+
+
+def equipe(con) -> list[Perfil]:
+    return [perfil(con, r[0]) for r in con.execute("SELECT usuario FROM usuarios ORDER BY perfil, nome")]
+
+
+def _area_de(con, usuario: str) -> str | None:
+    linha = con.execute("SELECT perfil FROM usuarios WHERE usuario = ? AND ativo = 1", (usuario,)).fetchone()
+    return linha[0] if linha else None
+
+
+def atualizar_perfil(con, usuario: str, *, por: str, **campos) -> None:
+    """A pessoa edita os próprios dados pessoais; área, cargo, órgão e matrícula só a Gestão muda."""
+    gestao = _area_de(con, por) == "gestao"
+    permitidos = (_PESSOAIS | _DA_GESTAO) if gestao else (_PESSOAIS if por == usuario else set())
+    proibidos = set(campos) - permitidos
+    if proibidos:
+        raise PermissionError(f"sem permissão para mudar: {', '.join(sorted(proibidos))}")
+    if "area" in campos and campos["area"] not in PERFIS:
+        raise ValueError("área inválida")
+    colunas = {("perfil" if k == "area" else k): ((v or "").strip() or None) if k != "area" else v
+               for k, v in campos.items()}
+    if not colunas:
+        return
+    if "nome" in colunas and not colunas["nome"]:
+        raise ValueError("o nome não pode ficar vazio")
+    sets = ", ".join(f"{k} = ?" for k in colunas)
+    with con:
+        con.execute(f"UPDATE usuarios SET {sets}, atualizado_em = ? WHERE usuario = ?",
+                    (*colunas.values(), _agora(None).isoformat(), usuario))
+
+
+def desativar(con, usuario: str, *, por: str) -> None:
+    if _area_de(con, por) != "gestao" or por == usuario:
+        raise PermissionError("só a Gestão desativa contas, e não a própria")
+    with con:
+        con.execute("UPDATE usuarios SET ativo = 0, atualizado_em = ? WHERE usuario = ?",
+                    (_agora(None).isoformat(), usuario))
+
+
+def salvar_foto(con, usuario: str, dados: bytes, *, por: str) -> None:
+    """Corta no centro, reduz para 256 × 256 e guarda como JPEG (a foto original não é guardada)."""
+    import io
+    from PIL import Image, UnidentifiedImageError
+    if por != usuario and _area_de(con, por) != "gestao":
+        raise PermissionError("só a própria pessoa (ou a Gestão) muda a foto")
+    if len(dados) > FOTO_MAX_BYTES:
+        raise ValueError("a foto precisa ter até 5 MB")
+    try:
+        im = Image.open(io.BytesIO(dados)).convert("RGB")
+    except (UnidentifiedImageError, OSError):
+        raise ValueError("arquivo não é uma imagem") from None
+    lado = min(im.size)
+    x, y = (im.width - lado) // 2, (im.height - lado) // 2
+    im = im.crop((x, y, x + lado, y + lado)).resize((FOTO_PX, FOTO_PX), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=85)
+    with con:
+        con.execute("UPDATE usuarios SET foto = ?, atualizado_em = ? WHERE usuario = ?",
+                    (buf.getvalue(), _agora(None).isoformat(), usuario))
+
+
+def trocar_senha(con, usuario: str, atual: str, nova: str) -> None:
+    linha = con.execute("SELECT hash, sal FROM usuarios WHERE usuario = ? AND ativo = 1", (usuario,)).fetchone()
+    if linha is None or not linha[0] or not hmac.compare_digest(_hash(atual or "", bytes.fromhex(linha[1])),
+                                                                 bytes.fromhex(linha[0])):
+        raise ValueError("a senha atual não confere")
+    if len(nova or "") < SENHA_MIN:
+        raise ValueError(f"a senha nova precisa de pelo menos {SENHA_MIN} caracteres")
+    sal = os.urandom(16)
+    with con:
+        con.execute("UPDATE usuarios SET hash = ?, sal = ?, atualizado_em = ? WHERE usuario = ?",
+                    (_hash(nova, sal).hex(), sal.hex(), _agora(None).isoformat(), usuario))
+
+
+def meus_acessos(con, usuario: str, n: int = 10) -> list[dict]:
+    return [{"timestamp": t, "evento": e} for t, e in con.execute(
+        "SELECT timestamp, evento FROM acessos WHERE usuario = ? ORDER BY id DESC LIMIT ?", (usuario, n))]

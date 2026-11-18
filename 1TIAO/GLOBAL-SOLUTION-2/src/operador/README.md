@@ -13,11 +13,12 @@ Todos os comandos são rodados de `1TIAO/GLOBAL-SOLUTION-2/`, com o `.venv` da r
 
 1. Convide a primeira pessoa da Gestão pelo terminal. O comando imprime um link de uso único, que vale 24 h:
    ```
-   python src/operador/autenticacao.py convidar gestao1 gestao "Gestão 1" gestao1@exemplo.org
+   python src/operador/autenticacao.py convidar seu.nome@prefeitura.exemplo.org gestao "Seu Nome Completo" --cargo "Coordenação"
    ```
    Abra o link, crie a senha (mínimo de 8 caracteres), leia o QR Code com um aplicativo autenticador (Google ou
    Microsoft Authenticator) e confirme com o primeiro código. Depois, a Gestão convida o resto da equipe pela tela
-   **Equipe**.
+   **Equipe**. Cada pessoa entra com o próprio e-mail e cuida do seu perfil (foto, nome, telefone, turno, senha) na
+   página com o nome dela na barra.
 2. (Opcional) Processe os clipes sintéticos em `data/raw/video/veo3/`. Sem clipes, a câmera usa os vídeos reais
    (Pexels) já anotados:
    ```

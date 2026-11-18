@@ -43,7 +43,7 @@ def _texto(at):
 
 
 CHAVES = {"painel": "painel", "camera": "camera", "confirmadas": "confirmadas", "ocorrencias": "ocorrencias",
-          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre", "equipe": "equipe"}
+          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre", "equipe": "equipe", "perfil": "perfil"}
 
 
 def _ir(at, pagina):
@@ -54,7 +54,7 @@ def _ir(at, pagina):
 def test_sem_login_so_aparece_a_entrada_sem_textos_extras(banco):
     at = AppTest.from_file(APP, default_timeout=60).run()
     assert not at.exception
-    assert [t.label for t in at.text_input] == ["Usuário", "Senha"]
+    assert [t.label for t in at.text_input] == ["E-mail ou usuário", "Senha"]
     txt = _texto(at)
     assert "demonstração" not in txt and "Central de operação" not in txt and "Acesso por perfil" not in txt
 
@@ -142,9 +142,21 @@ def test_convite_pela_tela_e_login_com_codigo(banco):
 def test_gestao_gera_convite_na_tela_equipe(banco):
     at = _ir(_entrar("gestao1"), "equipe")
     assert not at.exception, at.exception
-    at.text_input[0].input("transito7")
-    at.text_input[1].input("Operador(a) Trânsito 7")
-    at.text_input[2].input("t7@exemplo.org")
+    at.text_input(key="conv_nome").input("Bruno Alves")
+    at.text_input(key="conv_email").input("bruno.alves@transito.exemplo.org")
+    at.text_input(key="conv_cargo").input("Operador de tráfego")
     next(b for b in at.button if b.label == "Gerar convite").click().run()
     assert not at.exception, at.exception
     assert any("?convite=" in c.value for c in at.code)
+    p = au.perfil(sqlite3.connect(banco), "bruno.alves")
+    assert p.cargo == "Operador de tráfego" and p.convite_pendente
+
+
+def test_meu_perfil_mostra_o_nome_e_salva_o_tratamento(banco):
+    at = _ir(_entrar("saude1"), "perfil")
+    assert not at.exception, at.exception
+    campos = {t.label: t for t in at.text_input}
+    campos["Como quer ser chamado(a) na plataforma"].input("Dani")
+    next(b for b in at.button if b.label == "Salvar dados").click().run()
+    assert not at.exception, at.exception
+    assert au.perfil(sqlite3.connect(banco), "saude1").primeiro_nome == "Dani"
