@@ -39,6 +39,8 @@ EVID = RAIZ / "docs" / "evidencias"
 LOGO = RAIZ / "assets" / "marca" / "betterway-logo-horizontal-claro.png"
 AVISO = "Ambiente de demonstração · sem integração com CET ou SAMU"
 LAT, LON = -23.54183, -46.61613          # Largo da Concórdia (grupo 139)
+ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "escola": "Escola", "chuva": "Chuva",
+                   "alagamento": "Alagamento", "ambulancia": "Ambulância"}
 PAGINAS = {
     "transito": ["Câmera e ocorrências", "Sala de controle"],
     "saude": ["Ocorrências confirmadas", "Sala de controle"],
@@ -304,7 +306,7 @@ def pagina_sala(u: au.Usuario) -> None:
         st.caption("Não use junto com `central.py`: os comandos dos dois se misturariam no nó.")
         cols = st.columns(len(CENARIOS))
         for col, nome in zip(cols, CENARIOS):
-            if col.button(nome.capitalize(), key=f"cen_{nome}", use_container_width=True):
+            if col.button(ROTULOS_CENARIO[nome], key=f"cen_{nome}", use_container_width=True):
                 try:
                     exigir(u.perfil, "cenario")
                     ok = no.publicar(comando_cenario(nome))
@@ -340,7 +342,10 @@ def main() -> None:
     elif pagina == "Ocorrências":
         st.subheader("Ocorrências e tempo de cada etapa")
         df = tabela_ocorrencias()
-        st.dataframe(df, hide_index=True, use_container_width=True) if not df.empty else st.caption("Nenhuma ainda.")
+        if df.empty:
+            st.caption("Nenhuma ainda.")
+        else:
+            st.dataframe(df.astype(object).where(df.notna(), "—"), hide_index=True, use_container_width=True)
     elif pagina == "Estudo A (SUMO)":
         pagina_estudo_a()
     elif pagina == "Clipes sintéticos":

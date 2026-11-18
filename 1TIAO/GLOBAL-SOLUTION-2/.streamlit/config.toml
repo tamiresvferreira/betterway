@@ -1,0 +1,7 @@
+# Marca BetterWay (assets/marca): verde #00C27A, grafite #1A1D21, fundo claro #F4F4EF
+[theme]
+base = "light"
+primaryColor = "#006B44"            # verde-escuro: texto branco legível nos botões
+backgroundColor = "#F4F4EF"
+secondaryBackgroundColor = "#E8E8E1"
+textColor = "#1A1D21"
