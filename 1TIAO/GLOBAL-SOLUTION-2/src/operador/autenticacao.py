@@ -288,8 +288,6 @@ def main(argv=None):
         print("desativado" if n else "usuário não encontrado")
 
 
-if __name__ == "__main__":
-    main()
 
 
 # ---------------------------------------------------------------- perfil de cada pessoa
@@ -438,3 +436,7 @@ def trocar_senha(con, usuario: str, atual: str, nova: str) -> None:
 def meus_acessos(con, usuario: str, n: int = 10) -> list[dict]:
     return [{"timestamp": t, "evento": e} for t, e in con.execute(
         "SELECT timestamp, evento FROM acessos WHERE usuario = ? ORDER BY id DESC LIMIT ?", (usuario, n))]
+
+
+if __name__ == "__main__":
+    main()
