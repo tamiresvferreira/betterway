@@ -253,17 +253,18 @@ def pagina_painel() -> None:
 
 
 def pagina_estudo_a() -> None:
-    st.subheader("Estudo A — o cruzamento sem e com a BetterWay (SUMO)")
-    st.caption("RESULTADOS ESPERADOS de simulação: cruzamento sintético calibrado pelo piloto; fluxos estimados.")
-    for nome, legenda in [("animacao_pedestre.gif", "Pessoa com mobilidade reduzida: o verde do pedestre é estendido "
-                                                    "até ela terminar"),
-                          ("animacao_ambulancia.gif", "Ambulância: prioridade só com a faixa vazia")]:
-        p = EVID / "estudo_a" / nome
-        if p.exists():
-            st.image(str(p), caption=legenda, use_container_width=True)
-    p = EVID / "estudo_a" / "estudo_a_resumo.csv"
-    if p.exists():
-        st.dataframe(pd.read_csv(p, sep=";", encoding="utf-8-sig"), hide_index=True, use_container_width=True)
+    import cruzamento as cz
+    st.subheader("O mesmo cruzamento, hoje e com a BetterWay")
+    st.markdown("Escolha uma situação e compare os dois lados: as mesmas pessoas e os mesmos carros, muda só o "
+                "semáforo. É a simulação do Estudo A no SUMO, num cruzamento com as medidas do Largo da Concórdia.")
+    cena = st.segmented_control("Situação", list(cz.CENAS), format_func=cz.CENAS.get, default="pedestre",
+                                label_visibility="collapsed") or "pedestre"
+    try:
+        dados, met = cz.carregar(cena)
+    except FileNotFoundError:
+        st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
+        return
+    components.html(cz.html_cruzamento(dados, met), height=720, scrolling=False)
 
 
 def pagina_clipes() -> None:

@@ -104,9 +104,11 @@ def capturar(cena: str, com_sistema: bool) -> list[dict]:
             x, y = traci.vehicle.getPosition(v)
             q["carros"].append((x, y, traci.vehicle.getAngle(v), traci.vehicle.getTypeID(v),
                                 traci.vehicle.getLength(v), traci.vehicle.getSpeed(v)))
+            q.setdefault("carros_id", []).append(v)
         for p in traci.person.getIDList():
             x, y = traci.person.getPosition(p)
             q["pessoas"].append((x, y, traci.person.getTypeID(p), traci.person.getLaneID(p) in faixas))
+            q.setdefault("pessoas_id", []).append(p)
         quadros.append(q)
 
     ea.rodar(c["comparacao"], com_sistema, 1, duracao=int(fim) + 30,
@@ -287,9 +289,61 @@ def renderizar(cena: str, saida_gif: Path, saida_mp4: Path | None = None, de_qua
     return resumo
 
 
+def exportar_json(cena: str, saida: Path) -> Path:
+    """Geometria + quadros das duas simulações (sem e com o sistema) para o player da interface (HTML/SVG).
+    Coordenadas em metros relativas ao centro do cruzamento, y para cima (o player inverte)."""
+    import json
+    (cx, cy), pistas, calcadas, faixas, juncoes = _geometria()
+
+    def pt(x, y):
+        return [round(x - cx, 2), round(y - cy, 2)]
+
+    def poly(forma, w):
+        return [pt(*p) for p in _faixa_poligono(forma, w)]
+
+    def perto(pts):
+        return any(abs(x) <= JANELA_M + 15 and abs(y) <= JANELA_M + 15 for x, y in pts)
+
+    geo = {"janela_m": JANELA_M,
+           "pistas": [q for q in (poly(f, w) for f, w in pistas) if perto(q)],
+           "calcadas": [q for q in (poly(f, w) for f, w in calcadas) if perto(q)],
+           "juncoes": [q for q in ([pt(*p) for p in j] for j in juncoes) if perto(q)],
+           "faixas": [{"poligono": poly(f, w), "inicio": pt(*f[0]), "fim": pt(*f[-1]), "largura": round(w, 2),
+                       "avenida": math.dist(f[0], f[-1]) > 10} for f, w in faixas
+                      if perto([pt(*f[0])])]}
+    lados = {}
+    for chave, com in (("sem", False), ("com", True)):
+        quadros, inicio_verde = [], None
+        for q in capturar(cena, com):
+            if q["verde_ped"] and inicio_verde is None:
+                inicio_verde = q["t"]
+            if not q["verde_ped"]:
+                inicio_verde = None
+            aviso, cor = _aviso(q, com, cena, inicio_verde)
+            quadros.append({
+                "t": round(q["t"], 1), "verde_ped": q["verde_ped"], "verde_avenida": q["verde_avenida"],
+                "verde_ped_s": None if inicio_verde is None else round(q["t"] - inicio_verde, 1),
+                "aviso": aviso, "cor": cor,
+                "carros": [[i, *pt(x, y), round(a, 1), tipo, round(c, 1), round(v, 1)]
+                           for i, (x, y, a, tipo, c, v) in zip(q.get("carros_id", []), q["carros"])
+                           if abs(x - cx) <= JANELA_M + 12 and abs(y - cy) <= JANELA_M + 12],
+                "pessoas": [[i, *pt(x, y), tipo, f] for i, (x, y, tipo, f) in zip(q.get("pessoas_id", []), q["pessoas"])],
+            })
+        lados[chave] = quadros
+    n = min(len(lados["sem"]), len(lados["com"]))
+    dados = {"cena": cena, "titulo": CENAS[cena]["titulo"], "passo_s": PASSO, "geometria": geo,
+             "sem": lados["sem"][:n], "com": lados["com"][:n]}
+    saida.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    return saida
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ea.EVID.mkdir(parents=True, exist_ok=True)
+    if "--json" in sys.argv:
+        for cena in CENAS:
+            print(exportar_json(cena, ea.EVID / f"cena_{cena}.json"))
+        return
     for cena in CENAS:
         r = renderizar(cena, ea.EVID / f"animacao_{cena}.gif", ea.EVID / f"animacao_{cena}.mp4")
         print(cena, r)
