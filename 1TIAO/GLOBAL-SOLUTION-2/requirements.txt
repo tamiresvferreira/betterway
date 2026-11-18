@@ -30,3 +30,6 @@ streamlit-folium>=0.20
 
 # Simulação (o SUMO é instalado à parte: https://sumo.dlr.de)
 sumo-rl>=1.4
+
+# Autenticação (QR Code do segundo fator)
+segno>=1.6

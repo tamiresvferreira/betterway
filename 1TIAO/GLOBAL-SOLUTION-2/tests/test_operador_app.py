@@ -43,7 +43,7 @@ def _texto(at):
 
 
 CHAVES = {"painel": "painel", "camera": "camera", "confirmadas": "confirmadas", "ocorrencias": "ocorrencias",
-          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre"}
+          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre", "equipe": "equipe"}
 
 
 def _ir(at, pagina):
@@ -114,3 +114,37 @@ def test_abrir_uma_camera_registra_quem_abriu(banco):
     assert not at.exception, at.exception
     linhas = list(sqlite3.connect(banco).execute("SELECT usuario, camera FROM acessos_camera"))
     assert linhas == [("saude1", "CAM 01")]
+
+
+def test_convite_pela_tela_e_login_com_codigo(banco):
+    import totp
+    con = sqlite3.connect(banco)
+    token = au.convidar(con, "saude9", "saude", "Operador(a) Saúde 9", "s9@exemplo.org")
+    con.close()
+    at = AppTest.from_file(APP, default_timeout=90)
+    at.query_params["convite"] = token
+    at.run()
+    assert not at.exception, at.exception
+    segredo = at.session_state["segredo_convite"]
+    at.text_input[0].input("senha-forte-9")
+    at.text_input[1].input("senha-forte-9")
+    at.text_input[2].input(totp.codigo(segredo))
+    at.button[0].click().run()
+    assert not at.exception, at.exception
+    # login: senha, depois o código
+    at = _entrar("saude9", "senha-forte-9")
+    assert "Código do aplicativo" in [t.label for t in at.text_input]
+    at.text_input[0].input(totp.codigo(segredo))
+    at.button[0].click().run()
+    assert "Evita acidentes antes que aconteçam" in _texto(at)
+
+
+def test_gestao_gera_convite_na_tela_equipe(banco):
+    at = _ir(_entrar("gestao1"), "equipe")
+    assert not at.exception, at.exception
+    at.text_input[0].input("transito7")
+    at.text_input[1].input("Operador(a) Trânsito 7")
+    at.text_input[2].input("t7@exemplo.org")
+    next(b for b in at.button if b.label == "Gerar convite").click().run()
+    assert not at.exception, at.exception
+    assert any("?convite=" in c.value for c in at.code)

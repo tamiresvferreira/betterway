@@ -176,19 +176,83 @@ def tela_login() -> None:
              '</span></div><p class="bw-login-sub">Entre com o usuário da sua equipe.</p>')
         if st.session_state.get("aviso_login"):
             st.info(st.session_state["aviso_login"])
-        with st.form("login"):
-            nome = st.text_input("Usuário")
-            senha = st.text_input("Senha", type="password")
-            entrar = st.form_submit_button("Entrar", type="primary", width="stretch")
-        if entrar:
-            r = au.autenticar(conexao(), nome, senha)
-            if r.ok:
-                st.session_state.clear()
-                st.session_state["usuario"] = r.usuario
-                st.session_state["ultimo_uso"] = datetime.now().replace(microsecond=0)
-                st.rerun()
-            else:
-                st.error(r.mensagem)
+        token = st.query_params.get("convite")
+        if token:
+            _aceitar_convite(token)
+        elif st.session_state.get("login_pendente"):
+            _segunda_etapa(st.session_state["login_pendente"])
+        else:
+            with st.form("login"):
+                nome = st.text_input("Usuário")
+                senha = st.text_input("Senha", type="password")
+                entrar = st.form_submit_button("Entrar", type="primary", width="stretch")
+            if entrar:
+                r = au.autenticar(conexao(), nome, senha)
+                if r.ok:
+                    _abrir_sessao(r.usuario)
+                elif r.precisa_codigo:
+                    st.session_state["login_pendente"] = r.usuario.usuario
+                    st.rerun()
+                else:
+                    st.error(r.mensagem)
+
+
+def _abrir_sessao(u: au.Usuario) -> None:
+    st.session_state.clear()
+    st.session_state["usuario"] = u
+    st.session_state["ultimo_uso"] = datetime.now().replace(microsecond=0)
+    st.rerun()
+
+
+def _segunda_etapa(usuario_: str) -> None:
+    with st.form("codigo"):
+        st.markdown("**Digite o código de 6 dígitos** que aparece no seu aplicativo autenticador.")
+        codigo = st.text_input("Código do aplicativo", max_chars=6)
+        ok = st.form_submit_button("Confirmar", type="primary", width="stretch")
+    if ok:
+        r = au.verificar_codigo(conexao(), usuario_, codigo)
+        if r.ok:
+            _abrir_sessao(r.usuario)
+        else:
+            st.error(r.mensagem)
+    if st.button("Voltar", width="stretch"):
+        st.session_state.pop("login_pendente", None)
+        st.rerun()
+
+
+def _aceitar_convite(token: str) -> None:
+    import segno
+    import totp
+    con = conexao()
+    u = au.dados_convite(con, token)
+    if u is None:
+        st.error("Este convite não vale mais. Peça um novo à equipe de Gestão.")
+        return
+    segredo = st.session_state.setdefault("segredo_convite", totp.gerar_segredo())
+    st.markdown(f"**Olá, {es.esc(u.nome)}.** Crie sua senha e ligue o código do aplicativo para entrar na equipe de "
+                f"{PERFIS[u.perfil]}.")
+    html('<div style="background:#fff;border-radius:12px;padding:10px;display:inline-block">'
+         + segno.make(totp.uri(segredo, u.usuario), error="m").svg_inline(scale=4) + "</div>")
+    st.caption(f"Leia o QR Code com o Google Authenticator ou o Microsoft Authenticator. Sem câmera? Digite a chave: "
+               f"{segredo}")
+    with st.form("convite"):
+        senha = st.text_input("Crie uma senha (mínimo de 8 caracteres)", type="password")
+        senha2 = st.text_input("Repita a senha", type="password")
+        codigo = st.text_input("Código que apareceu no aplicativo", max_chars=6)
+        ok = st.form_submit_button("Ativar meu acesso", type="primary", width="stretch")
+    if ok:
+        if senha != senha2:
+            st.error("As senhas não conferem.")
+            return
+        try:
+            au.aceitar_convite(con, token, senha, codigo, segredo)
+        except ValueError as erro:
+            st.error(str(erro).capitalize() + ".")
+            return
+        st.session_state.pop("segredo_convite", None)
+        st.query_params.clear()
+        st.session_state["aviso_login"] = "Acesso ativado. Entre com seu usuário, sua senha e o código do aplicativo."
+        st.rerun()
 
 
 def sair() -> None:
@@ -774,6 +838,50 @@ def pagina_confirmadas() -> None:
                "A ambulância é simulada.")
 
 
+# ---------------------------------------------------------------- equipe (gestão)
+def pagina_equipe() -> None:
+    u = st.session_state["usuario"]
+    st.title("Equipe")
+    st.caption("Convide quem vai usar a plataforma. A pessoa recebe um link, cria a própria senha e liga o código do "
+               "aplicativo autenticador. Ninguém entra só com a senha.")
+    con = conexao()
+    with st.form("convidar", clear_on_submit=True):
+        a, b = st.columns(2)
+        usuario_ = a.text_input("Usuário (para entrar)")
+        nome = b.text_input("Nome que aparece na tela")
+        c, d = st.columns(2)
+        email = c.text_input("E-mail")
+        perfil = d.selectbox("Perfil", list(PERFIS), format_func=PERFIS.get)
+        enviar = st.form_submit_button("Gerar convite", type="primary")
+    if enviar:
+        try:
+            exigir(u.perfil, "convidar")
+            token = au.convidar(con, usuario_, perfil, nome, email)
+            st.session_state["ultimo_convite"] = (email, f"http://localhost:8611/?convite={token}")
+        except (SemPermissao, ValueError) as erro:
+            st.error(str(erro).capitalize() + ".")
+    if st.session_state.get("ultimo_convite"):
+        email, link = st.session_state["ultimo_convite"]
+        st.success(f"Convite criado para {email}. Ele vale por {au.CONVITE_H} horas e só pode ser usado uma vez.")
+        st.code(link, language=None)
+        st.caption("Nesta versão, copie o link e envie à pessoa. Na versão final, ele sai por e-mail automaticamente.")
+    st.subheader("Quem tem acesso")
+    linhas = con.execute("SELECT usuario, nome, perfil, ativo, totp, convite_expira FROM usuarios ORDER BY perfil, usuario")
+    itens = []
+    for usu, nm, pf, ativo, tem_totp, expira in linhas:
+        if not ativo:
+            sit = "Desativado"
+        elif expira:
+            sit = f"Convite enviado, vale até {datetime.fromisoformat(expira):%d/%m %H:%M}"
+        elif tem_totp:
+            sit = "Ativo, com código do aplicativo"
+        else:
+            sit = "Ativo só com senha (conta antiga)"
+        itens.append(f'<li><span class="av">{es.esc(usu[:1].upper())}</span><b>{es.esc(nm)}</b>'
+                     f'<span>{es.esc(PERFIS[pf])} · {es.esc(usu)}</span><time>{es.esc(sit)}</time></li>')
+    html('<ul class="bw-acessos">' + "".join(itens) + "</ul>")
+
+
 # ---------------------------------------------------------------- navegação
 PAGINAS = {
     "visao": st.Page(pagina_visao_geral, title="Visão geral", icon=":material/home:", url_path="visao-geral",
@@ -787,9 +895,10 @@ PAGINAS = {
     "confirmadas": st.Page(pagina_confirmadas, title="Atendimentos", icon=":material/emergency:",
                            url_path="atendimentos"),
     "sobre": st.Page(pagina_sobre, title="Sobre", icon=":material/info:", url_path="sobre"),
+    "equipe": st.Page(pagina_equipe, title="Equipe", icon=":material/group:", url_path="equipe"),
     "sair": st.Page(sair, title="Sair", icon=":material/logout:", url_path="sair"),
 }
-POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "sobre", "sair"],
+POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "sobre", "sair"],
               "transito": ["visao", "camera", "cameras", "sala", "sobre", "sair"],
               "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "sair"]}
 
