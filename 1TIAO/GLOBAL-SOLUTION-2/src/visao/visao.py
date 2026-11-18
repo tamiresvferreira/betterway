@@ -37,6 +37,10 @@ LIMIAR_BORRAO = 0.25        # desvio-padrão da região borrada ≤ 25% do origi
 VEICULOS_CONFLITO = {"car", "motorcycle", "bus", "truck"}
 VEICULOS_MONTADOS = {"motorcycle", "bicycle"}     # quem está em cima é condutor, não pedestre
 SOBREPOSICAO_CONDUTOR = 0.5                        # fração da caixa da pessoa dentro da caixa da moto/bicicleta
+# suspeita de acidente (protótipo, spec 2026-11-17 §4; avaliada só em clipes sintéticos)
+QUEDA_S = 3.0               # deitada e parada por >= 3 s seguidos
+DEITADA_REL = 1.2           # caixa deitada: largura >= 1,2 × altura
+VEL_QUEDA_MS = 0.3          # "parada": a base andou < 0,3 m/s desde o início da corrida
 AUXILIOS = {"wheelchair", "walker", "crutch", "cane"}
 CHAVES_FAIXA = ("poligono", "resolucao", "lado_a", "lado_b", "comprimento_m")
 
@@ -479,6 +483,51 @@ def bloqueios(deteccoes, faixa: Faixa, fps) -> list[Bloqueio]:
     return saida
 
 
+@dataclass(frozen=True)
+class Suspeita:
+    track_id: int
+    quadro_inicio: int       # primeiro quadro deitada e parada
+    quadro: int              # quadro em que completou QUEDA_S (o alerta)
+
+
+def _ponto_no_poligono(ponto, poligono) -> bool:
+    x, y = ponto
+    dentro, n = False, len(poligono)
+    for i in range(n):
+        (x1, y1), (x2, y2) = poligono[i], poligono[(i + 1) % n]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            dentro = not dentro
+    return dentro
+
+
+def suspeitas_de_queda(deteccoes, faixa: Faixa, fps, pista=None, min_s: float = QUEDA_S) -> list[Suspeita]:
+    """Pessoa com a caixa DEITADA (largura >= DEITADA_REL × altura), com os pés na faixa ou na `pista` (polígono em
+    pixels, opcional) e quase parada (< VEL_QUEDA_MS) por >= `min_s` seguidos (sumiço de até TOLERANCIA_SUMICO_S
+    tolerado). Uma suspeita por pessoa. Não distingue queda de alguém que se deitou e não vê o impacto: a ocorrência
+    nasce pendente e um humano confirma."""
+    fps = _validar_fps(fps)
+    escala = faixa.px_por_m()
+    saida = []
+    for tid, dets in _por_track(deteccoes).items():
+        inicio = anterior = None
+        for d in dets:
+            x1, y1, x2, y2 = d.caixa
+            pe = ponto_da_pessoa(d.caixa)
+            ok = (x2 - x1) >= DEITADA_REL * (y2 - y1) and (faixa.contem(pe) or (pista and _ponto_no_poligono(pe, pista)))
+            if not ok or (anterior is not None and d.quadro - anterior.quadro > TOLERANCIA_SUMICO_S * fps):
+                inicio = None
+            if ok and inicio is None:
+                inicio = d
+            anterior = d if ok else None
+            if inicio is None or d.quadro - inicio.quadro < min_s * fps:
+                continue
+            (xa, ya), dt = ponto_da_pessoa(inicio.caixa), (d.quadro - inicio.quadro) / fps
+            if math.hypot(pe[0] - xa, pe[1] - ya) / escala / dt < VEL_QUEDA_MS:
+                saida.append(Suspeita(tid, inicio.quadro, d.quadro))
+                break
+    return saida
+
+
 def contagem_bicicletas(deteccoes, faixa: Faixa) -> int:
     """Bicicletas (ids únicos) que passaram pela faixa: contadas à parte, não geram conflito."""
     return len({tid for q in _na_faixa(sem_bicicleta_na_cadeira(deteccoes), faixa, {"bicycle"}).values() for tid in q})
@@ -602,9 +651,11 @@ def _primeiro_na_faixa(deteccoes, faixa) -> dict[int, int]:
     return primeiro
 
 
-def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: Faixa, fps) -> list[Evento]:
+def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: Faixa, fps,
+               suspeitas_=()) -> list[Evento]:
     """Eventos para a tabela `eventos`: pedestre_na_faixa e pcd_na_faixa (1º quadro de cada pessoa na faixa),
-    travessia (com status), conflito_veiculo_pedestre (com severidade), bloqueio_faixa e contagem_minuto."""
+    travessia (com status), conflito_veiculo_pedestre (com severidade), bloqueio_faixa, suspeita_acidente e
+    contagem_minuto."""
     fps = _validar_fps(fps)
     ev = []
     aux = auxilios_por_pessoa(deteccoes)
@@ -627,6 +678,9 @@ def eventos_de(travessias_, conflitos_, bloqueios_, pcd_ids, deteccoes, faixa: F
     for b in bloqueios_:
         ev.append(Evento("bloqueio_faixa", b.quadro_inicio, b.track_veiculo, (b.quadro_fim - b.quadro_inicio + 1) / fps,
                          {"quadro_fim": b.quadro_fim}))
+    for su in suspeitas_:
+        ev.append(Evento("suspeita_acidente", su.quadro, su.track_id, (su.quadro - su.quadro_inicio) / fps,
+                         {"quadro_inicio": su.quadro_inicio, "prototipo": True}))
     por_min: dict[int, set] = {}
     for d in deteccoes:
         if d.classe == "person" and d.track_id is not None and faixa.contem(ponto_da_pessoa(d.caixa)):
