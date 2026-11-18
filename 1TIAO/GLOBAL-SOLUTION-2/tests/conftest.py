@@ -18,3 +18,5 @@ def treino_sintetico():
     a = [{"latitude": -23.55, "longitude": -46.63, "fatal": i < 2, "tipo_via": "VIAS URBANAS"} for i in range(10)]
     b = [{"latitude": -23.70, "longitude": -46.70, "fatal": True, "tipo_via": "ESTRADAS E RODOVIAS"}]
     return pd.DataFrame(a + b)
+# Permite "import autenticacao" etc. a partir de src/operador/
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "operador"))
