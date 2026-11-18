@@ -49,9 +49,9 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-secao {{ font-size: 22px; font-weight: 600; margin: 8px 0 12px; }}
 .bw-nota {{ color: {MUTED}; font-size: 14px; line-height: 1.5; }}
 .bw-kpi {{ background: {CARTAO}; border-radius: 16px; padding: 16px 18px; border: 1px solid #343A41; }}
-.bw-kpi .r {{ color: {MUTED}; font-size: 13px; font-weight: 500; }}
+.bw-kpi .r {{ color: {MUTED}; font-size: 14px; font-weight: 500; }}
 .bw-kpi .v {{ font-size: 26px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }}
-.bw-kpi .s {{ color: {MUTED}; font-size: 13px; margin-top: 2px; }}
+.bw-kpi .s {{ color: {MUTED}; font-size: 14px; margin-top: 2px; }}
 .bw-leitura {{ border-radius: 20px; padding: 22px 24px; border: 1px solid #343A41; background: {CARTAO}; margin-bottom: 20px; }}
 .bw-leitura.padrao {{ border-color: {ALERTA}; box-shadow: inset 0 0 0 1px {ALERTA}; }}
 .bw-leitura.atencao {{ border-color: {AMBAR}; }}
@@ -60,12 +60,12 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-ev {{ display: grid; grid-template-columns: 26px 140px 1fr auto; gap: 10px; align-items: baseline;
           padding: 10px 0; border-top: 1px solid #343A41; font-size: 15px; }}
 .bw-ev .nome {{ font-weight: 600; }}
-.bw-ev .fonte {{ color: {MUTED}; font-size: 13px; text-align: right; }}
+.bw-ev .fonte {{ color: {MUTED}; font-size: 14px; text-align: right; }}
 @media (max-width: 760px) {{ .bw-ev {{ grid-template-columns: 22px 1fr; }} .bw-ev .fonte {{ text-align: left; grid-column: 2; }}
   .bw-ev .txt {{ grid-column: 2; }} }}
 .bw-conclusao {{ margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #23272C; font-size: 15px; }}
 .bw-selo {{ display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 12px;
-            font-size: 13px; font-weight: 700; }}
+            font-size: 14px; font-weight: 700; }}
 .bw-selo.ok {{ background: {VERDE}; color: {GRAFITE}; }}
 .bw-selo.atencao {{ background: {AMBAR}; color: {GRAFITE}; }}
 .bw-selo.risco {{ background: transparent; color: {ALERTA_INK}; box-shadow: inset 0 0 0 1.5px {ALERTA_INK}; }}
@@ -78,7 +78,7 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-cam video {{ width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }}
 .bw-cam .sem {{ aspect-ratio: 16 / 9; display: grid; place-items: center; color: {MUTED}; background: {CARTAO}; }}
 .bw-cam figcaption {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px;
-  background: {CARTAO}; font-size: 13px; }}
+  background: {CARTAO}; font-size: 14px; }}
 .bw-cam .vivo {{ color: {VERDE}; font-weight: 700; }}
 .bw-cam .sim {{ background: #343A41; color: #C9CBC6; border-radius: 999px; padding: 2px 8px; font-weight: 600; }}
 .bw-cam .onde {{ color: {MUTED}; width: 100%; }}

@@ -28,6 +28,7 @@ for p in (AQUI, RAIZ / "src" / "central", RAIZ / "src" / "estudo_b_risco_vida"):
         sys.path.insert(0, str(p))
 
 import autenticacao as au  # noqa: E402
+import componentes as cp  # noqa: E402
 import camera as cam  # noqa: E402
 import estilo as es  # noqa: E402
 import leitura as lt  # noqa: E402
@@ -357,18 +358,68 @@ def pagina_painel() -> None:
     st.write("")
     c1, c2 = st.columns([3, 2], gap="large")
     with c1:
-        st.subheader("Mapa de risco da cidade")
-        _mapa()
+        st.subheader("Risco ao longo do dia no Largo")
+        _curva_risco(quando)
     with c2:
         st.subheader("Linha do tempo das leituras")
-        hist_l = lt.historico(conexao(), 12)
+        hist_l = lt.historico(conexao(), 8)
         if not hist_l:
             st.caption("A primeira leitura aparece aqui.")
         linhas = "".join(
             f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%H:%M}</span><span>'
             f'{es.selo_nivel(r["nivel"])}{" <span class=bw-nota>simulada</span>" if r["simulado"] else ""}'
-            f'<br><span class="bw-nota">{es.esc(r["resumo"])}</span></span></div>' for r in hist_l)
+            f'<br><span class="bw-nota">{es.esc(r["resumo"].split(" · ")[0])}</span></span></div>' for r in hist_l)
         html(f'<div class="bw-tempo">{linhas}</div>')
+    c1, c2 = st.columns([3, 2], gap="large")
+    with c1:
+        st.subheader("Mapa de risco da cidade")
+        _mapa()
+    with c2:
+        st.subheader("Os pontos mais críticos")
+        top = consultar("SELECT cluster_id, rank_urbano, via_principal, n_fatais, n_nao_fatais FROM clusters "
+                        "WHERE rank_urbano IS NOT NULL AND (rank_urbano <= 9 OR cluster_id = ?) ORDER BY rank_urbano",
+                        (PILOTO,))
+        html(cp.ranking_pontos([{"rank_urbano": int(r.rank_urbano),
+                                 "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
+                                 "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "piloto": r.cluster_id == PILOTO}
+                                for r in top.itertuples()]))
+        html('<p class="bw-nota">Número = atropelamentos no grupo (Infosiga-SP, 2022–2025). A ordem segue o índice de '
+             'prioridade da CET, que pesa as mortes.</p>')
+
+
+def _curva_risco(quando: datetime) -> None:
+    """Risco do piloto hora a hora (modelo do notebook 06), com o horário da leitura marcado."""
+    import altair as alt
+    dia = quando.replace(minute=30, second=0, microsecond=0)
+    pontos = [{"hora": h, "risco": r["risco_relativo"]} for h in range(24)
+              if (r := risco_em(dia.replace(hour=h).isoformat(), 0.0))]
+    if not pontos:
+        st.caption("Modelo de risco indisponível.")
+        return
+    df = pd.DataFrame(pontos)
+    df["rotulo"] = df["hora"].map(lambda h: f"{h:02d}h")
+    base = alt.Chart(df).encode(x=alt.X("hora:Q", title=None, scale=alt.Scale(domain=[0, 23]),
+                                        axis=alt.Axis(values=list(range(0, 24, 3)), labelExpr="datum.value + 'h'")))
+    area = base.mark_area(color=es.VERDE, opacity=0.14, interpolate="monotone").encode(y="risco:Q")
+    linha = base.mark_line(color=es.VERDE, strokeWidth=2, interpolate="monotone").encode(
+        y=alt.Y("risco:Q", title="vezes a média da cidade", axis=alt.Axis(tickCount=4)))
+    pontos_ = base.mark_circle(size=90, opacity=0).encode(
+        y="risco:Q", tooltip=[alt.Tooltip("rotulo:N", title="Hora"),
+                              alt.Tooltip("risco:Q", title="Risco (× cidade)", format=".1f")])
+    agora = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": ["agora"]})).mark_rule(
+        color=es.CLARO, strokeDash=[4, 4]).encode(x="hora:Q")
+    rotulo = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": [f"{quando:%H:%M}"]})).mark_text(
+        color=es.CLARO, dy=-8, align="left", dx=6, fontSize=14, font="Montserrat").encode(x="hora:Q", y=alt.value(12),
+                                                                                         text="t:N")
+    graf = (area + linha + pontos_ + agora + rotulo).properties(height=260).configure(
+        background="transparent", font="Montserrat").configure_axis(
+        labelColor=es.MUTED, titleColor=es.MUTED, gridColor="#343A41", domainColor="#3A4047", labelFontSize=13,
+        titleFontSize=13, tickColor="#3A4047").configure_view(strokeWidth=0)
+    st.altair_chart(graf, width="stretch")
+    pico = df.loc[df.risco.idxmax()]
+    vezes = f"{pico.risco:.1f}".replace(".", ",")
+    html(f'<p class="bw-nota">Dia útil, sem chuva. O pico é por volta das {int(pico.hora)}h ({vezes}× a média da '
+         f'cidade). A linha tracejada marca o horário da leitura.</p>')
 
 
 def _mapa() -> None:
@@ -423,30 +474,45 @@ def _tempos_ocorrencias() -> pd.DataFrame:
     return pd.DataFrame(linhas)
 
 
+def _linhas_quadro() -> list[dict]:
+    con, linhas = conexao(), []
+    for o in oc.listar(con):
+        t = oc.tempos(con, o["id"])
+
+        def seg(a, b):
+            if a in t and b in t:
+                return (datetime.fromisoformat(t[b]["timestamp"]) - datetime.fromisoformat(t[a]["timestamp"])).total_seconds()
+            return None
+        linhas.append({"id": o["id"], "tipo": oc.TIPOS.get(o["tipo"], o["tipo"]), "origem": o["origem"],
+                       "estado": o["estado"], "aberta": datetime.fromisoformat(o["aberta_em"]).strftime("%d/%m %H:%M"),
+                       "confirmar": seg("pendente", "confirmada"), "despachar": seg("confirmada", "despachada"),
+                       "atender": seg("despachada", "encerrada"), "motivo": (t.get("descartada") or {}).get("motivo")})
+    return linhas
+
+
 def pagina_ocorrencias_gestao() -> None:
     st.title("Ocorrências")
     st.caption("Cada suspeita de acidente passa pelo Trânsito, que confirma ou descarta, e pela Saúde, que despacha o "
-               "atendimento. Aqui está quanto tempo cada etapa levou.")
-    df = _tempos_ocorrencias()
-    if df.empty:
+               "atendimento. Cada cartão mostra quanto tempo cada etapa levou.")
+    linhas = _linhas_quadro()
+    if not linhas:
         st.info("Nenhuma ocorrência registrada ainda. Quando a câmera ou um operador abrir uma, ela aparece aqui.")
         return
+    media = lambda k: [o[k] for o in linhas if o[k] is not None]  # noqa: E731
     k = st.columns(4)
     with k[0]:
-        html(es.kpi("Ocorrências", str(len(df)), "no total"))
+        html(es.kpi("Em aberto", str(sum(o["estado"] in ("pendente", "confirmada", "despachada") for o in linhas)),
+                    "aguardando alguém agir"))
     with k[1]:
-        html(es.kpi("Confirmadas", str(int(df["Até confirmar (s)"].notna().sum())), "pelo Trânsito"))
+        c = media("confirmar")
+        html(es.kpi("Até confirmar", f"{sum(c) / len(c):.0f} s" if c else "—", "média do Trânsito"))
     with k[2]:
-        html(es.kpi("Descartadas", str(int(df["Motivo do descarte"].notna().sum())), "falso alarme"))
+        d = media("despachar")
+        html(es.kpi("Até despachar", f"{sum(d) / len(d):.0f} s" if d else "—", "média da Saúde"))
     with k[3]:
-        d = df["Até despachar (s)"].dropna()
-        html(es.kpi("Até despachar", f"{d.mean():.0f} s" if len(d) else "—", "média, depois de confirmada"))
+        html(es.kpi("Descartadas", str(sum(o["estado"] == "descartada" for o in linhas)), "falsos alarmes"))
     st.write("")
-    vis = df.copy()
-    for c in ("Até confirmar (s)", "Até despachar (s)", "Atendimento (s)"):
-        vis[c] = vis[c].map(lambda v: "—" if pd.isna(v) else f"{v:.0f}")
-    vis["Motivo do descarte"] = vis["Motivo do descarte"].fillna("—")
-    st.dataframe(vis, hide_index=True, width="stretch")
+    html(cp.quadro_ocorrencias(linhas))
 
 
 # ---------------------------------------------------------------- resultados da simulação
@@ -501,7 +567,8 @@ def _clipes_sinteticos() -> None:
         return
     df = pd.read_csv(p, sep=";", encoding="utf-8-sig")
     html(es.kpi("Clipes com o resultado esperado", f"{int(df.acerto.sum())} de {len(df)}", "avaliação sintética"))
-    st.dataframe(df, hide_index=True, width="stretch")
+    st.write("")
+    html(cp.cartoes_clipes(df.to_dict("records")))
 
 
 # ---------------------------------------------------------------- sala de controle
@@ -514,20 +581,20 @@ def pagina_sala() -> None:
     @st.fragment(run_every=3)
     def estado():
         e = no.estado or {}
-        k = st.columns(3)
-        with k[0]:
-            html(es.kpi("Modo do semáforo", cam.NOMES_MODO.get(e.get("modo"), "Sem sinal do nó"),
-                        f"atualizado às {no.estado_recebido_em:%H:%M:%S}" if no.estado_recebido_em else
-                        "o nó ainda não respondeu"))
-        with k[1]:
-            html(es.kpi("Fase", (e.get("fase") or "—").replace("_", " ").capitalize(), "ciclo do semáforo"))
-        with k[2]:
-            html(es.kpi("Conexão", "Conectada" if no.conectado else "Desconectada", "com a central (MQTT)"))
-        if no.eventos:
+        c1, c2 = st.columns([3, 2], gap="large")
+        with c1:
+            html(cp.semaforo_svg(e.get("fase")))
             st.write("")
-            st.dataframe(pd.DataFrame(list(no.eventos))[["recebido_em", "tipo"]].rename(
-                columns={"recebido_em": "Quando", "tipo": "O que o nó relatou"}), hide_index=True,
-                width="stretch")
+            k = st.columns(2)
+            with k[0]:
+                html(es.kpi("Modo", cam.NOMES_MODO.get(e.get("modo"), "Sem sinal"),
+                            f"atualizado às {no.estado_recebido_em:%H:%M:%S}" if no.estado_recebido_em else
+                            "o nó ainda não respondeu"))
+            with k[1]:
+                html(es.kpi("Conexão", "Conectada" if no.conectado else "Desconectada", "com a central"))
+        with c2:
+            html('<div class="bw-secao" style="font-size:18px">O que o nó relatou</div>')
+            html(cp.feed_eventos(list(no.eventos)))
     estado()
     st.write("")
     if pode(u.perfil, "cenario"):
@@ -585,11 +652,9 @@ def pagina_cameras() -> None:
         con = conexao()
         cam.migrar(con)
         ac = pd.read_sql_query("SELECT timestamp, usuario, camera FROM acessos_camera ORDER BY id DESC LIMIT 10", con)
-        if not ac.empty:
-            st.subheader("Quem abriu as câmeras")
-            ac["timestamp"] = pd.to_datetime(ac["timestamp"]).dt.strftime("%d/%m %H:%M")
-            st.dataframe(ac.rename(columns={"timestamp": "Quando", "usuario": "Usuário", "camera": "Câmera"}),
-                         hide_index=True, width="stretch")
+        st.subheader("Quem abriu as câmeras")
+        html(cp.lista_acessos([{"usuario": r.usuario, "camera": r.camera,
+                                "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
 
 
 # ---------------------------------------------------------------- Trânsito e Saúde
@@ -699,7 +764,7 @@ POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "s
 
 def main() -> None:
     st.set_page_config(page_title="BetterWay", page_icon=str(MARCA / "betterway-simbolo.png"), layout="wide")
-    html(es.CSS)
+    html(es.CSS + cp.CSS)
     u = usuario()
     if u is None:
         st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
