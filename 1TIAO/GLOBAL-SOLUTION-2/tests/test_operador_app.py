@@ -43,7 +43,7 @@ def _texto(at):
 
 
 CHAVES = {"painel": "painel", "camera": "camera", "confirmadas": "confirmadas", "ocorrencias": "ocorrencias",
-          "sala-de-controle": "sala", "estudos": "estudos"}
+          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre"}
 
 
 def _ir(at, pagina):
@@ -68,7 +68,7 @@ def test_senha_errada_nao_entra(banco):
 def test_gestao_abre_na_visao_geral_e_o_painel_le_a_situacao(banco):
     at = _entrar("gestao1")
     assert not at.exception
-    assert "O que a plataforma faz" in _texto(at)
+    assert "Percebe quando a situação de um acidente se repete" in _texto(at)
     at = _ir(at, "painel")
     assert not at.exception, at.exception
     assert "Leitura da situação" in _texto(at)
@@ -88,7 +88,7 @@ def test_transito_confirma_e_saude_ve(banco):
     assert not any(b.label == "Confirmar" for b in at.button)
 
 
-@pytest.mark.parametrize("pagina", ["ocorrencias", "sala-de-controle", "estudos"])
+@pytest.mark.parametrize("pagina", ["ocorrencias", "sala-de-controle", "cameras", "sobre"])
 def test_gestao_so_le(banco, pagina):
     con = sqlite3.connect(banco)
     i = oc.abrir(con, origem="visao", tipo="suspeita_acidente", video_id="veo3_x_01", segundo=1.0)
@@ -98,3 +98,19 @@ def test_gestao_so_le(banco, pagina):
     assert not at.exception, at.exception
     rotulos = {b.label for b in at.button}
     assert not rotulos & {"Confirmar", "Despachar ambulância (SIMULADA)", "Reportar ocorrência", "Normal"}
+
+
+def test_abrir_uma_camera_registra_quem_abriu(banco):
+    con = sqlite3.connect(banco)
+    con.execute("CREATE TABLE clusters (cluster_id INTEGER, rank_urbano INTEGER, via_principal TEXT)")
+    con.executemany("INSERT INTO clusters VALUES (?, ?, ?)", [(139, 26, "AVENIDA RANGEL PESTANA"),
+                                                             (48, 1, "AVENIDA DO IMPERADOR")])
+    con.commit()
+    con.close()
+    at = _ir(_entrar("saude1"), "cameras")
+    assert not at.exception, at.exception
+    assert at.segmented_control[0].options == ["CAM 01 · Largo da Concórdia", "CAM 02 · Avenida do Imperador"]
+    at.segmented_control[0].set_value("CAM 01 · Largo da Concórdia").run()
+    assert not at.exception, at.exception
+    linhas = list(sqlite3.connect(banco).execute("SELECT usuario, camera FROM acessos_camera"))
+    assert linhas == [("saude1", "CAM 01")]

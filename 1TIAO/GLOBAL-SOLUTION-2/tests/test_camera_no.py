@@ -49,3 +49,41 @@ def test_cenarios_da_sala_de_controle_sao_comandos_validos():
     for nome in nav.CENARIOS:
         assert m.validar_comando(nav.comando_cenario(nome)) == []
     assert nav.comando_cenario("alagamento")["alagamento"] is True
+
+
+# ---------------------------------------------------------------- rede de câmeras
+PONTOS = [{"cluster_id": 48, "rank_urbano": 1, "via_principal": "AVENIDA DO IMPERADOR"},
+          {"cluster_id": 139, "rank_urbano": 26, "via_principal": "AVENIDA RANGEL PESTANA"},
+          {"cluster_id": 267, "rank_urbano": 2, "via_principal": "AVENIDA BRAZ LEME"},
+          {"cluster_id": 225, "rank_urbano": 3, "via_principal": "AVENIDA DO ESTADO"}]
+
+
+def test_rede_comeca_pelo_piloto_e_marca_as_simuladas():
+    cs = _clipes("normal_01", "cadeirante_01")
+    rede = cam.rede_de_cameras(PONTOS, cs, piloto=139, n=4)
+    assert [c.id for c in rede] == ["CAM 01", "CAM 02", "CAM 03", "CAM 04"]
+    assert rede[0].cluster_id == 139 and rede[0].instalada and rede[0].local == "Largo da Concórdia"
+    assert all(not c.instalada for c in rede[1:])
+    assert [c.cluster_id for c in rede[1:]] == [48, 267, 225]           # pela ordem do ranking
+    assert rede[1].local == "Avenida do Imperador"
+    assert {c.clipe.nome for c in rede} == {"normal_01", "cadeirante_01"}
+
+
+def test_rede_sem_clipes_nao_quebra():
+    assert all(c.clipe is None for c in cam.rede_de_cameras(PONTOS, [], piloto=139, n=3))
+
+
+def test_quem_abre_uma_camera_fica_registrado():
+    import sqlite3
+    con = sqlite3.connect(":memory:")
+    cam.migrar(con)
+    cam.registrar_visualizacao(con, "saude1", "CAM 01")
+    cam.registrar_visualizacao(con, "gestao1", "CAM 03")
+    linhas = list(con.execute("SELECT usuario, camera FROM acessos_camera ORDER BY id"))
+    assert linhas == [("saude1", "CAM 01"), ("gestao1", "CAM 03")]
+
+
+def test_player_aceita_url_em_vez_de_embutir_o_video():
+    c = cam.Clipe("cdmx", "pedestre", None, [], False)
+    h = cam.html_player(c, "normal", video_url="app/static/cameras/cdmx.mp4")
+    assert 'src="app/static/cameras/cdmx.mp4"' in h and "base64" not in h

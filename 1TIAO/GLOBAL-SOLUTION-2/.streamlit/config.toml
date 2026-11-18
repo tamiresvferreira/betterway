@@ -15,3 +15,9 @@ buttonRadius = "full"
 
 [client]
 toolbarMode = "minimal"
+
+[server]
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

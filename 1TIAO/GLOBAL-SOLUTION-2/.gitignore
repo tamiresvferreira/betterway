@@ -27,3 +27,6 @@ data/avaliacao_pcd/img/
 
 # SUMO: rede do mapa real (gerada a partir do OSM, descartada no Estudo A)
 src/simulacao/rede/largo_concordia*.net.xml
+
+# vídeos servidos pela interface (cópias de data/processed, fora do Git)
+src/operador/static/

@@ -70,6 +70,18 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-selo.atencao {{ background: {AMBAR}; color: {GRAFITE}; }}
 .bw-selo.risco {{ background: transparent; color: {ALERTA_INK}; box-shadow: inset 0 0 0 1.5px {ALERTA_INK}; }}
 .bw-selo.neutro {{ background: #343A41; color: {CLARO}; }}
+.bw-demo-topo {{ display: flex; gap: 14px; align-items: flex-start; margin: 36px 0 14px; max-width: 80ch; }}
+.bw-demo-topo .icone {{ margin-top: 2px; }}
+.bw-demo-topo .verbo {{ color: {VERDE}; font-weight: 600; font-size: 14px; }}
+.bw-mosaico {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 12px 0 24px; }}
+.bw-cam {{ margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid #343A41; background: #000; }}
+.bw-cam video {{ width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }}
+.bw-cam .sem {{ aspect-ratio: 16 / 9; display: grid; place-items: center; color: {MUTED}; background: {CARTAO}; }}
+.bw-cam figcaption {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px;
+  background: {CARTAO}; font-size: 13px; }}
+.bw-cam .vivo {{ color: {VERDE}; font-weight: 700; }}
+.bw-cam .sim {{ background: #343A41; color: #C9CBC6; border-radius: 999px; padding: 2px 8px; font-weight: 600; }}
+.bw-cam .onde {{ color: {MUTED}; width: 100%; }}
 .bw-tempo {{ font-size: 14px; }}
 .bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid #343A41; }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
