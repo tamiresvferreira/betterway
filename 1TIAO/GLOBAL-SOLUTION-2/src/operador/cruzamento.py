@@ -66,8 +66,25 @@ def carregar(cena: str) -> tuple[dict, dict]:
     return dados, metricas(cena, resumo, dados)
 
 
+ICONES = RAIZ / "assets" / "simulacao"
+_NOMES_ICONES = {"carro_azul": "carro-azul.png", "carro_vermelho": "carro-vermelho.png",
+                 "ambulancia": "ambulancia-cima.png", "pessoa": "pessoa.png", "cadeirante": "cadeirante.png",
+                 "idosa": "idosa-bengala.png"}
+
+
+def icones() -> dict[str, str]:
+    """Ícones da simulação como data URI (só os que existem; sem eles o player usa formas simples)."""
+    import base64
+    saida = {}
+    for chave, arq in _NOMES_ICONES.items():
+        f = ICONES / arq
+        if f.exists():
+            saida[chave] = "data:image/png;base64," + base64.b64encode(f.read_bytes()).decode()
+    return saida
+
+
 def html_cruzamento(dados: dict, met: dict) -> str:
-    payload = json.dumps({"dados": dados, "met": met}, ensure_ascii=False, separators=(",", ":"))
+    payload = json.dumps({"dados": dados, "met": met, "ic": icones()}, ensure_ascii=False, separators=(",", ":"))
     return _MODELO.replace("__PAYLOAD__", payload)
 
 
@@ -135,7 +152,7 @@ display:flex;align-items:baseline;gap:12px}
 </div>
 <div class="pe" id="pe"></div></div>
 <script>
-const {dados:D, met:M} = __PAYLOAD__;
+const {dados:D, met:M, ic:IC} = __PAYLOAD__;
 const NS = "http://www.w3.org/2000/svg", G = D.geometria;
 const COR = {verde:"#00C27A", ambar:"#FFB000", alerta:"#E63946"};
 const CARROS = ["#E8EAED","#6E8FB8","#9AA1AA","#C9CDD2","#55606C","#3E6FA8"];
@@ -192,7 +209,22 @@ function cenario(svg){
   return {bordas, luzes, rastro, camada, objs:new Map(), trilha:[]};
 }
 
-function carro(g, tipo, cor, comp){
+function imagem(g, href, x, y, w, h){
+  const im = el("image", {x, y, width:w, height:h, preserveAspectRatio:"none"}, g);
+  im.setAttributeNS("http://www.w3.org/1999/xlink", "href", href); im.setAttribute("href", href);
+  return im;
+}
+
+function carro(g, tipo, cor, comp, id){
+  if (tipo === "ambulancia" && IC.ambulancia) {
+    imagem(g, IC.ambulancia, -1.15, 0, 2.3, comp);
+    el("rect", {x:-.75, y:comp*.42, width:1.5, height:.45, rx:.15, fill:"#E63946", opacity:.85, class:"giro"}, g);
+    return;
+  }
+  if (tipo !== "ambulancia" && IC.carro_azul) {
+    imagem(g, hash(id) % 3 === 0 && IC.carro_vermelho ? IC.carro_vermelho : IC.carro_azul, -1.0, 0, 2.0, comp);
+    return;
+  }
   if (tipo === "ambulancia") {
     el("rect", {x:-1, y:0, width:2, height:comp, rx:.45, fill:"#FFFFFF"}, g);
     el("rect", {x:-1, y:comp*.55, width:2, height:.35, fill:"#E63946"}, g);
@@ -223,7 +255,7 @@ function desenhar(lado, ctx, f){
     const [id, x0, y0, a0, tipo, comp, vel] = c, n = prox.get(id) || c;
     const x = lerp(x0, n[1], t), y = lerp(y0, n[2], t), a = lerpAng(a0, n[3], t);
     let o = ctx.objs.get(id);
-    if (!o) { o = el("g", {}, ctx.camada); carro(o, tipo, CARROS[hash(id) % CARROS.length], comp); ctx.objs.set(id, o);
+    if (!o) { o = el("g", {}, ctx.camada); carro(o, tipo, CARROS[hash(id) % CARROS.length], comp, id); ctx.objs.set(id, o);
       if (tipo === "ambulancia") { o.rotulo = el("text", {"font-size":1.5, "font-weight":700, fill:"#F4F4EF", "text-anchor":"middle",
         "paint-order":"stroke", stroke:"#1A1D21", "stroke-width":.45, "font-family":"Montserrat"}, ctx.camada); o.rotulo.textContent = "Ambulância"; } }
     o.setAttribute("transform", `translate(${x},${-y}) rotate(${a})`);
@@ -235,12 +267,17 @@ function desenhar(lado, ctx, f){
     const x = lerp(x0, n[1], t), y = lerp(y0, n[2], t), lenta = tipo === "pedestre_reduzida";
     let o = ctx.objs.get(id);
     if (!o) { o = el("g", {}, ctx.camada);
-      if (lenta) { el("circle", {r:.9, fill:"none", stroke:"#FFB000", "stroke-width":.25, class:"pulso"}, o);
-        el("circle", {r:.85, fill:"#FFB000", stroke:"#1A1D21", "stroke-width":.15}, o);
-        const tx = el("text", {x:-1.4, y:.5, "font-size":1.35, "font-weight":700, fill:"#FFB000", "text-anchor":"end",
+      const fig = lenta ? (hash(id) % 2 ? IC.cadeirante : IC.idosa) : IC.pessoa;
+      if (lenta) el("circle", {r:1.5, fill:"none", stroke:"#FFB000", "stroke-width":.25, class:"pulso"}, o);
+      o.corpo = el("g", {}, o);
+      if (fig) { el("ellipse", {cx:0, cy:1.05, rx:.9, ry:.3, fill:"#000", opacity:.35}, o.corpo);
+        imagem(o.corpo, fig, -1.25, -1.45, 2.5, 2.6); }
+      else el("circle", {r:lenta ? .85 : .55, fill:lenta ? "#FFB000" : "#F4F4EF", stroke:"#1A1D21", "stroke-width":.12}, o.corpo);
+      if (lenta) { const tx = el("text", {x:-1.8, y:.5, "font-size":1.35, "font-weight":700, fill:"#FFB000", "text-anchor":"end",
           "paint-order":"stroke", stroke:"#1A1D21", "stroke-width":.45, "font-family":"Montserrat"}, o); tx.textContent = "Mobilidade reduzida"; }
-      else el("circle", {r:.55, fill:"#F4F4EF", stroke:"#1A1D21", "stroke-width":.12}, o);
       ctx.objs.set(id, o); }
+    const vira = n[1] < x0 - 0.01 ? -1 : (n[1] > x0 + 0.01 ? 1 : (o.vira || 1)); o.vira = vira;   // olha para onde anda
+    o.corpo.setAttribute("transform", `scale(${vira},1)`);
     o.setAttribute("transform", `translate(${x},${-y})`);
     vistos.add(id);
   }

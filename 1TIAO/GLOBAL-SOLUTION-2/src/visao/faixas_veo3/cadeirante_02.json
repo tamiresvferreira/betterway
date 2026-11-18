@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/cadeirante_02.mp4",
+ "descricao": "rua residencial de mão dupla; travessia da esquerda para a direita (estimada a olho no quadro do meio)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   400,
+   424
+  ],
+  [
+   827,
+   424
+  ],
+  [
+   896,
+   608
+  ],
+  [
+   327,
+   608
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 7.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}

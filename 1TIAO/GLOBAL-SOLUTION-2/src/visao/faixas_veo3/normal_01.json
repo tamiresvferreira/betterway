@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/normal_01.mp4",
+ "descricao": "avenida de 4 faixas; travessia de baixo para cima (estimada a olho no quadro do meio)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   560,
+   224
+  ],
+  [
+   733,
+   224
+  ],
+  [
+   820,
+   629
+  ],
+  [
+   440,
+   629
+  ]
+ ],
+ "lado_a": [
+  2,
+  3
+ ],
+ "lado_b": [
+  0,
+  1
+ ],
+ "comprimento_m": 12.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}
