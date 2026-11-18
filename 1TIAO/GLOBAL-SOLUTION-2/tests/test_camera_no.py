@@ -87,3 +87,10 @@ def test_player_aceita_url_em_vez_de_embutir_o_video():
     c = cam.Clipe("cdmx", "pedestre", None, [], False)
     h = cam.html_player(c, "normal", video_url="app/static/cameras/cdmx.mp4")
     assert 'src="app/static/cameras/cdmx.mp4"' in h and "base64" not in h
+
+
+def test_camera_do_piloto_toca_o_clipe_escolhido_e_as_outras_fazem_rodizio():
+    cs = _clipes("cadeirante_01", "cadeirante_02", "normal_01")
+    rede = cam.rede_de_cameras(PONTOS, cs, piloto=139, n=4, clipe_piloto="cadeirante_02")
+    assert rede[0].clipe.nome == "cadeirante_02"
+    assert [c.clipe.nome for c in rede[1:]] == ["cadeirante_01", "normal_01", "cadeirante_01"]

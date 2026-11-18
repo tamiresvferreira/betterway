@@ -30,3 +30,6 @@ src/simulacao/rede/largo_concordia*.net.xml
 
 # vídeos servidos pela interface (cópias de data/processed, fora do Git)
 src/operador/static/
+
+# visão dos clipes Veo 3: detecções, eventos e vídeos anotados (fora do Git)
+data/processed/veo3/

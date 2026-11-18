@@ -43,6 +43,7 @@ EVID = RAIZ / "docs" / "evidencias"
 MARCA = RAIZ / "assets" / "marca"
 PILOTO, LAT, LON = 139, -23.54183, -46.61613          # Largo da Concórdia (Brás)
 VIDEO_DEMO = "cdmx_pexels_25775484"
+CLIPE_PILOTO = "cadeirante_02"          # o clipe em que a visão acerta (ver Sobre: como testamos a câmera)
 ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "escola": "Escola", "chuva": "Chuva",
                    "alagamento": "Alagamento", "ambulancia": "Ambulância"}
 DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
@@ -349,12 +350,12 @@ def pagina_painel() -> None:
         html(es.kpi("Modo do semáforo", cam.NOMES_MODO.get((no.estado or {}).get("modo"), "Sem sinal do nó"),
                     "nó ESP32 na faixa"))
     with k[1]:
-        html(es.kpi("Risco agora", f"{rk['risco_relativo']:.1f}×".replace(".", ",") if rk else "—",
+        html(es.kpi("Risco agora", f"{rk['risco_relativo']:.1f}×".replace(".", ",") if rk else "Sem dados",
                     "a média da cidade"))
     with k[2]:
         html(es.kpi("Ocorrências em aberto", str(len(abertas)), "aguardando validação ou atendimento"))
     with k[3]:
-        html(es.kpi("Tempo até confirmar", f"{conf.mean():.0f} s" if len(conf) else "—", "média das ocorrências"))
+        html(es.kpi("Tempo até confirmar", f"{conf.mean():.0f} s" if len(conf) else "Sem dados", "média das ocorrências"))
     st.write("")
     c1, c2 = st.columns([3, 2], gap="large")
     with c1:
@@ -383,7 +384,7 @@ def pagina_painel() -> None:
                                  "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
                                  "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "piloto": r.cluster_id == PILOTO}
                                 for r in top.itertuples()]))
-        html('<p class="bw-nota">Número = atropelamentos no grupo (Infosiga-SP, 2022–2025). A ordem segue o índice de '
+        html('<p class="bw-nota">Número = atropelamentos no grupo (Infosiga-SP, 2022 a 2025). A ordem segue o índice de '
              'prioridade da CET, que pesa as mortes.</p>')
 
 
@@ -428,7 +429,7 @@ def _mapa() -> None:
     if cl.empty:
         st.info("Sem pontos críticos no banco. Gere-os com os notebooks 03 e 04.")
         return
-    cl = cl.assign(raio=(cl["peso"].clip(lower=1) ** 0.5) * 80, via=cl["via_principal"].fillna("—"))
+    cl = cl.assign(raio=(cl["peso"].clip(lower=1) ** 0.5) * 80, via=cl["via_principal"].fillna("Via sem nome"))
     corte = cl["rank_urbano"]
     cl["cor"] = [[230, 57, 70, 220] if r <= 20 else [255, 176, 0, 200] if r <= 60 else [0, 194, 122, 150]
                  for r in corte]
@@ -444,7 +445,7 @@ def _mapa() -> None:
         initial_view_state=pdk.ViewState(latitude=-23.56, longitude=-46.63, zoom=10.2),
         tooltip={"text": "{via}\n{rank_urbano}º do ranking urbano\n{n_nao_fatais} atropelamentos sem morte, "
                          "{n_fatais} com morte"}), height=420)
-    html('<p class="bw-nota">Cada ponto é um grupo de atropelamentos (Infosiga-SP, 2022–2025). Vermelho: entre os 20 '
+    html('<p class="bw-nota">Cada ponto é um grupo de atropelamentos (Infosiga-SP, 2022 a 2025). Vermelho: entre os 20 '
          'mais críticos; âmbar: do 21º ao 60º; verde: demais. O anel claro marca o piloto. Toque num ponto para ver '
          'a via.</p>')
 
@@ -505,10 +506,10 @@ def pagina_ocorrencias_gestao() -> None:
                     "aguardando alguém agir"))
     with k[1]:
         c = media("confirmar")
-        html(es.kpi("Até confirmar", f"{sum(c) / len(c):.0f} s" if c else "—", "média do Trânsito"))
+        html(es.kpi("Até confirmar", f"{sum(c) / len(c):.0f} s" if c else "Sem dados", "média do Trânsito"))
     with k[2]:
         d = media("despachar")
-        html(es.kpi("Até despachar", f"{sum(d) / len(d):.0f} s" if d else "—", "média da Saúde"))
+        html(es.kpi("Até despachar", f"{sum(d) / len(d):.0f} s" if d else "Sem dados", "média da Saúde"))
     with k[3]:
         html(es.kpi("Descartadas", str(sum(o["estado"] == "descartada" for o in linhas)), "falsos alarmes"))
     st.write("")
@@ -552,8 +553,7 @@ def _barras_sistema() -> None:
          '</div>')
     html(f'<p class="bw-nota">Média de 5 rodadas de 30 minutos simulados no SUMO; resultado esperado de simulação. '
          f'Dar mais tempo a quem atravessa não piora o trânsito quando o semáforo também libera a via vazia: o atraso '
-         f'dos carros fica praticamente igual (CO₂ {s.co2_medio_g_por_carro:.0f} → {c.co2_medio_g_por_carro:.0f} g por '
-         f'carro). Um semáforo que só reage aos carros andaria mais rápido ({so.atraso_medio_carro_s:.1f} s), mas '
+         f'dos carros fica praticamente igual. Um semáforo que só reage aos carros andaria mais rápido ({so.atraso_medio_carro_s:.1f} s), mas '
          f'soltaria os carros com gente na faixa.</p>'.replace(".", ",", 0))
 
 
@@ -627,7 +627,7 @@ def pagina_cameras() -> None:
     st.caption("Todas as câmeras da rede BetterWay, ao vivo. Abra uma para acompanhar de perto quando precisar.")
     pontos = consultar("SELECT cluster_id, rank_urbano, via_principal FROM clusters WHERE rank_urbano IS NOT NULL "
                        "AND (rank_urbano <= 12 OR cluster_id = ?) ORDER BY rank_urbano", (PILOTO,)).to_dict("records")
-    rede = cam.rede_de_cameras(pontos, clipes_da_rede(), piloto=PILOTO, n=6)
+    rede = cam.rede_de_cameras(pontos, clipes_da_rede(), piloto=PILOTO, n=6, clipe_piloto=CLIPE_PILOTO)
     urls = {c.id: cam.url_estatica(c.clipe) for c in rede}
     nomes = {f"{c.id} · {c.local}": c for c in rede}
     rotulo = st.segmented_control("Abrir câmera", list(nomes), key="cam_aberta")
@@ -682,7 +682,7 @@ def pagina_camera() -> None:
     no = no_ao_vivo()
     modo = (no.estado or {}).get("modo")
     cs = clipes()
-    st.title("Câmera e ocorrências")
+    st.title("Validar ocorrências")
     c1, c2 = st.columns([3, 2], gap="large")
     with c1:
         if not cs:
@@ -726,7 +726,7 @@ def pagina_camera() -> None:
 
 
 def pagina_confirmadas() -> None:
-    st.title("Ocorrências confirmadas")
+    st.title("Atendimentos")
     st.caption("Suspeitas que a equipe de Trânsito confirmou. Despache o atendimento e encerre quando terminar.")
     lista = oc.listar(conexao(), ["confirmada", "despachada"])
     if not lista:

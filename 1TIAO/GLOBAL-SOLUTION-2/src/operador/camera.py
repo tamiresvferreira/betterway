@@ -138,7 +138,7 @@ LOCAL_PILOTO = "Largo da Concórdia"
 def nome_de_via(via: str | None) -> str:
     """'AVENIDA DO IMPERADOR' → 'Avenida do Imperador'."""
     palavras = (via or "").lower().split()
-    return " ".join(p if (i and p in _MINUSCULAS) else p.capitalize() for i, p in enumerate(palavras)) or "—"
+    return " ".join(p if (i and p in _MINUSCULAS) else p.capitalize() for i, p in enumerate(palavras)) or "Via sem nome"
 
 
 @dataclass(frozen=True)
@@ -151,17 +151,25 @@ class CameraRede:
     clipe: Clipe | None
 
 
-def rede_de_cameras(pontos: list[dict], clipes: list[Clipe], piloto: int = 139, n: int = 6) -> list[CameraRede]:
+def rede_de_cameras(pontos: list[dict], clipes: list[Clipe], piloto: int = 139, n: int = 6,
+                    clipe_piloto: str | None = None) -> list[CameraRede]:
     """Câmera do piloto primeiro (instalada) e, depois, as dos pontos mais críticos do ranking urbano (simuladas),
-    cada uma tocando um vídeo de referência em rodízio."""
+    cada uma tocando um vídeo de referência em rodízio. `clipe_piloto` escolhe o vídeo da câmera instalada."""
     pil = [p for p in pontos if p["cluster_id"] == piloto]
     outros = sorted((p for p in pontos if p["cluster_id"] != piloto), key=lambda p: p.get("rank_urbano") or 9999)
-    rede = []
+    preferido = next((c for c in clipes if c.nome == clipe_piloto), None)
+    resto = [c for c in clipes if c is not preferido] or clipes
+    rede, k = [], 0
     for i, p in enumerate((pil + outros)[:n]):
         eh_piloto = p["cluster_id"] == piloto
+        if eh_piloto and preferido is not None:
+            clipe = preferido
+        elif resto:
+            clipe, k = resto[k % len(resto)], k + 1
+        else:
+            clipe = None
         rede.append(CameraRede(f"CAM {i + 1:02d}", LOCAL_PILOTO if eh_piloto else nome_de_via(p.get("via_principal")),
-                               p["cluster_id"], p.get("rank_urbano"), eh_piloto,
-                               clipes[i % len(clipes)] if clipes else None))
+                               p["cluster_id"], p.get("rank_urbano"), eh_piloto, clipe))
     return rede
 
 

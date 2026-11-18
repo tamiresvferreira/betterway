@@ -61,7 +61,7 @@ def _hora(iso: str | None) -> str:
     try:
         return datetime.fromisoformat(iso).strftime("%H:%M:%S")
     except (TypeError, ValueError):
-        return "—"
+        return "sem horário"
 
 
 def feed_eventos(eventos: list[dict], limite: int = 12) -> str:
@@ -84,7 +84,7 @@ _ETAPAS = [("pendente", "Aguardando o Trânsito", "alerta"), ("confirmada", "Agu
 
 def _dur(s: float | None) -> str:
     if s is None:
-        return "—"
+        return "a fazer"
     return f"{s:.0f} s" if s < 120 else f"{s / 60:.0f} min"
 
 

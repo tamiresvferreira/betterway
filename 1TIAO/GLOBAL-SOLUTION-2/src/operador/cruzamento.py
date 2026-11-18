@@ -51,7 +51,7 @@ def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict
                 "sem": f"{_num(sem.surpreendidos_reduzida_pct, 0)}%", "com": f"{_num(com.surpreendidos_reduzida_pct, 0)}%",
                 "nota": "Nesta cena, a transição (amarelo e vermelho geral) ainda a protege; nas rodadas de 30 minutos, "
                         f"porém, {_num(sem.na_faixa_carros_verde_reduzida)} pessoa(s) com mobilidade reduzida por rodada "
-                        "ficaram na faixa com os carros da avenida já em verde — com a extensão, nenhuma. Sozinha, a "
+                        "ficaram na faixa com os carros da avenida já em verde. Com a extensão, nenhuma. Sozinha, a "
                         f"extensão custa aos carros {_num(sem.atraso_medio_carro_s)} s → {_num(com.atraso_medio_carro_s)} s "
                         "de atraso; junto com o semáforo que libera a via vazia, o custo some (veja a cena do trânsito)."}
     return {"rotulo": "Tempo médio da ambulância para passar o cruzamento",
