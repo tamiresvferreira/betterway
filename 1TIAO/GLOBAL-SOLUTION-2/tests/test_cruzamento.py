@@ -30,3 +30,11 @@ def test_cena_do_transito_mostra_menos_carros_parados_com_a_betterway():
     dados, met = cz.carregar("transito")
     assert cz.parados_na_avenida(dados["com"]) < cz.parados_na_avenida(dados["sem"])
     assert "faixa vazia" in met["nota"]
+
+
+def test_cena_do_acidente_evitado_nunca_libera_carros_com_gente_na_faixa():
+    dados, met = cz.carregar("conflito")
+    em_risco = lambda q: q["verde_avenida"] and any(p[4] for p in q["pessoas"])  # noqa: E731
+    assert any(em_risco(q) for q in dados["sem"])
+    assert not any(em_risco(q) for q in dados["com"])
+    assert (met["sem"], met["com"]) == ("6,0", "0")
