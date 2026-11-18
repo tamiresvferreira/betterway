@@ -132,13 +132,46 @@ def usuario() -> au.Usuario | None:
     return u
 
 
+def _estatico(origem: Path) -> str:
+    """Copia um arquivo da marca para a pasta servida pelo Streamlit (fora do Git) e devolve a URL relativa."""
+    destino = AQUI / "static" / origem.name
+    if origem.exists() and (not destino.exists() or destino.stat().st_size != origem.stat().st_size):
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_bytes(origem.read_bytes())
+    return f"app/static/{origem.name}"
+
+
+CSS_LOGIN = """
+<style>
+[data-testid="stHeader"] {{ display: none; }}
+[data-testid="stAppViewContainer"] {{ background: #0B0F12 url("{grande}") right center / cover no-repeat; }}
+.block-container {{ padding-top: 0 !important; }}
+.bw-login-espaco {{ height: 22vh; }}
+.bw-login-titulo {{ font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; line-height: 1.15; margin: 18px 0 8px; }}
+.bw-login-titulo span {{ color: #00C27A; }}
+.bw-login-sub {{ color: #C9CBC6; font-size: 15px; margin: 0 0 22px; }}
+[data-testid="stForm"] {{ background: rgba(26, 29, 33, .78); backdrop-filter: blur(6px); }}
+@media (max-width: 760px) {{
+  [data-testid="stAppViewContainer"] {{
+    background: linear-gradient(to bottom, rgba(11,15,18,0) 0, rgba(11,15,18,.2) 30vh, #0B0F12 46vh),
+                #0B0F12 url("{celular}") center top / 100% auto no-repeat; }}
+  .bw-login-espaco {{ height: 30vh; }}
+}}
+</style>
+"""
+
+
 def tela_login() -> None:
-    _, meio, _ = st.columns([1, 1.15, 1])
-    with meio:
+    html(CSS_LOGIN.format(grande=_estatico(MARCA / "login-faixa.jpg"),
+                          celular=_estatico(MARCA / "login-faixa-celular.jpg")))
+    esquerda, _ = st.columns([0.85, 1.5])
+    with esquerda:
         html('<div class="bw-login-espaco"></div>')
         logo = MARCA / "betterway-logo-horizontal-escuro.png"
         if logo.exists():
-            st.image(str(logo), width="stretch")
+            st.image(str(logo), width=260)
+        html('<div class="bw-login-titulo">Mais seguro para quem atravessa, <span>mais rápido para quem dirige.'
+             '</span></div><p class="bw-login-sub">Entre com o usuário da sua equipe.</p>')
         if st.session_state.get("aviso_login"):
             st.info(st.session_state["aviso_login"])
         with st.form("login"):
