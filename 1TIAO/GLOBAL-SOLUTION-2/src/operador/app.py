@@ -466,10 +466,13 @@ def pagina_painel() -> None:
                         (PILOTO,))
         html(cp.ranking_pontos([{"rank_urbano": int(r.rank_urbano),
                                  "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
-                                 "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "piloto": r.cluster_id == PILOTO}
+                                 "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "mortes": int(r.n_fatais),
+                                 "piloto": r.cluster_id == PILOTO}
                                 for r in top.itertuples()]))
-        html('<p class="bw-nota">Número = atropelamentos no grupo (Infosiga-SP, 2022 a 2025). A ordem segue o índice de '
-             'prioridade da CET, que pesa as mortes.</p>')
+        html('<p class="bw-nota">O número é o total de atropelamentos do ponto (Infosiga-SP, 2022 a 2025). A posição segue '
+             'o índice de prioridade da CET (Companhia de Engenharia de Tráfego): cada morte pesa 3 vezes e o total é '
+             'dividido pelo tamanho do trecho. Por isso um ponto curto com mortes pode vir antes de um com mais '
+             'atropelamentos espalhados.</p>')
 
 
 def _curva_risco(quando: datetime) -> None:

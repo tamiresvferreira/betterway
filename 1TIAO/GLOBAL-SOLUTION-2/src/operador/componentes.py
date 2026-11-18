@@ -113,6 +113,12 @@ def quadro_ocorrencias(linhas: list[dict]) -> str:
 
 
 # ---------------------------------------------------------------- ranking, acessos, clipes
+def _mortes(n: int | None) -> str:
+    if not n:
+        return ""
+    return f"{n} {'morte' if n == 1 else 'mortes'}"
+
+
 def ranking_pontos(pontos: list[dict]) -> str:
     topo = max((p["atropelamentos"] for p in pontos), default=1) or 1
     linhas = []
@@ -121,7 +127,7 @@ def ranking_pontos(pontos: list[dict]) -> str:
         linhas.append(f'<li class="{destaque.strip()}"><span class="r">{p["rank_urbano"]}º</span>'
                       f'<span class="v">{esc(p["via"])}{" · piloto" if p.get("piloto") else ""}</span>'
                       f'<span class="b"><i style="width:{p["atropelamentos"] / topo * 100:.0f}%"></i></span>'
-                      f'<b>{p["atropelamentos"]}</b></li>')
+                      f'<b>{p["atropelamentos"]}<small class="m">{_mortes(p.get("mortes"))}</small></b></li>')
     return '<ol class="bw-ranking">' + "".join(linhas) + "</ol>"
 
 
@@ -182,12 +188,14 @@ CSS = f"""
 .bw-oc .tag {{ background: #343A41; border-radius: 8px; padding: 4px 8px; }}
 .bw-oc.vazio {{ color: {MUTED}; font-size: 14px; text-align: center; }}
 .bw-ranking {{ list-style: none; margin: 0; padding: 0; }}
-.bw-ranking li {{ display: grid; grid-template-columns: 40px minmax(0, 1.3fr) 1fr 36px; gap: 10px; align-items: center;
+.bw-ranking li {{ display: grid; grid-template-columns: 40px minmax(0, 1.3fr) 1fr 74px; gap: 10px; align-items: center;
   padding: 7px 0; font-size: 15px; border-top: 1px solid #343A41; }}
 .bw-ranking li .r {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
 .bw-ranking li .v {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .bw-ranking li .b {{ background: #343A41; border-radius: 6px; height: 10px; overflow: hidden; }}
 .bw-ranking li .b i {{ display: block; height: 100%; background: {ALERTA}; border-radius: 6px; }}
+.bw-ranking li b {{ text-align: right; }}
+.bw-ranking li b .m {{ display: block; color: {MUTED}; font-weight: 500; font-size: 12px; }}
 .bw-ranking li.piloto .v {{ color: {VERDE}; font-weight: 600; }}
 .bw-ranking li.piloto .b i {{ background: {VERDE}; }}
 .bw-acessos {{ list-style: none; margin: 0; padding: 0; }}
