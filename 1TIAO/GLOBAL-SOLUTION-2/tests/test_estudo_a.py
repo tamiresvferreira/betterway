@@ -74,3 +74,16 @@ def test_ciclo_do_tempo_fixo_tem_cerca_de_75s():
         assert sorted(f.duration for f in fases) == [3, 3, 5, 5, a.VERDE_PEDESTRE_S, a.VERDE_AVENIDA_S]
     finally:
         a.traci.close()
+
+
+@pytest.mark.slow
+def test_animacao_pedestre_mostra_o_que_a_legenda_diz():
+    """A cena da animação: sem o sistema o verde do pedestre fecha com a pessoa lenta na faixa; com ele, não."""
+    import animacao_estudo_a as an
+
+    def lenta_na_faixa_com_vermelho(quadros):
+        return any(not q["verde_ped"] and any(tipo != "pedestre" and na_faixa for _, _, tipo, na_faixa in q["pessoas"])
+                   for q in quadros)
+
+    assert lenta_na_faixa_com_vermelho(an.capturar("pedestre", False))
+    assert not lenta_na_faixa_com_vermelho(an.capturar("pedestre", True))

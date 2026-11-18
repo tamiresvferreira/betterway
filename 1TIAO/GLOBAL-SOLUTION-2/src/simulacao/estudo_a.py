@@ -141,17 +141,21 @@ def _demanda(pasta: Path, semente: int, ambulancia: bool, duracao: int) -> Path:
     return arq
 
 
-def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = DURACAO_S) -> dict:
-    """Uma rodada; devolve as métricas do cenário."""
+def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = DURACAO_S, demanda=None,
+          ao_passo=None, passo_s: float = 1.0) -> dict:
+    """Uma rodada; devolve as métricas do cenário. `demanda(pasta) -> Path` troca a demanda (animação);
+    `ao_passo(estado_semaforo)` é chamado depois de cada passo (captura de quadros); `passo_s` = passo do SUMO."""
     tipo_rede = "actuated" if comparacao == "semaforo" and com_sistema else "static"
     rede = gerar_rede(tipo_rede)
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        rou = _demanda(tmp, semente, ambulancia=comparacao == "ambulancia", duracao=duracao)
+        rou = demanda(tmp) if demanda else _demanda(tmp, semente, ambulancia=comparacao == "ambulancia",
+                                                    duracao=duracao)
         trip = tmp / "tripinfo.xml"
         traci.start([str(SUMO_PKG / "bin" / "sumo.exe"), "-n", str(rede), "-r", str(rou), "--seed", str(semente),
                      "--tripinfo-output", str(trip), "--device.emissions.probability", "1", "--no-warnings",
-                     "--no-step-log", "--time-to-teleport", "300", "--end", str(duracao + 600)])
+                     "--no-step-log", "--time-to-teleport", "300", "--end", str(duracao + 600),
+                     "--step-length", str(passo_s)])
         surpreendidos = {"pedestre": set(), "pedestre_reduzida": set()}
         prioridade = False
         try:
@@ -189,6 +193,8 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
                     for p in na_faixa:
                         surpreendidos[traci.person.getTypeID(p)].add(p)
                 verde_antes = verde
+                if ao_passo:
+                    ao_passo(traci.trafficlight.getRedYellowGreenState(TLS))
         finally:
             traci.close()
         return _metricas(trip, surpreendidos)
