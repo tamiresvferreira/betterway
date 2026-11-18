@@ -393,7 +393,7 @@ def _barras(rotulo: str, sem: float, com: float, unidade: str, menor_melhor: boo
     fmt = lambda v: f"{v:.1f}".replace(".", ",")  # noqa: E731
     return (f'<div class="bw-card"><div class="r" style="color:{es.MUTED};font-size:13px;font-weight:500">'
             f'{es.esc(rotulo)}</div>'
-            f'<div style="display:grid;grid-template-columns:70px 1fr 64px;gap:8px;align-items:center;margin-top:12px">'
+            f'<div style="display:grid;grid-template-columns:86px 1fr 64px;gap:8px;align-items:center;margin-top:12px">'
             f'<span class="bw-nota">Hoje</span><div style="height:12px;border-radius:6px;background:#4A5058;'
             f'width:{sem / topo * 100:.0f}%"></div><b style="text-align:right">{fmt(sem)} {unidade}</b>'
             f'<span class="bw-nota">BetterWay</span><div style="height:12px;border-radius:6px;background:{es.VERDE};'
@@ -414,7 +414,7 @@ def _estudo_a() -> None:
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met), height=760, scrolling=False)
+    components.html(cz.html_cruzamento(dados, met), height=800, scrolling=False)
     p = EVID / "estudo_a" / "estudo_a_resumo.csv"
     if not p.exists():
         return

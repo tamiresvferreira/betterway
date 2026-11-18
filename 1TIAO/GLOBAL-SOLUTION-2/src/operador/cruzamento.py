@@ -55,17 +55,18 @@ _MODELO = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 :root{--grafite:#1A1D21;--cartao:#2A2E33;--fundo:#F4F4EF;--verde:#00C27A;--verde-esc:#006B44;--ambar:#FFB000;
 --alerta:#E63946;--muted:#9AA1AA}
 *{box-sizing:border-box}
-body{margin:0;font-family:Montserrat,system-ui,sans-serif;color:var(--grafite);background:transparent}
+body{margin:0;font-family:Montserrat,system-ui,sans-serif;color:var(--fundo);background:transparent}
+.tudo{max-width:1280px;margin:0 auto}
 .barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .barra button{font:600 14px Montserrat,sans-serif;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;
-background:var(--grafite);color:var(--fundo)}
-.barra button.sec{background:#E4E4DD;color:var(--grafite)}
+background:var(--verde);color:var(--grafite)}
+.barra button.sec{background:#343A41;color:var(--fundo)}
 .barra button:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
-.barra input[type=range]{flex:1;min-width:140px;accent-color:var(--verde-esc)}
+.barra input[type=range]{flex:1;min-width:140px;accent-color:var(--verde)}
 .relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right}
 .lados{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:760px){.lados{grid-template-columns:1fr}}
-.lado{background:var(--grafite);border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(26,29,33,.18)}
+.lado{background:var(--cartao);border-radius:20px;overflow:hidden;border:1px solid #3A4047}
 .topo{display:flex;align-items:center;gap:10px;padding:14px 18px;font-weight:700;font-size:17px;color:var(--fundo)}
 .lado.com .topo{background:var(--verde);color:var(--grafite)}
 .selo{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:15px;flex:none;
@@ -80,20 +81,20 @@ color:var(--fundo);border-radius:999px;padding:5px 12px 5px 8px;font-size:12px;f
 .luz{width:10px;height:10px;border-radius:50%}
 .aviso{margin:12px 16px 0;min-height:42px;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;
 color:var(--grafite);text-align:center;transition:opacity .25s,background-color .25s;opacity:0}
-.pilula{margin:14px 16px 16px;border-radius:14px;padding:12px 16px;background:var(--cartao);color:var(--fundo);
+.pilula{margin:14px 16px 16px;border-radius:14px;padding:12px 16px;background:#23272C;color:var(--fundo);
 display:flex;align-items:baseline;gap:12px}
 .lado.com .pilula{background:rgba(0,194,122,.16)}
 .pilula b{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lado.sem .pilula b{color:#FF6B74}
 .lado.com .pilula b{color:var(--verde)}
 .pilula span{font-size:13px;color:var(--muted);line-height:1.35}
-.pe{margin-top:12px;font-size:13px;color:#5A6068;line-height:1.5}
+.pe{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}
 .giro{animation:giro .5s steps(1) infinite}
 @keyframes giro{50%{fill:#2F6BFF}}
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 @media (prefers-reduced-motion:reduce){.giro,.pulso{animation:none}}
-</style></head><body>
+</style></head><body><div class="tudo">
 <div class="barra">
   <button id="play">Pausar</button><button id="reset" class="sec">Recomeçar</button>
   <button id="vel" class="sec">Velocidade 1×</button>
@@ -110,7 +111,7 @@ display:flex;align-items:baseline;gap:12px}
       <div class="sinais" id="sinais-com"></div></div><div class="aviso" id="aviso-com" aria-live="polite"></div>
     <div class="pilula"><b id="met-com"></b><span id="rot-com"></span></div></section>
 </div>
-<div class="pe" id="pe"></div>
+<div class="pe" id="pe"></div></div>
 <script>
 const {dados:D, met:M} = __PAYLOAD__;
 const NS = "http://www.w3.org/2000/svg", G = D.geometria;
