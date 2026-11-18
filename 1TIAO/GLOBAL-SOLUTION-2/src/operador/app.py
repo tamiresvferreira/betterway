@@ -233,11 +233,14 @@ def pagina_visao_geral() -> None:
            "A câmera reconhece quem anda com cadeira de rodas, andador, muleta ou bengala, e o semáforo segura o verde "
            "até a pessoa chegar do outro lado.")
     _player("pedestre")
-    _bloco("to move", "ambulancia", "Abre caminho para a ambulância e faz o trânsito andar",
-           "Quando uma ambulância se aproxima, o semáforo dá prioridade a ela, sempre com a faixa vazia. No resto do "
-           "tempo, o sinal reage à fila de carros.")
-    _player("ambulancia")
-    _barras_semaforo()
+    _bloco("to move", "ambulancia", "Faz o trânsito andar e abre caminho para a ambulância",
+           "Quando a rua de lado fica vazia, o verde volta para a avenida sem esperar o tempo fixo, mas nunca com "
+           "alguém na faixa. Quando uma ambulância se aproxima, ela ganha prioridade.")
+    cena = st.segmented_control("Situação", ["transito", "ambulancia"], default="transito", key="cena_mover",
+                                format_func={"transito": "Trânsito", "ambulancia": "Ambulância"}.get,
+                                label_visibility="collapsed") or "transito"
+    _player(cena)
+    _barras_sistema()
     st.page_link(PAGINAS["sobre"], label="Como a BetterWay funciona, de onde vêm os dados e como protegemos a "
                                          "privacidade", icon=":material/arrow_forward:")
 
@@ -464,21 +467,28 @@ def _barras(rotulo: str, sem: float, com: float, unidade: str, menor_melhor: boo
             f'{abs(var):.0f}%</div></div>')
 
 
-def _barras_semaforo() -> None:
+def _barras_sistema() -> None:
+    """Hoje × BetterWay com tudo ligado junto (rodadas de 30 min do Estudo A)."""
     p = EVID / "estudo_a" / "estudo_a_resumo.csv"
     if not p.exists():
         return
     r = pd.read_csv(p, sep=";", encoding="utf-8-sig").set_index(["comparacao", "sistema"])
-    s, c = r.loc[("semaforo", "sem")], r.loc[("semaforo", "com")]
+    s, c = r.loc[("completo", "sem")], r.loc[("completo", "com")]
+    so = r.loc[("semaforo", "com")]
+    risco_s = s.na_faixa_carros_verde_reduzida + s.na_faixa_carros_verde_comum
+    risco_c = c.na_faixa_carros_verde_reduzida + c.na_faixa_carros_verde_comum
+    html('<div class="bw-secao" style="margin-top:20px">Tudo ligado junto: hoje × BetterWay</div>')
     html('<div class="bw-grid">' +
+         _barras("Pessoas na faixa com os carros em verde (por rodada)", risco_s, risco_c, "") +
+         _barras("Espera de quem atravessa", s.espera_media_pedestre_s, c.espera_media_pedestre_s, "s") +
+         _barras("Tempo da ambulância", s.tempo_ambulancia_s, c.tempo_ambulancia_s, "s") +
          _barras("Atraso médio de cada carro", s.atraso_medio_carro_s, c.atraso_medio_carro_s, "s") +
-         _barras("CO₂ por carro", s.co2_medio_g_por_carro, c.co2_medio_g_por_carro, "g") +
-         _barras("Espera média de quem atravessa", s.espera_media_pedestre_s, c.espera_media_pedestre_s, "s") +
          '</div>')
-    html(f'<p class="bw-nota">Semáforo que reage à fila de carros: média de 5 rodadas de 10 minutos simulados, '
-         f'resultado esperado de simulação. O custo dessa troca: mais pedestres comuns ficam na faixa quando o sinal '
-         f'deles fecha ({s.surpreendidos_comum:.0f} → {c.surpreendidos_comum:.0f} por rodada). Por isso a BetterWay '
-         f'combina esse modo com a extensão do verde para quem ainda está atravessando.</p>')
+    html(f'<p class="bw-nota">Média de 5 rodadas de 30 minutos simulados no SUMO; resultado esperado de simulação. '
+         f'Dar mais tempo a quem atravessa não piora o trânsito quando o semáforo também libera a via vazia: o atraso '
+         f'dos carros fica praticamente igual (CO₂ {s.co2_medio_g_por_carro:.0f} → {c.co2_medio_g_por_carro:.0f} g por '
+         f'carro). Um semáforo que só reage aos carros andaria mais rápido ({so.atraso_medio_carro_s:.1f} s), mas '
+         f'soltaria os carros com gente na faixa.</p>'.replace(".", ",", 0))
 
 
 def _clipes_sinteticos() -> None:

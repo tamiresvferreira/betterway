@@ -70,6 +70,8 @@ def _demanda_cena(cena: str, inicio_pessoas: list[tuple[float, str, str, str]], 
     return gerar
 
 
+JANELA_TRANSITO = (242, 298)   # o trecho com a maior diferença de fila (busca em 20–400 s)
+
 CENAS = {
     # a pessoa com mobilidade reduzida chega à faixa no vermelho e começa a atravessar no início do verde (19 s):
     # precisa de 20 s para os 16 m — sem o sistema, o verde dos carros abre com ela no meio da faixa
@@ -79,6 +81,11 @@ CENAS = {
                      titulo="Travessia de uma pessoa com mobilidade reduzida (0,8 m/s, faixa de 16 m, verde de 19 s)"),
     # a ambulância chega com o vermelho da avenida e uma pessoa atravessando: com o sistema, o verde abre para ela
     # assim que a faixa esvazia — nunca com alguém no meio
+    # o trânsito: com a BetterWay, o verde volta para a avenida assim que a rua transversal fica vazia (e nunca com
+    # alguém na faixa); hoje, a avenida espera o tempo fixo
+    "transito": dict(comparacao="completo", janela=JANELA_TRANSITO,
+                     pessoas=[(40, "p1", "pedestre", "NC"), (130, "p2", "pedestre", "SC")], ambulancia=None,
+                     titulo="Trânsito na avenida: o semáforo libera quando a rua de lado está vazia"),
     "ambulancia": dict(comparacao="ambulancia", janela=(36, 92),
                        pessoas=[(27, "p1", "pedestre", "NC"), (33, "p2", "pedestre", "SC")], ambulancia=41.0,
                        titulo="Ambulância chegando com o semáforo fechado para ela e uma pessoa na faixa"),
@@ -214,10 +221,23 @@ def _desenhar_painel(ax, geo, q, com_sistema, cena, inicio_verde):
             color=VERDE if q["verde_avenida"] else ALERTA, fontsize=10, fontweight="bold")
 
 
+def carros_parados_na_avenida(q) -> int:
+    """Carros da avenida (indo para leste ou oeste) parados ou quase."""
+    return sum(1 for x, y, ang, tipo, comp, vel in q["carros"]
+               if vel < 0.5 and (80 <= ang % 360 <= 100 or 260 <= ang % 360 <= 280))
+
+
 def _aviso(q, com_sistema, cena, inicio_verde):
     lenta_na_faixa = any(t == "pedestre_reduzida" and f for _, _, t, f in q["pessoas"])
     alguem_na_faixa = any(f for *_, f in q["pessoas"])
     amb = [c for c in q["carros"] if c[3] == "ambulancia"]
+    if cena == "transito":
+        parados = carros_parados_na_avenida(q)
+        if parados >= 3:
+            return f"{parados} carros parados na avenida esperando o verde", AMBAR
+        if q["verde_avenida"]:
+            return "Avenida com verde: os carros passam", VERDE
+        return None, None
     if cena == "pedestre":
         if lenta_na_faixa and not q["verde_ped"]:
             return "O sinal do pedestre fechou com ela no meio da faixa", ALERTA

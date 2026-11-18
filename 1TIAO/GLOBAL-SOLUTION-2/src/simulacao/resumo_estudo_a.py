@@ -22,7 +22,8 @@ PAINEIS = [("pedestre", "surpreendidos_reduzida_pct", "Pessoas com mobilidade re
 
 def resumir(df: pd.DataFrame) -> pd.DataFrame:
     cols = ["atraso_medio_carro_s", "co2_medio_g_por_carro", "espera_media_pedestre_s", "surpreendidos_reduzida_pct",
-            "surpreendidos_comum", "tempo_ambulancia_s", "tempo_ambulancia_max_s"]
+            "surpreendidos_comum", "na_faixa_carros_verde_reduzida", "na_faixa_carros_verde_comum", "tempo_ambulancia_s",
+            "tempo_ambulancia_max_s"]
     g = df.groupby(["comparacao", "sistema"])[cols]
     return g.mean().round(1).join(g.min().round(1).add_suffix("_min")).join(g.max().round(1).add_suffix("_max"))
 
@@ -62,7 +63,8 @@ def main():
     r.to_csv(EVID / "estudo_a_resumo.csv", sep=";", encoding="utf-8-sig")
     grafico(df, EVID / "estudo_a_comparacoes.png")
     print(r[["atraso_medio_carro_s", "co2_medio_g_por_carro", "espera_media_pedestre_s", "surpreendidos_reduzida_pct",
-             "surpreendidos_comum", "tempo_ambulancia_s", "tempo_ambulancia_max_s"]].to_string())
+             "surpreendidos_comum", "na_faixa_carros_verde_reduzida", "na_faixa_carros_verde_comum", "tempo_ambulancia_s",
+            "tempo_ambulancia_max_s"]].to_string())
 
 
 if __name__ == "__main__":

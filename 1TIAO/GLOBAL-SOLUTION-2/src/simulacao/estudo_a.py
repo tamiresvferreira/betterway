@@ -145,18 +145,22 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
           ao_passo=None, passo_s: float = 1.0) -> dict:
     """Uma rodada; devolve as métricas do cenário. `demanda(pasta) -> Path` troca a demanda (animação);
     `ao_passo(estado_semaforo)` é chamado depois de cada passo (captura de quadros); `passo_s` = passo do SUMO."""
-    tipo_rede = "actuated" if comparacao == "semaforo" and com_sistema else "static"
+    # "completo": tudo junto — semáforo que reage à fila (libera quando a outra via está vazia), extensão do verde
+    # para quem ainda está na faixa e prioridade para a ambulância; comparado com o semáforo fixo de hoje
+    tipo_rede = "actuated" if comparacao in ("semaforo", "completo") and com_sistema else "static"
+    com_ambulancia = comparacao in ("ambulancia", "completo")
     rede = gerar_rede(tipo_rede)
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        rou = demanda(tmp) if demanda else _demanda(tmp, semente, ambulancia=comparacao == "ambulancia",
-                                                    duracao=duracao)
+        rou = demanda(tmp) if demanda else _demanda(tmp, semente, ambulancia=com_ambulancia, duracao=duracao)
         trip = tmp / "tripinfo.xml"
         traci.start([str(SUMO_PKG / "bin" / "sumo.exe"), "-n", str(rede), "-r", str(rou), "--seed", str(semente),
                      "--tripinfo-output", str(trip), "--device.emissions.probability", "1", "--no-warnings",
                      "--no-step-log", "--time-to-teleport", "300", "--end", str(duracao + 600),
                      "--step-length", str(passo_s)])
         surpreendidos = {"pedestre": set(), "pedestre_reduzida": set()}
+        # o risco de verdade: pessoa na faixa enquanto os carros da avenida têm verde
+        com_carros_em_verde = {"pedestre": set(), "pedestre_reduzida": set()}
         prioridade = False
         try:
             if tipo_rede == "static":
@@ -171,14 +175,14 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
                 na_faixa = [p for p in traci.person.getIDList() if traci.person.getLaneID(p) in faixas]
                 # sistema: estende o verde enquanto houver pessoa com mobilidade reduzida sem tempo de terminar
                 # (a regra do nó: verde = comprimento ÷ 0,8 m/s)
-                if comparacao == "pedestre" and com_sistema and verde:
+                if comparacao in ("pedestre", "completo") and com_sistema and verde and not prioridade:
                     falta = traci.trafficlight.getNextSwitch(TLS) - traci.simulation.getTime()
                     precisa = max((_restante(p) / VEL_REDUZIDA + FOLGA_S for p in na_faixa
                                    if traci.person.getTypeID(p) == "pedestre_reduzida"), default=0)
                     if precisa > falta:
                         traci.trafficlight.setPhaseDuration(TLS, precisa)
                 # ambulância com prioridade: verde para a avenida quando ela está a < 150 m — sem cortar a faixa
-                if comparacao == "ambulancia" and com_sistema:
+                if com_ambulancia and com_sistema:
                     perto = any(v.startswith("amb") and traci.vehicle.getRoadID(v) == "OC"
                                 and traci.vehicle.getLanePosition(v) > BRACO_M - 150
                                 for v in traci.vehicle.getIDList())
@@ -187,8 +191,21 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
                         prioridade = True
                     elif prioridade and not perto:
                         traci.trafficlight.setProgram(TLS, "0")
-                        _programa_fixo()
+                        if tipo_rede == "static":
+                            _programa_fixo()
                         prioridade = False
+                # "pedestre já na faixa" (a regra do nó): no sistema completo, a avenida só ganha verde com a faixa vazia —
+                # a fase anterior (verde da rua transversal) se prolonga enquanto alguém ainda atravessa
+                if comparacao == "completo" and com_sistema and na_faixa and not prioridade:
+                    faltam = traci.trafficlight.getNextSwitch(TLS) - traci.simulation.getTime()
+                    fase = traci.trafficlight.getPhase(TLS)
+                    logica = traci.trafficlight.getAllProgramLogics(TLS)[0]
+                    seguinte = logica.phases[(fase + 1) % len(logica.phases)].state
+                    if faltam <= passo_s and _avenida_em_verde(seguinte) and not _avenida_em_verde(estado):
+                        traci.trafficlight.setPhaseDuration(TLS, passo_s * 2)
+                if na_faixa and _avenida_em_verde(estado):
+                    for p in na_faixa:
+                        com_carros_em_verde[traci.person.getTypeID(p)].add(p)
                 if verde_antes and not verde:          # quem ainda está na faixa quando o verde dela acaba
                     for p in na_faixa:
                         surpreendidos[traci.person.getTypeID(p)].add(p)
@@ -197,7 +214,18 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
                     ao_passo(traci.trafficlight.getRedYellowGreenState(TLS))
         finally:
             traci.close()
-        return _metricas(trip, surpreendidos)
+        return _metricas(trip, surpreendidos, com_carros_em_verde)
+
+
+_IDX_AVENIDA: list[int] = []
+
+
+def _avenida_em_verde(estado: str) -> bool:
+    """Algum movimento de carro que sai da avenida (oeste ou leste) está em verde."""
+    if not _IDX_AVENIDA:
+        _IDX_AVENIDA.extend(i for i, l in enumerate(traci.trafficlight.getControlledLinks(TLS))
+                            if l and l[0][0].split("_")[0] in ("OC", "LC"))
+    return any(estado[i] in "Gg" for i in _IDX_AVENIDA)
 
 
 def _restante(p: str) -> float:
@@ -210,7 +238,7 @@ def _estado_avenida() -> str:
     return "".join("G" if l and l[0][0].startswith("OC_") else "r" for l in links)
 
 
-def _metricas(trip: Path, surpreendidos: dict) -> dict:
+def _metricas(trip: Path, surpreendidos: dict, com_carros_em_verde: dict | None = None) -> dict:
     r = ET.parse(trip).getroot()
     carros = [t for t in r.iter("tripinfo") if t.get("vType") == "carro"]
     amb = [float(t.get("duration")) for t in r.iter("tripinfo") if t.get("vType") == "ambulancia"]
@@ -230,6 +258,9 @@ def _metricas(trip: Path, surpreendidos: dict) -> dict:
         "surpreendidos_reduzida": len(surpreendidos["pedestre_reduzida"]),
         "surpreendidos_reduzida_pct": round(100 * len(surpreendidos["pedestre_reduzida"]) / n_red, 1) if n_red else 0.0,
         "surpreendidos_comum": len(surpreendidos["pedestre"]),
+        # pessoas que estavam na faixa enquanto os carros da avenida tinham verde (o conflito de verdade)
+        "na_faixa_carros_verde_reduzida": len((com_carros_em_verde or {}).get("pedestre_reduzida", ())),
+        "na_faixa_carros_verde_comum": len((com_carros_em_verde or {}).get("pedestre", ())),
         "tempo_ambulancia_s": round(media(amb), 1) if amb else None,           # média das 6 da rodada
         "tempo_ambulancia_max_s": round(max(amb), 1) if amb else None,
     }
@@ -237,7 +268,7 @@ def _metricas(trip: Path, surpreendidos: dict) -> dict:
 
 def rodar_tudo(sementes=(1, 2, 3, 4, 5), duracao: int = DURACAO_S) -> list[dict]:
     linhas = []
-    for comp in ("pedestre", "semaforo", "ambulancia"):
+    for comp in ("pedestre", "semaforo", "ambulancia", "completo"):
         for sis in (False, True):
             for s in sementes:
                 linhas.append({"comparacao": comp, "sistema": "com" if sis else "sem", "semente": s,

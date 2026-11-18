@@ -13,25 +13,47 @@ import pandas as pd
 
 RAIZ = Path(__file__).resolve().parents[2]
 EVID_A = RAIZ / "docs" / "evidencias" / "estudo_a"
-CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância"}
+CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância", "transito": "Trânsito"}
+
+
+def parados_na_avenida(quadros: list) -> float:
+    """Média de carros da avenida (leste ou oeste) parados por quadro da cena."""
+    def n(q):
+        return sum(1 for c in q["carros"] if c[6] < 0.5 and (80 <= c[3] % 360 <= 100 or 260 <= c[3] % 360 <= 280))
+    return sum(n(q) for q in quadros) / len(quadros) if quadros else 0.0
 
 
 def _num(v: float, casas: int = 1) -> str:
     return f"{v:.{casas}f}".replace(".", ",")
 
 
-def metricas(cena: str, resumo: pd.DataFrame) -> dict:
-    """Texto das pílulas de cada lado e a nota de custo, a partir do resumo do estudo."""
+def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict:
+    """Texto das pílulas de cada lado e a nota de custo, a partir do resumo do estudo (e da cena, no trânsito)."""
+    if cena == "transito":
+        c = resumo[resumo.comparacao == "completo"].set_index("sistema")
+        so = resumo[resumo.comparacao == "semaforo"].set_index("sistema").loc["com"]
+        sem, com = c.loc["sem"], c.loc["com"]
+        ps, pc = (parados_na_avenida(dados["sem"]), parados_na_avenida(dados["com"])) if dados else (0.0, 0.0)
+        return {"rotulo": "Carros parados na avenida, em média, nesta cena",
+                "sem": _num(ps), "com": _num(pc),
+                "nota": f"Nas rodadas de 30 minutos, com tudo ligado junto: atraso médio de cada carro de "
+                        f"{_num(sem.atraso_medio_carro_s)} s para {_num(com.atraso_medio_carro_s)} s, e pessoas na faixa "
+                        f"com os carros da avenida em verde de {_num(sem.na_faixa_carros_verde_reduzida + sem.na_faixa_carros_verde_comum)} "
+                        f"para {_num(com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum, 0)} por rodada. "
+                        f"Um semáforo que só reage aos carros chegaria a {_num(so.atraso_medio_carro_s)} s, mas soltaria os "
+                        f"carros com gente atravessando ({_num(so.na_faixa_carros_verde_reduzida + so.na_faixa_carros_verde_comum)} "
+                        f"pessoas por rodada); a BetterWay só dá verde à avenida com a faixa vazia."}
     r = resumo[resumo.comparacao == cena].set_index("sistema")
     sem, com = r.loc["sem"], r.loc["com"]
     if cena == "pedestre":
         return {"rotulo": "Travessias de pessoas com mobilidade reduzida em que o sinal do pedestre fechou antes de "
                           "ela terminar",
                 "sem": f"{_num(sem.surpreendidos_reduzida_pct, 0)}%", "com": f"{_num(com.surpreendidos_reduzida_pct, 0)}%",
-                "nota": "Hoje ela termina a travessia com o sinal do pedestre já vermelho, protegida só pela transição "
-                        "(amarelo e vermelho geral); os carros não chegam a ter verde com ela na faixa, mas quem anda "
-                        "mais devagar passaria desse limite. Custo para os carros: atraso médio de "
-                        f"{_num(sem.atraso_medio_carro_s)} s para {_num(com.atraso_medio_carro_s)} s."}
+                "nota": "Nesta cena, a transição (amarelo e vermelho geral) ainda a protege; nas rodadas de 30 minutos, "
+                        f"porém, {_num(sem.na_faixa_carros_verde_reduzida)} pessoa(s) com mobilidade reduzida por rodada "
+                        "ficaram na faixa com os carros da avenida já em verde — com a extensão, nenhuma. Sozinha, a "
+                        f"extensão custa aos carros {_num(sem.atraso_medio_carro_s)} s → {_num(com.atraso_medio_carro_s)} s "
+                        "de atraso; junto com o semáforo que libera a via vazia, o custo some (veja a cena do trânsito)."}
     return {"rotulo": "Tempo médio da ambulância para passar o cruzamento",
             "sem": f"{_num(sem.tempo_ambulancia_s)} s", "com": f"{_num(com.tempo_ambulancia_s)} s",
             "nota": f"Pior caso: {_num(sem.tempo_ambulancia_max_s_max, 0)} s para {_num(com.tempo_ambulancia_max_s_max, 0)} s. "
@@ -41,7 +63,7 @@ def metricas(cena: str, resumo: pd.DataFrame) -> dict:
 def carregar(cena: str) -> tuple[dict, dict]:
     dados = json.loads((EVID_A / f"cena_{cena}.json").read_text(encoding="utf-8"))
     resumo = pd.read_csv(EVID_A / "estudo_a_resumo.csv", sep=";", encoding="utf-8-sig")
-    return dados, metricas(cena, resumo)
+    return dados, metricas(cena, resumo, dados)
 
 
 def html_cruzamento(dados: dict, met: dict) -> str:

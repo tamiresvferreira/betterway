@@ -87,3 +87,13 @@ def test_animacao_pedestre_mostra_o_que_a_legenda_diz():
 
     assert lenta_na_faixa_com_vermelho(an.capturar("pedestre", False))
     assert not lenta_na_faixa_com_vermelho(an.capturar("pedestre", True))
+
+
+@pytest.mark.slow
+def test_sistema_completo_protege_a_travessia_sem_piorar_o_transito():
+    """Tudo ligado junto (semáforo que libera a via vazia + extensão + 'pedestre já na faixa' + ambulância)."""
+    sem, com = a.rodar("completo", False, 1, DUR), a.rodar("completo", True, 1, DUR)
+    assert com["na_faixa_carros_verde_reduzida"] + com["na_faixa_carros_verde_comum"] == 0
+    assert com["surpreendidos_reduzida_pct"] < sem["surpreendidos_reduzida_pct"]
+    assert com["atraso_medio_carro_s"] <= sem["atraso_medio_carro_s"] * 1.05
+    assert com["tempo_ambulancia_s"] < sem["tempo_ambulancia_s"]

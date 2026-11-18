@@ -24,3 +24,9 @@ def test_html_leva_os_dados_e_os_dois_lados():
     h = cz.html_cruzamento(dados, met)
     assert "Com a BetterWay" in h and "Hoje" in h and "Resultado esperado de simulação" in h
     assert json.dumps(met["rotulo"], ensure_ascii=False) in h
+
+
+def test_cena_do_transito_mostra_menos_carros_parados_com_a_betterway():
+    dados, met = cz.carregar("transito")
+    assert cz.parados_na_avenida(dados["com"]) < cz.parados_na_avenida(dados["sem"])
+    assert "faixa vazia" in met["nota"]
