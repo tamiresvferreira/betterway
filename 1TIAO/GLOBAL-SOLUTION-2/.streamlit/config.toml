@@ -1,7 +1,17 @@
-# Marca BetterWay (assets/marca): verde #00C27A, grafite #1A1D21, fundo claro #F4F4EF
+# Marca BetterWay (kit v2): peças principais escuras — fundo grafite, texto fundo-claro, destaques em verde
 [theme]
-base = "light"
-primaryColor = "#006B44"            # verde-escuro: texto branco legível nos botões
-backgroundColor = "#F4F4EF"
-secondaryBackgroundColor = "#E8E8E1"
-textColor = "#1A1D21"
+base = "dark"
+primaryColor = "#00C27A"
+backgroundColor = "#1A1D21"
+secondaryBackgroundColor = "#2A2E33"
+textColor = "#F4F4EF"
+borderColor = "#3A4047"
+linkColor = "#00C27A"
+font = "Montserrat:https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+headingFontWeights = [700, 600, 600, 600, 600, 600]
+headingFontSizes = ["2.25rem", "1.5rem", "1.25rem"]
+baseRadius = "16px"
+buttonRadius = "full"
+
+[client]
+toolbarMode = "minimal"

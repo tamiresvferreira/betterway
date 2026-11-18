@@ -25,10 +25,13 @@ def metricas(cena: str, resumo: pd.DataFrame) -> dict:
     r = resumo[resumo.comparacao == cena].set_index("sistema")
     sem, com = r.loc["sem"], r.loc["com"]
     if cena == "pedestre":
-        return {"rotulo": "Travessias de pessoas com mobilidade reduzida em que o sinal fechou no meio",
+        return {"rotulo": "Travessias de pessoas com mobilidade reduzida em que o sinal do pedestre fechou antes de "
+                          "ela terminar",
                 "sem": f"{_num(sem.surpreendidos_reduzida_pct, 0)}%", "com": f"{_num(com.surpreendidos_reduzida_pct, 0)}%",
-                "nota": f"Custo para os carros: atraso médio de {_num(sem.atraso_medio_carro_s)} s para "
-                        f"{_num(com.atraso_medio_carro_s)} s."}
+                "nota": "Hoje ela termina a travessia com o sinal do pedestre já vermelho, protegida só pela transição "
+                        "(amarelo e vermelho geral); os carros não chegam a ter verde com ela na faixa, mas quem anda "
+                        "mais devagar passaria desse limite. Custo para os carros: atraso médio de "
+                        f"{_num(sem.atraso_medio_carro_s)} s para {_num(com.atraso_medio_carro_s)} s."}
     return {"rotulo": "Tempo médio da ambulância para passar o cruzamento",
             "sem": f"{_num(sem.tempo_ambulancia_s)} s", "com": f"{_num(com.tempo_ambulancia_s)} s",
             "nota": f"Pior caso: {_num(sem.tempo_ambulancia_max_s_max, 0)} s para {_num(com.tempo_ambulancia_max_s_max, 0)} s. "
