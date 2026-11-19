@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/andador_01.mp4",
+ "descricao": "avenida; idosa com andador cruza da esquerda para a direita (polígono estimado a olho na grade do 1º segundo)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   300,
+   384
+  ],
+  [
+   1000,
+   384
+  ],
+  [
+   1070,
+   550
+  ],
+  [
+   240,
+   550
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 12.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}

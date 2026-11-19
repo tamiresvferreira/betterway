@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/bengala_01.mp4",
+ "descricao": "rua de 4 faixas; homem de bengala cruza da esquerda para a direita (polígono estimado a olho na grade do 1º segundo)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   300,
+   370
+  ],
+  [
+   1000,
+   370
+  ],
+  [
+   1170,
+   610
+  ],
+  [
+   140,
+   610
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 12.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}
