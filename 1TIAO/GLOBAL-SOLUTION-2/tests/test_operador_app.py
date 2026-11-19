@@ -87,7 +87,7 @@ def test_visao_geral_um_cenario_por_vez_e_a_seta_avanca(banco, tmp_path, monkeyp
     assert "to drive, to be free" in txt and "Mais seguro para quem" not in txt
     assert "dá olhos ao semáforo" in txt
     for titulo in ["Faz o trânsito andar", "Abre caminho para a ambulância", "Dá tempo a quem precisa atravessar",
-                   "Ninguém fica na faixa com os carros em verde"]:
+                   "A câmera percebe quem esqueceu o cartão", "Ninguém fica na faixa com os carros em verde"]:
         at.button(key="vg_proximo").click().run()
         assert not at.exception, at.exception
         assert titulo in _texto(at)

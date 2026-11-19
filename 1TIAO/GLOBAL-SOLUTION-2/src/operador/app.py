@@ -160,8 +160,9 @@ CSS_LOGIN = """
 .bw-login-video {{ position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: 30% center;
   z-index: -2; pointer-events: none; }}
 .bw-login-veu {{ position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(ellipse 30% 48% at 80% 50%, rgba(11,15,18,.5) 0%, rgba(11,15,18,.28) 55%,
+  background: radial-gradient(ellipse 36% 62% at 80% 46%, rgba(11,15,18,.74) 0%, rgba(11,15,18,.5) 50%,
               rgba(11,15,18,0) 100%); }}
+[data-testid="stImage"] img {{ filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }}
 .bw-login-titulo, .bw-login-sub {{ text-shadow: 0 1px 12px rgba(0,0,0,.45); }}
 [data-testid="stForm"] {{ background: rgba(20, 23, 27, .62) !important; backdrop-filter: blur(10px); }}
 /* o login é sempre escuro (fica sobre o vídeo), qualquer que seja o tema escolhido */

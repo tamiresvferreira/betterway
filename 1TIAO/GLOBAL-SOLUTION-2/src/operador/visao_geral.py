@@ -1,14 +1,14 @@
 """Os quatro cenários da Visão geral: cada um é um take de vídeo (Veo 3) ao lado da simulação Hoje × BetterWay.
 
 A ordem segue os pilares (to live, to move, to be free). A seta passa ao próximo e, depois do último, volta ao
-primeiro. O vídeo de cada cenário é procurado como `visao_geral_<id>.mp4`; sem ele, a página mostra um espaço reservado.
+primeiro. O vídeo de cada cenário é procurado em assets/cameras como `visao_geral_<id>.mp4`; sem ele, a página mostra um espaço reservado.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
 
-PASTA_VIDEOS = Path(__file__).resolve().parents[2] / "data" / "raw" / "video" / "veo3" / "visao_geral"
+PASTA_VIDEOS = Path(__file__).resolve().parents[2] / "assets" / "cameras"
 
 
 @dataclass(frozen=True)
@@ -37,8 +37,11 @@ CENARIOS: tuple[Cenario, ...] = (
             "Os motoristas à frente recebem um alerta e abrem espaço antes de ela chegar. O semáforo dá prioridade "
             "a ela com a faixa vazia, e ela passa direto.", "ambulancia"),
     Cenario("pedestre", "to be free", "pedestre", "Dá tempo a quem precisa atravessar",
-            "A câmera reconhece cadeira de rodas, andador, muleta ou bengala, e o verde espera a pessoa chegar.",
-            "pedestre"),
+            "Quem tem o Bilhete Único Idoso ou Especial encosta o cartão no poste da faixa e ganha mais tempo para "
+            "atravessar, como no Green Man+ de Singapura. Sem botão para apertar, sem fraude.", "pedestre"),
+    Cenario("andador", "to be free", "camera", "A câmera percebe quem esqueceu o cartão",
+            "Ela reconhece andador, muleta ou cadeira de rodas e pede o tempo extra sozinha. Se a câmera falhar, o "
+            "cartão continua valendo: um cobre o outro.", "pedestre"),
 )
 
 

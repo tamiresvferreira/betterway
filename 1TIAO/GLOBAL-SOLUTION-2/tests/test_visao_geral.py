@@ -8,9 +8,9 @@ import visao_geral as vg
 EVID_A = Path(__file__).resolve().parents[1] / "docs" / "evidencias" / "estudo_a"
 
 
-def test_quatro_cenarios_na_ordem_dos_pilares():
-    assert [c.id for c in vg.CENARIOS] == ["conflito", "transito", "ambulancia", "pedestre"]
-    assert [c.verbo for c in vg.CENARIOS] == ["to live", "to move", "to move", "to be free"]
+def test_cinco_cenarios_na_ordem_dos_pilares():
+    assert [c.id for c in vg.CENARIOS] == ["conflito", "transito", "ambulancia", "pedestre", "andador"]
+    assert [c.verbo for c in vg.CENARIOS] == ["to live", "to move", "to move", "to be free", "to be free"]
 
 
 def test_cada_cenario_tem_a_simulacao_exportada():
@@ -23,7 +23,7 @@ def test_textos_sem_travessao():
         assert "—" not in c.titulo + c.texto
 
 
-@pytest.mark.parametrize("i, esperado", [(0, 1), (1, 2), (2, 3), (3, 0)])
+@pytest.mark.parametrize("i, esperado", [(0, 1), (1, 2), (3, 4), (4, 0)])
 def test_seta_avanca_e_volta_ao_primeiro(i, esperado):
     assert vg.proximo(i) == esperado
 
@@ -40,6 +40,6 @@ def test_video_presente_devolve_o_caminho(tmp_path):
     assert vg.CENARIOS[2].arquivo_video == "visao_geral_ambulancia.mp4"
 
 
-@pytest.mark.parametrize("i, esperado", [(0, 3), (1, 0), (3, 2)])
+@pytest.mark.parametrize("i, esperado", [(0, 4), (1, 0), (4, 3)])
 def test_seta_de_voltar_vai_ao_anterior_e_do_primeiro_ao_ultimo(i, esperado):
     assert vg.anterior(i) == esperado
