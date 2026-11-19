@@ -260,6 +260,33 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button:disabled {{ background: {VERDE}; opacity: 1; width: 32px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button p {{ font-size: 0; }}
 .bw-vg-conta {{ margin: 0 16px 0 8px; font-variant-numeric: tabular-nums; }}
+/* central de demonstrações: leitor de cartão no poste e celular do motorista */
+.bw-leitor {{ display: grid; place-items: center; padding: 8px 0; }}
+.bw-leitor .poste {{ width: 120px; padding: 12px; border-radius: 24px; background: #2A2A2A; box-shadow: var(--bw-sombra); }}
+.bw-leitor .caixa {{ border-radius: 12px; background: #141414; padding: 16px 12px; display: grid; justify-items: center;
+  gap: 12px; text-align: center; transition: box-shadow 300ms {CURVA}; }}
+.bw-leitor .nfc {{ width: 56px; height: 56px; border-radius: 9999px; display: grid; place-items: center; background: #272727; }}
+.bw-leitor.lido .nfc {{ background: {VERDE}; animation: bw-lido 500ms {CURVA}; }}
+.bw-leitor.lido .caixa {{ box-shadow: 0 0 0 2px {VERDE}; }}
+@keyframes bw-lido {{ from {{ transform: scale(0.95); opacity: .6; }} to {{ transform: none; opacity: 1; }} }}
+.bw-leitor .tela {{ display: grid; gap: 4px; color: #F5F5F2; }}
+.bw-leitor .tela b {{ font-size: 14px; line-height: 20px; font-weight: 600; }}
+.bw-leitor .tela span {{ font-size: 12px; line-height: 16px; color: #A3A3A0; }}
+.bw-leitor .tela .num {{ font-size: 24px; line-height: 32px; font-weight: 600; color: {VERDE}; font-variant-numeric: tabular-nums; }}
+.bw-cel {{ width: 240px; margin: 0 auto; padding: 12px; border-radius: 40px; background: #0B0B0B;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 16px 40px rgba(0,0,0,.28); }}
+.bw-cel .tela {{ height: 440px; border-radius: 28px; padding: 12px; color: #F5F5F2; overflow: hidden;
+  background: #1F2A27; display: grid; align-content: start; gap: 12px; }}
+.bw-cel .barra {{ display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; font-weight: 600; padding: 0 8px; }}
+.bw-cel .relogio {{ text-align: center; font-size: 48px; line-height: 1; font-weight: 600; margin: 24px 0 16px;
+  font-variant-numeric: tabular-nums; }}
+.bw-cel .aviso {{ border-radius: 16px; padding: 12px; background: rgba(255,255,255,.92); color: {GRAFITE};
+  animation: bw-aviso 500ms {CURVA} both; }}
+@keyframes bw-aviso {{ from {{ opacity: 0; transform: translateY(-24px); }} to {{ opacity: 1; transform: none; }} }}
+.bw-cel .aviso .cab {{ display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; color: #5F666E; }}
+.bw-cel .aviso .app {{ font-weight: 600; color: #C62834; }}
+.bw-cel .aviso p {{ margin: 4px 0 0; font-size: 14px; line-height: 20px; font-weight: 500; }}
+@media (prefers-reduced-motion: reduce) {{ .bw-cel .aviso, .bw-leitor.lido .nfc {{ animation: none; }} }}
 .bw-login-espaco {{ height: 12vh; }}
 @media (max-width: 760px) {{ .bw-login-espaco {{ height: 4vh; }} }}
 @media (prefers-reduced-motion: reduce) {{ .stApp *, .stApp *::before {{ transition: none !important; }} }}

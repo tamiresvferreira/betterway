@@ -43,7 +43,8 @@ def _texto(at):
 
 
 CHAVES = {"painel": "painel", "camera": "camera", "confirmadas": "confirmadas", "ocorrencias": "ocorrencias",
-          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre", "equipe": "equipe", "perfil": "perfil"}
+          "sala-de-controle": "sala", "cameras": "cameras", "sobre": "sobre", "equipe": "equipe", "perfil": "perfil",
+          "demonstracoes": "demos"}
 
 
 def _ir(at, pagina):
@@ -292,3 +293,15 @@ def test_sobre_mostra_onde_a_betterway_funciona(banco):
     assert not at.exception, at.exception
     txt = _texto(at)
     assert "Onde a BetterWay funciona" in txt and "Faixa no meio da quadra" in txt and "Frente de escola" in txt
+
+
+def test_central_de_demonstracoes_cartao_e_celular(banco):
+    at = _ir(_entrar("saude1"), "demonstracoes")
+    assert not at.exception, at.exception
+    at.button(key="demo_ler").click().run()
+    assert not at.exception, at.exception
+    assert "Tempo extra concedido" in _texto(at) and "Bilhete Único Idoso" in _texto(at)
+    linha = sqlite3.connect(banco).execute("SELECT origem, tipo, simulado FROM leituras_cartao").fetchone()
+    assert linha == ("cartao", "idoso", 1)
+    at.button(key="demo_sms_btn").click().run()
+    assert "Alerta BetterWay: ambulância a 1 km" in _texto(at)

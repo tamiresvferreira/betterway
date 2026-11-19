@@ -40,6 +40,7 @@ import ocorrencias as oc  # noqa: E402
 import padrao as pdr  # noqa: E402
 import registros as rg  # noqa: E402
 import sinais as sn  # noqa: E402
+import cartoes as ct  # noqa: E402
 import leitor  # noqa: E402
 import visao_geral as vg  # noqa: E402
 from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
@@ -52,7 +53,9 @@ PILOTO, LAT, LON = 139, -23.54183, -46.61613          # Largo da Concórdia (Br�
 VIDEO_DEMO = "cdmx_pexels_25775484"
 # lema da BetterWay (login e Visão geral); a segunda metade sai em verde
 LEMA = "To live, to move, <span>to drive, to be free.</span>"
-CLIPE_PILOTO = "cadeirante_02"          # o clipe em que a visão acerta (ver Sobre: como testamos a câmera)
+CLIPE_PILOTO = "cadeirante_03"          # CAM 01 (Largo da Concórdia): cadeira de rodas na faixa
+# vídeos da rede de câmeras (os de 19/11, com a faixa de cada um); a ambulância entra quando o vídeo dela estiver pronto
+CLIPES_REDE = ("cadeirante_03", "andador_01", "bengala_01", "normal_02")
 ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "camera_tempo": "Câmera pede mais tempo",
                    "escola": "Escola", "chuva": "Chuva", "alagamento": "Alagamento", "ambulancia": "Ambulância"}
 DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
@@ -693,6 +696,19 @@ def pagina_ocorrencias_gestao() -> None:
         html(es.kpi("Descartadas", str(sum(o["estado"] == "descartada" for o in linhas)), "falsos alarmes"))
     st.write("")
     html(cp.quadro_ocorrencias(linhas))
+    con = conexao()
+    ct.migrar(con)
+    leituras = ct.recentes(con, 10)
+    with cartao("travessias_extra", "pedestre", "Travessias com tempo extra"):
+        if not leituras:
+            st.caption("Nenhuma ainda. Cada cartão lido ou pedido da câmera aparece aqui.")
+        else:
+            html('<div class="bw-tempo">' + "".join(
+                f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%d/%m %H:%M}</span><span>'
+                f'{es.esc(ct.ORIGENS[r["origem"]])}: {es.esc(ct.TIPOS.get(r["tipo"], "pessoa com auxílio de mobilidade"))}'
+                f' · {es.esc(r["faixa"])} · +{r["extra_s"]:.1f} s'.replace(".", ",")
+                + (' <span class="bw-sim">simulado</span>' if r["simulado"] else "") + '</span></div>'
+                for r in leituras) + '</div>')
 
 
 # ---------------------------------------------------------------- resultados da simulação
@@ -845,12 +861,100 @@ def _simular_sinal(no) -> None:
         st.button("Simular sinal do nó", key="sim_enviar", on_click=_enviar_simulado, args=(no,))
 
 
+# ---------------------------------------------------------------- central de demonstrações
+def _ler_cartao(no) -> None:
+    con = conexao()
+    ct.migrar(con)
+    origem = st.session_state.get("demo_origem", "cartao")
+    r = ct.registrar(con, origem=origem, tipo=st.session_state.get("demo_tipo", "idoso"), simulado=True)
+    base = int(time_mod.time()) * 100
+    for k, t in enumerate(["cartao_lido" if origem == "cartao" else "camera_pediu_tempo", "travessia_estendida"]):
+        no.receber(m.TOPICO_EVENTO, json.dumps(sn.evento_simulado(t, base + k)).encode())
+    st.session_state["demo_ultima"] = r
+
+
+def _avisar_motoristas() -> None:
+    st.session_state["demo_sms"] = datetime.now(m.FUSO).strftime("%H:%M")
+
+
+def _html_leitor(ultima: dict | None) -> str:
+    if ultima is None:
+        tela = '<b>Encoste o cartão</b><span>Bilhete Único Idoso ou Especial</span>'
+        classe = ""
+    else:
+        quem = ct.TIPOS.get(ultima["tipo"], "Câmera: pessoa com andador")
+        tela = (f'<b>Tempo extra concedido</b><span>{es.esc(quem)}</span>'
+                f'<span class="num">+{ultima["extra_s"]:.1f} s</span>'.replace(".", ",", 1))
+        classe = " lido"
+    return (f'<div class="bw-leitor{classe}"><div class="poste"><div class="caixa">'
+            f'<span class="nfc">{es.icone("sinal", "#F5F5F2", 28)}</span><div class="tela">{tela}</div></div></div></div>')
+
+
+def _html_celular(hora: str | None, via: str) -> str:
+    aviso = ""
+    if hora:
+        aviso = (f'<div class="aviso"><div class="cab"><span class="app">Alerta de emergência</span>'
+                 f'<span>{es.esc(hora)}</span></div><p>{es.esc(ct.mensagem_sms(via))}</p></div>')
+    return (f'<div class="bw-cel"><div class="tela"><div class="barra"><span>{datetime.now(m.FUSO):%H:%M}</span>'
+            f'<span>5G</span></div><div class="relogio">{datetime.now(m.FUSO):%H:%M}</div>{aviso}</div></div>')
+
+
+def pagina_demonstracoes() -> None:
+    st.title("Central de demonstrações")
+    st.caption("Mostra, sem o equipamento de rua, como a pessoa e o motorista veem a BetterWay. Tudo aqui é "
+               "simulado e fica marcado como simulado.")
+    no = no_ao_vivo()
+    c1, c2 = st.columns(2, gap="large")
+    with c1, cartao("demo_cartao", "pedestre", "Cartão na faixa"):
+        html('<p class="bw-nota" style="margin:0 0 16px">Quem precisa de mais tempo encosta o Bilhete Único no leitor '
+             'do poste, como no Green Man+ de Singapura. Esqueceu o cartão? A câmera percebe o andador ou a cadeira '
+             'de rodas e pede o tempo sozinha.</p>')
+        v, ctrl = st.columns([1, 1], gap="medium", vertical_alignment="center")
+        with v:
+            html(_html_leitor(st.session_state.get("demo_ultima")))
+        with ctrl:
+            st.radio("Quem pede o tempo", ["cartao", "camera"], key="demo_origem", horizontal=True,
+                     format_func={"cartao": "Cartão", "camera": "Câmera"}.get)
+            if st.session_state.get("demo_origem", "cartao") == "cartao":
+                st.selectbox("Cartão", list(ct.TIPOS), format_func=ct.TIPOS.get, key="demo_tipo")
+            st.button("Encostar o cartão" if st.session_state.get("demo_origem", "cartao") == "cartao"
+                      else "Câmera vê a pessoa com andador", type="primary", key="demo_ler",
+                      on_click=_ler_cartao, args=(no,), width="stretch")
+        con = conexao()
+        ct.migrar(con)
+        linhas = ct.recentes(con, 6)
+        if linhas:
+            html('<div class="bw-tempo" style="margin-top:16px">' + "".join(
+                f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%H:%M:%S}</span><span>'
+                f'{es.esc(ct.TIPOS.get(r["tipo"], "Câmera: pessoa com auxílio de mobilidade"))} · '
+                f'+{r["extra_s"]:.1f} s'.replace(".", ",") + (' <span class="bw-sim">simulado</span>' if r["simulado"] else "")
+                + '</span></div>' for r in linhas) + '</div>')
+        html('<p class="bw-nota" style="margin-top:12px">Fica registrado só o tipo de cartão, o horário e o tempo '
+             'extra. Nenhum número de cartão nem nome.</p>')
+    with c2, cartao("demo_celular", "ambulancia", "Alerta no celular do motorista"):
+        html('<p class="bw-nota" style="margin:0 0 16px">Quando a ambulância está a 1 km, os celulares no trecho à '
+             'frente dela recebem um alerta por área, como os da Defesa Civil. Ninguém precisa dar o número.</p>')
+        v, ctrl = st.columns([1, 1], gap="medium", vertical_alignment="center")
+        with v:
+            html(_html_celular(st.session_state.get("demo_sms"), "Avenida Rangel Pestana"))
+        with ctrl:
+            st.button("Ambulância a 1 km", type="primary", key="demo_sms_btn", on_click=_avisar_motoristas,
+                      width="stretch")
+            if st.session_state.get("demo_sms"):
+                st.button("Limpar o celular", key="demo_sms_limpar",
+                          on_click=lambda: st.session_state.pop("demo_sms", None), width="stretch")
+            html('<p class="bw-nota" style="margin-top:12px">Na rua, o envio seria por alerta de celular da região '
+                 '(cell broadcast) a partir da central. Aqui é só a demonstração da mensagem.</p>')
+
+
 # ---------------------------------------------------------------- câmeras
 @st.cache_data(show_spinner=False)
 def clipes_da_rede() -> list[cam.Clipe]:
     if os.environ.get("BETTERWAY_SEM_CLIPES"):
         return []
-    return cam.clipes_disponiveis(incluir_reais=True)
+    todos = cam.clipes_disponiveis(incluir_reais=True)
+    novos = [c for nome in CLIPES_REDE for c in todos if c.nome == nome]
+    return novos or todos
 
 
 def _abrir_camera(cam_id: str | None) -> None:
@@ -1287,13 +1391,14 @@ PAGINAS = {
     "camera": st.Page(pagina_camera, title="Validar ocorrências", url_path="validar"),
     "confirmadas": st.Page(pagina_confirmadas, title="Atendimentos",
                            url_path="atendimentos"),
+    "demos": st.Page(pagina_demonstracoes, title="Demonstrações", url_path="demonstracoes"),
     "sobre": st.Page(pagina_sobre, title="Sobre", url_path="sobre"),
     "equipe": st.Page(pagina_equipe, title="Equipe", url_path="equipe"),
     "sair": st.Page(sair, title="Sair", url_path="sair"),
 }
-POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "perfil", "sobre", "sair"],
-              "transito": ["visao", "camera", "cameras", "sala", "perfil", "sobre", "sair"],
-              "saude": ["visao", "confirmadas", "cameras", "sala", "perfil", "sobre", "sair"]}
+POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "demos", "perfil", "sobre", "sair"],
+              "transito": ["visao", "camera", "cameras", "sala", "demos", "perfil", "sobre", "sair"],
+              "saude": ["visao", "confirmadas", "cameras", "sala", "demos", "perfil", "sobre", "sair"]}
 
 
 def _login_em(chave: str):
