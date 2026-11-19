@@ -86,5 +86,6 @@ metade da largura e a altura do `components.html` cai de 800 para um valor medid
 
 ## 7. Fora do escopo
 
-Gerar ou editar os vídeos (a Tamires gera no Veo 3); mudar a área Câmeras; trocar a simulação; carrossel com os
+Gerar ou editar os vídeos (a Tamires gera no Veo 3); mudar a área Câmeras; mudar o **Painel** (fica exatamente
+como está, inclusive o cartão de leitura e os cards de prevenção); trocar a simulação; carrossel com os
 quatro cenários carregados ao mesmo tempo (opção B, descartada).
