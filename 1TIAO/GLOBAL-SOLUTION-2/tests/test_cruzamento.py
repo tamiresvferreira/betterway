@@ -44,3 +44,9 @@ def test_modo_compacto_so_na_visao_geral():
     dados, met = cz.carregar("transito")
     assert 'class="tudo compacto"' in cz.html_cruzamento(dados, met, compacto=True)
     assert 'class="tudo compacto"' not in cz.html_cruzamento(dados, met)
+
+
+def test_compacto_aproxima_o_cruzamento():
+    dados, met = cz.carregar("conflito")
+    h = cz.html_cruzamento(dados, met, compacto=True)
+    assert 'viewBox="-20 -14 40 28"' in h and 'viewBox="-30 -21 60 42"' not in h

@@ -18,30 +18,55 @@ _FASES = {  # fase do nó → (luz dos carros, luz do pedestre)
 _COR_LUZ = {"vermelho": ALERTA, "amarelo": AMBAR, "verde": VERDE}
 
 
-def semaforo_svg(fase: str | None) -> str:
-    """Dois grupos focais desenhados: o dos carros (3 luzes) e o do pedestre (2 luzes), com o estado escrito."""
-    carros, ped = _FASES.get(fase or "", (None, None))
+# figura do pedestre: parado (vermelho) e andando (verde), desenhadas numa caixa 24×24
+_BONECO_PARADO = ('<circle cx="12" cy="4" r="2.4"/><path d="M9 8h6l.8 7h-2l-.4 7h-2.8l-.4-7h-2Z"/>')
+_BONECO_ANDANDO = ('<circle cx="13" cy="4" r="2.4"/><path d="M11 8.2 8 11l-1.6 4 1.8.6 1.3-3.2 1.4-1L10 14.5 8 22h2.2'
+                   'l1.8-6 2.1 2.6V22h2v-4.2l-2.3-3 .7-3.2 1.2 1.6 3.3.8.4-1.9-2.4-.6L15 8.6c-.6-.9-2.6-1.1-4-.4Z"/>')
 
-    def luz(cx, cy, cor_nome, acesa, extra=""):
+
+def semaforo_svg(fase: str | None) -> str:
+    """Os dois grupos focais da faixa, como na rua: o dos carros (3 luzes) e o do pedestre (boneco parado e andando),
+    com a fase escrita numa frase. Sem resposta do nó, mostra um ciclo local de demonstração, marcado como tal."""
+    carros, ped = _FASES.get(fase or "", (None, None))
+    local = carros is None                       # sem o nó: ciclo animado só para ilustrar
+
+    def luz(cx, cy, cor_nome, acesa, classe=""):
         cor = _COR_LUZ[cor_nome]
-        return (f'<circle cx="{cx}" cy="{cy}" r="15" fill="{cor if acesa else "var(--bw-borda)"}" '
-                f'opacity="{1 if acesa else .55}" {extra}/>')
-    pisca = 'class="pisca"' if ped == "pisca" else ""
-    svg = (f'<svg viewBox="0 0 200 150" width="200" height="150" role="img" '
-           f'aria-label="Semáforo: carros {carros or "sem sinal"}, pedestre {ped or "sem sinal"}" '
-           f'data-carros="{carros or "nenhum"}" data-pedestre="{"vermelho" if ped == "pisca" else ped or "nenhum"}">'
-           f'<rect x="20" y="5" width="50" height="135" rx="14" fill="#111417" stroke="var(--bw-borda)"/>'
-           + luz(45, 32, "vermelho", carros == "vermelho") + luz(45, 72, "amarelo", carros == "amarelo")
-           + luz(45, 112, "verde", carros == "verde") +
-           f'<rect x="120" y="35" width="50" height="95" rx="14" fill="#111417" stroke="var(--bw-borda)"/>'
-           + luz(145, 62, "vermelho", ped in ("vermelho", "pisca"), pisca) + luz(145, 102, "verde", ped == "verde")
-           + '</svg>')
-    if carros is None:
-        legenda = "<b>Sem sinal do nó</b><span>o nó ainda não respondeu</span>"
+        aceso = (f'<circle cx="{cx}" cy="{cy}" r="17" fill="{cor}" class="aceso {classe}" '
+                 f'style="opacity:{1 if acesa else 0}"/>')
+        return (f'<path d="M{cx - 24} {cy - 20} Q{cx} {cy - 34} {cx + 24} {cy - 20}" fill="#0B0B0B"/>'
+                f'<circle cx="{cx}" cy="{cy}" r="17" fill="#2A2A2A"/>{aceso}')
+
+    def boneco(cx, cy, desenho, cor, acesa, classe=""):
+        return (f'<g transform="translate({cx - 13},{cy - 13}) scale(1.08)" fill="{cor}" class="aceso {classe}" '
+                f'style="opacity:{1 if acesa else .16}">{desenho}</g>')
+
+    c_vm, c_am, c_vd = (("l-vm", "l-am", "l-vd") if local else ("", "", ""))
+    p_vm, p_vd = (("p-vm", "p-vd") if local else ("pisca" if ped == "pisca" else "", ""))
+    svg = (f'<svg viewBox="0 0 250 200" role="img" aria-label="Semáforo: carros {carros or "ciclo de demonstração"}, '
+           f'pedestre {ped or "ciclo de demonstração"}" data-carros="{carros or "nenhum"}" '
+           f'data-pedestre="{"vermelho" if ped == "pisca" else ped or "nenhum"}">'
+           # carros: três luzes com pala
+           f'<rect x="38" y="8" width="64" height="164" rx="16" fill="#141414" stroke="#313131"/>'
+           + luz(70, 44, "vermelho", carros == "vermelho", c_vm) + luz(70, 92, "amarelo", carros == "amarelo", c_am)
+           + luz(70, 140, "verde", carros == "verde", c_vd)
+           + '<text x="70" y="192" text-anchor="middle" class="rot">Carros</text>'
+           # pedestre: boneco parado (vermelho) e andando (verde)
+           f'<rect x="150" y="42" width="64" height="116" rx="16" fill="#141414" stroke="#313131"/>'
+           f'<circle cx="182" cy="76" r="20" fill="#202020"/><circle cx="182" cy="124" r="20" fill="#202020"/>'
+           + boneco(182, 76, _BONECO_PARADO, ALERTA, ped in ("vermelho", "pisca"), p_vm)
+           + boneco(182, 124, _BONECO_ANDANDO, VERDE, ped == "verde", p_vd)
+           + '<text x="182" y="192" text-anchor="middle" class="rot">Pedestre</text></svg>')
+    if local:
+        legenda = ("<b>Aguardando o nó da faixa</b><span>Enquanto ele não responde, o desenho mostra um ciclo comum "
+                   "de demonstração.</span>")
     else:
-        legenda = (f"<b>Carros: {carros}</b><span>Pedestre: "
-                   f"{'vermelho piscando (termine a travessia)' if ped == 'pisca' else ped}</span>")
-    return f'<div class="bw-semaforo">{svg}<div class="leg">{legenda}</div></div>'
+        frase_c = {"verde": "Carros passando no verde", "amarelo": "Carros no amarelo, parando",
+                   "vermelho": "Carros parados no vermelho"}[carros]
+        frase_p = {"verde": "pedestre atravessando no verde", "vermelho": "pedestre esperando no vermelho",
+                   "pisca": "pedestre terminando a travessia (vermelho piscando)"}[ped]
+        legenda = f"<b>{frase_c}</b><span>e {frase_p}.</span>"
+    return f'<div class="bw-semaforo{" local" if local else ""}">{svg}<div class="leg">{legenda}</div></div>'
 
 
 # ---------------------------------------------------------------- feed de eventos do nó
@@ -187,13 +212,29 @@ def cartoes_clipes(linhas: list[dict]) -> str:
 
 CSS = f"""
 <style>
-.bw-semaforo {{ display: flex; gap: 22px; align-items: center; background: {CARTAO}; border: 1px solid var(--bw-borda);
-  border-radius: 16px; padding: 16px 20px; flex-wrap: wrap; }}
-.bw-semaforo .leg {{ display: flex; flex-direction: column; gap: 4px; font-size: 18px; }}
-.bw-semaforo .leg span {{ color: var(--bw-texto-2); font-size: 15px; }}
+.bw-semaforo {{ display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }}
+.bw-semaforo svg {{ width: 250px; max-width: 100%; height: auto; flex: none; }}
+.bw-semaforo .rot {{ fill: var(--bw-muted); font: 500 14px Montserrat, sans-serif; }}
+.bw-semaforo .aceso {{ transition: opacity 300ms cubic-bezier(0.22, 1, 0.36, 1); }}
+.bw-semaforo circle.aceso {{ filter: drop-shadow(0 0 10px currentColor); }}
+.bw-semaforo .leg {{ display: flex; flex-direction: column; gap: 4px; max-width: 32ch; }}
+.bw-semaforo .leg b {{ font-size: 20px; line-height: 28px; font-weight: 600; color: var(--bw-texto); }}
+.bw-semaforo .leg span {{ color: var(--bw-texto-2); font-size: 16px; line-height: 24px; }}
 .bw-semaforo .pisca {{ animation: bwpisca 1s steps(1) infinite; }}
-@keyframes bwpisca {{ 50% {{ opacity: .2; }} }}
-@media (prefers-reduced-motion: reduce) {{ .bw-semaforo .pisca {{ animation: none; }} }}
+@keyframes bwpisca {{ 50% {{ opacity: .16 !important; }} }}
+/* ciclo local (sem o nó): 20 s; carros verde, amarelo, vermelho; pedestre verde no vermelho deles */
+.bw-semaforo.local .l-vd {{ animation: lvd 20s steps(1) infinite; }}
+.bw-semaforo.local .l-am {{ animation: lam 20s steps(1) infinite; }}
+.bw-semaforo.local .l-vm {{ animation: lvm 20s steps(1) infinite; }}
+.bw-semaforo.local .p-vd {{ animation: pvd 20s steps(1) infinite; }}
+.bw-semaforo.local .p-vm {{ animation: pvm 20s steps(1) infinite; }}
+@keyframes lvd {{ 0% {{ opacity: 1; }} 45% {{ opacity: 0; }} }}
+@keyframes lam {{ 0% {{ opacity: 0; }} 45% {{ opacity: 1; }} 55% {{ opacity: 0; }} }}
+@keyframes lvm {{ 0% {{ opacity: 0; }} 55% {{ opacity: 1; }} }}
+@keyframes pvd {{ 0% {{ opacity: .16; }} 60% {{ opacity: 1; }} 85% {{ opacity: .16; }} }}
+@keyframes pvm {{ 0% {{ opacity: 1; }} 60% {{ opacity: .16; }} 85% {{ opacity: 1; }} 87% {{ opacity: .16; }}
+  89% {{ opacity: 1; }} 91% {{ opacity: .16; }} 93% {{ opacity: 1; }} }}
+@media (prefers-reduced-motion: reduce) {{ .bw-semaforo .pisca, .bw-semaforo.local .aceso {{ animation: none; }} }}
 .bw-feed {{ list-style: none; margin: 0; padding: 0; background: {CARTAO}; border: 1px solid var(--bw-borda); border-radius: 16px; }}
 .bw-feed li {{ display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center;
   padding: 12px 16px; border-top: 1px solid var(--bw-borda); font-size: 15px; }}

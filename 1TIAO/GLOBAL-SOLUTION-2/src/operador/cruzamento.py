@@ -99,7 +99,11 @@ def html_cruzamento(dados: dict, met: dict, compacto: bool = False) -> str:
     """`compacto`: versão mais baixa, sem rodapé, para a coluna da direita da Visão geral."""
     payload = json.dumps({"dados": dados, "met": met, "ic": icones()}, ensure_ascii=False, separators=(",", ":"))
     h = _MODELO.replace("__PAYLOAD__", payload)
-    return h.replace('<div class="tudo">', '<div class="tudo compacto">', 1) if compacto else h
+    if not compacto:
+        return h
+    # mais perto do cruzamento: carros, faixas e pessoas ficam cerca de 50% maiores no espaço da Visão geral
+    h = h.replace('viewBox="-30 -21 60 42"', 'viewBox="-20 -14 40 28"')
+    return h.replace('<div class="tudo">', '<div class="tudo compacto">', 1)
 
 
 _MODELO = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -153,7 +157,7 @@ border:1px solid var(--ambar);border-radius:14px;padding:10px 12px;font-size:13p
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 @media (prefers-reduced-motion:reduce){.giro,.pulso{animation:none}}
-.compacto{max-width:680px}
+.compacto{max-width:820px}
 .compacto .lados{grid-template-columns:1fr 1fr}
 .compacto .pe,.compacto .sub{display:none}
 .compacto .barra{margin-bottom:8px}.compacto .barra button{padding:7px 14px;font-size:13px}

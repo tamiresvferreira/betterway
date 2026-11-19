@@ -362,7 +362,7 @@ def pagina_visao_geral() -> None:
          f'<div class="lema">{LEMA}</div><p>Os semáforos de hoje funcionam no relógio: o tempo é o mesmo para todos, '
          f'com ou sem gente na faixa. A BetterWay dá olhos ao semáforo.</p></div><ul>{lista}</ul></section>')
     with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
-        volta, esquerda, sim, seta = st.columns([1.5, 11, 13, 1.5], gap="small", vertical_alignment="center")
+        volta, esquerda, sim, seta = st.columns([1.5, 9, 15, 1.5], gap="small", vertical_alignment="center")
         with volta:
             st.button("Cenário anterior", key="vg_anterior", help="Cenário anterior",
                       on_click=_ir_cenario, args=(vg.anterior(i),))
@@ -395,7 +395,7 @@ def _player(cena: str, compacto: bool = False) -> None:
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=500 if compacto else 800,
+    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=560 if compacto else 800,
                     scrolling=False)
 
 
@@ -775,7 +775,8 @@ def pagina_sala() -> None:
         e = no.estado or {}
         c1, c2 = st.columns([3, 2], gap="large")
         with c1:
-            html(cp.semaforo_svg(e.get("fase")))
+            with cartao("semaforo_agora", "semaforo", "O semáforo agora"):
+                html(cp.semaforo_svg(e.get("fase")))
             st.write("")
             k = st.columns(2)
             with k[0]:
@@ -1290,12 +1291,26 @@ POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "e
               "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "perfil", "sair"]}
 
 
+def _login_em(chave: str):
+    """A tela de entrada publicada também no endereço de uma página interna (cada uma com nome próprio)."""
+    def entrada() -> None:
+        tela_login()
+    entrada.__name__ = f"entrar_{chave}"
+    return entrada
+
+
 def main() -> None:
     st.set_page_config(page_title="BetterWay", page_icon=str(MARCA / "betterway-simbolo.png"), layout="wide")
     html(es.tokens(tema()) + es.CSS + cp.CSS)
     u = usuario()
     if u is None:
-        st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
+        # sem login, qualquer endereço do app (ex.: recarregar na Sala de controle) abre a entrada, sem "Page not found"
+        entradas = [st.Page(tela_login, title="Entrar", url_path="entrar", default=True)]
+        for chave, pagina in PAGINAS.items():
+            if pagina.url_path and pagina.url_path != "entrar":      # a página padrão já cai na entrada
+                entradas.append(st.Page(_login_em(chave), title="Entrar", url_path=pagina.url_path))
+        entradas.append(st.Page(_login_em("perfil"), title="Entrar", url_path="perfil"))
+        st.navigation(entradas, position="hidden").run()
         return
     fundo_claro = tema() == "light"
     st.logo(str(MARCA / f"betterway-logo-horizontal-{'fundo-claro' if fundo_claro else 'escuro'}.png"), size="large")

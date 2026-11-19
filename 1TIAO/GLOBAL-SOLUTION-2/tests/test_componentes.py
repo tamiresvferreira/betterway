@@ -5,10 +5,11 @@ import componentes as cp
 def test_semaforo_acende_a_luz_certa_e_escreve_o_estado():
     h = cp.semaforo_svg("pedestre_verde")
     assert 'data-carros="vermelho"' in h and 'data-pedestre="verde"' in h
-    assert "Carros: vermelho" in h and "Pedestre: verde" in h
+    assert "Carros parados no vermelho" in h and "pedestre atravessando no verde" in h
     assert 'data-carros="amarelo"' in cp.semaforo_svg("carros_amarelo")
     assert "pisca" in cp.semaforo_svg("pedestre_pisca")
-    assert "Sem sinal do nó" in cp.semaforo_svg(None)
+    sem_no = cp.semaforo_svg(None)
+    assert "Aguardando o nó da faixa" in sem_no and "local" in sem_no   # ciclo de demonstração, marcado
 
 
 def test_feed_traduz_os_eventos_do_no():
