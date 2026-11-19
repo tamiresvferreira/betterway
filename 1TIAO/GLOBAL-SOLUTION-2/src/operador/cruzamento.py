@@ -93,9 +93,11 @@ def icones() -> dict[str, str]:
     return saida
 
 
-def html_cruzamento(dados: dict, met: dict) -> str:
+def html_cruzamento(dados: dict, met: dict, compacto: bool = False) -> str:
+    """`compacto`: versão mais baixa, sem rodapé, para a coluna da direita da Visão geral."""
     payload = json.dumps({"dados": dados, "met": met, "ic": icones()}, ensure_ascii=False, separators=(",", ":"))
-    return _MODELO.replace("__PAYLOAD__", payload)
+    h = _MODELO.replace("__PAYLOAD__", payload)
+    return h.replace('<div class="tudo">', '<div class="tudo compacto">', 1) if compacto else h
 
 
 _MODELO = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -148,6 +150,16 @@ border:1px solid var(--ambar);border-radius:14px;padding:10px 12px;font-size:13p
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 @media (prefers-reduced-motion:reduce){.giro,.pulso{animation:none}}
+.compacto{max-width:760px}
+.compacto .pe,.compacto .sub{display:none}
+.compacto .barra{margin-bottom:8px}.compacto .barra button{padding:7px 14px;font-size:13px}
+.compacto .lados{gap:10px}
+.compacto .topo{padding:9px 12px;font-size:14px}
+.compacto .aviso{margin:8px 10px 0;min-height:34px;padding:7px 10px;font-size:12px}
+.compacto .pilula{margin:8px 10px 10px;padding:8px 10px;gap:8px}
+.compacto .pilula b{font-size:22px}.compacto .pilula span{font-size:12px}
+.compacto .sinal{font-size:11px;padding:3px 9px 3px 6px}
+.compacto .sms{max-width:190px;font-size:11px;padding:7px 9px}
 </style></head><body><div class="tudo">
 <div class="barra">
   <button id="play">Pausar</button><button id="reset" class="sec">Recomeçar</button>

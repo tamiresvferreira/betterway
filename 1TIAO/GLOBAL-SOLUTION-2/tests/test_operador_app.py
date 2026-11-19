@@ -62,16 +62,40 @@ def test_sem_login_so_aparece_a_entrada_sem_textos_extras(banco):
 def test_senha_errada_nao_entra(banco):
     at = _entrar("transito1", "errada-errada")
     assert at.error and at.error[0].value == au.MSG_INCORRETO
-    assert "Evita acidentes antes que aconteçam" not in _texto(at)
+    assert "Ninguém fica na faixa com os carros em verde" not in _texto(at)
 
 
 def test_gestao_abre_na_visao_geral_e_o_painel_le_a_situacao(banco):
     at = _entrar("gestao1")
     assert not at.exception
-    assert "Evita acidentes antes que aconteçam" in _texto(at)
+    assert "Ninguém fica na faixa com os carros em verde" in _texto(at)
     at = _ir(at, "painel")
     assert not at.exception, at.exception
     assert "Leitura da situação" in _texto(at)
+
+
+def test_visao_geral_um_cenario_por_vez_e_a_seta_avanca(banco, tmp_path, monkeypatch):
+    import visao_geral as vg
+    monkeypatch.setattr(vg, "PASTA_VIDEOS", tmp_path)          # sem vídeos: espaço reservado
+    at = _entrar("gestao1")
+    assert not at.exception, at.exception
+    txt = _texto(at)
+    assert "Ninguém fica na faixa com os carros em verde" in txt and "Faz o trânsito andar" not in txt
+    assert "Vídeo do cenário em breve" in txt and "visao_geral_conflito.mp4" in txt
+    assert "Leitura da situação" not in txt and "Tudo ligado junto" not in txt
+    for titulo in ["Faz o trânsito andar", "Abre caminho para a ambulância", "Dá tempo a quem precisa atravessar",
+                   "Ninguém fica na faixa com os carros em verde"]:
+        at.button(key="vg_proximo").click().run()
+        assert not at.exception, at.exception
+        assert titulo in _texto(at)
+    at.button(key="vg_ponto_2").click().run()
+    assert "Abre caminho para a ambulância" in _texto(at)
+
+
+def test_sobre_mostra_as_barras_do_sistema(banco):
+    at = _ir(_entrar("gestao1"), "sobre")
+    assert not at.exception, at.exception
+    assert "Tudo ligado junto" in _texto(at)
 
 
 def test_transito_confirma_e_saude_ve(banco):
@@ -136,7 +160,7 @@ def test_convite_pela_tela_e_login_com_codigo(banco):
     assert "Código do aplicativo" in [t.label for t in at.text_input]
     at.text_input[0].input(totp.codigo(segredo))
     at.button[0].click().run()
-    assert "Evita acidentes antes que aconteçam" in _texto(at)
+    assert "Ninguém fica na faixa com os carros em verde" in _texto(at)
 
 
 def test_gestao_gera_convite_na_tela_equipe(banco):

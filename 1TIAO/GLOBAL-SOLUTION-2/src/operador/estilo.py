@@ -85,6 +85,36 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-tempo {{ font-size: 14px; }}
 .bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid #343A41; }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
+/* Visão geral: um cenário por vez (vídeo + simulação), trocado pela seta */
+.bw-vg-chamada {{ font-size: clamp(20px, 2.1vw, 28px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+  margin: 0 0 14px; color: {CLARO}; }}
+.bw-vg-chamada .fim {{ color: {VERDE}; }}
+.bw-vg-topo {{ display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; max-width: 92ch; }}
+.bw-vg-topo .icone {{ margin-top: 2px; }}
+.bw-vg-topo .verbo {{ color: {VERDE}; font-weight: 600; font-size: 13px; }}
+.bw-vg-topo .titulo {{ font-size: 21px; font-weight: 700; margin: 1px 0 3px; }}
+.bw-vg-topo p {{ font-size: 15px; line-height: 1.45; color: #D9DAD5; margin: 0; }}
+.bw-vg-video {{ border-radius: 18px; overflow: hidden; border: 1px solid #343A41; background: #000; aspect-ratio: 16 / 9; }}
+.bw-vg-video video {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+.bw-vg-video.vazio {{ background: {CARTAO}; display: grid; place-items: center; text-align: center; }}
+.bw-vg-video.vazio > div {{ display: grid; justify-items: center; gap: 6px; padding: 16px; }}
+.bw-vg-video.vazio b {{ font-size: 16px; color: #D9DAD5; }}
+.bw-vg-video.vazio span {{ color: {MUTED}; font-size: 13px; font-family: ui-monospace, monospace; }}
+[class*="st-key-vg_cena_"] {{ animation: bw-entra .4s ease-out both; }}
+@keyframes bw-entra {{ from {{ opacity: 0; transform: translateX(28px); }} to {{ opacity: 1; transform: none; }} }}
+@media (prefers-reduced-motion: reduce) {{ [class*="st-key-vg_cena_"] {{ animation: none; }} }}
+.st-key-vg_proximo button {{ width: 56px; height: 56px; min-height: 56px; border-radius: 50%; padding: 0;
+  background: {VERDE}; border: 0; color: {GRAFITE}; box-shadow: 0 6px 18px rgba(0, 194, 122, .28);
+  transition: transform .15s ease-out; }}
+.st-key-vg_proximo button:hover {{ transform: translateX(3px); background: {VERDE}; color: {GRAFITE}; }}
+.st-key-vg_proximo button span {{ font-size: 30px; color: {GRAFITE}; }}
+.st-key-vg_pontos {{ margin-top: 8px; }}
+.st-key-vg_pontos [class*="st-key-vg_ponto_"] button {{ width: 14px; height: 14px; min-height: 14px; padding: 0;
+  border-radius: 50%; background: #4A5058; border: 0; }}
+.st-key-vg_pontos [class*="st-key-vg_ponto_"] button:disabled {{ background: {VERDE}; opacity: 1; width: 30px;
+  border-radius: 7px; }}
+.st-key-vg_pontos [class*="st-key-vg_ponto_"] button p {{ font-size: 0; }}
+.bw-vg-conta {{ margin: 0 18px 0 6px; font-variant-numeric: tabular-nums; }}
 </style>
 """
 

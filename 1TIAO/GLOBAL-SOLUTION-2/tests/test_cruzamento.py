@@ -38,3 +38,9 @@ def test_cena_do_acidente_evitado_nunca_libera_carros_com_gente_na_faixa():
     assert any(em_risco(q) for q in dados["sem"])
     assert not any(em_risco(q) for q in dados["com"])
     assert (met["sem"], met["com"]) == ("6,0", "0")
+
+
+def test_modo_compacto_so_na_visao_geral():
+    dados, met = cz.carregar("transito")
+    assert 'class="tudo compacto"' in cz.html_cruzamento(dados, met, compacto=True)
+    assert 'class="tudo compacto"' not in cz.html_cruzamento(dados, met)

@@ -35,6 +35,7 @@ import leitura as lt  # noqa: E402
 import mensagens as m  # noqa: E402
 import ocorrencias as oc  # noqa: E402
 import padrao as pdr  # noqa: E402
+import visao_geral as vg  # noqa: E402
 from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
 from perfis import PERFIS, SemPermissao, exigir, pode  # noqa: E402
 
@@ -277,58 +278,56 @@ def _calcular_leitura(quando: datetime, chuva: float | None, agora: datetime) ->
     return lt.ler(padrao, camera_agora(agora), chuva, vezes_local, rk["risco_relativo"] if rk else None)
 
 
-def _bloco(verbo: str, icone: str, titulo: str, texto: str) -> None:
-    html(f'<div class="bw-demo-topo"><span class="icone">{es.icone(icone, es.VERDE, 26)}</span><div>'
-         f'<div class="verbo">{es.esc(verbo)}</div><div class="bw-secao" style="margin:2px 0 4px">{es.esc(titulo)}</div>'
-         f'<p class="bw-nota" style="font-size:16px;color:#D9DAD5;margin:0">{es.esc(texto)}</p></div></div>')
+def _ir_cenario(i: int) -> None:
+    st.session_state["vg_cenario"] = i
+
+
+def _video_cenario(c: vg.Cenario) -> str:
+    """O take do cenário (vídeo do Veo 3) ou, enquanto ele não existe, um espaço reservado."""
+    f = vg.video_do_cenario(c, vg.PASTA_VIDEOS)
+    if f is None:
+        return (f'<div class="bw-vg-video vazio"><div>{es.icone("camera", es.MUTED, 30)}'
+                f'<b>Vídeo do cenário em breve</b><span>{es.esc(c.arquivo_video)}</span></div></div>')
+    return (f'<div class="bw-vg-video"><video src="{_estatico(f)}" autoplay muted loop playsinline '
+            f'aria-label="{es.esc(c.titulo)}"></video></div>')
 
 
 def pagina_visao_geral() -> None:
-    html("""<div class="bw-hero"><div>
-      <div class="chamada">Mais seguro para quem atravessa, <span class="fim">mais rápido para quem dirige.</span></div>
-      <p>Veja a BetterWay funcionando no Largo da Concórdia, no Brás: o que ela percebe, o que ela decide e o que muda
-      no cruzamento.</p></div></div>""")
-    # dobra 1 · to live: menos acidentes
-    _bloco("to live", "vida", "Evita acidentes antes que aconteçam",
-           "Quando a situação de agora repete a dos atropelamentos do local, a plataforma avisa e reforça a travessia.")
-    agora = datetime.now(m.FUSO).replace(tzinfo=None)
-    terca = (agora - timedelta(days=agora.weekday()) + timedelta(days=1)).replace(hour=17, minute=40, second=0,
-                                                                                   microsecond=0)
-    html(_cartao_leitura(_calcular_leitura(terca, 5.0, agora), terca, simulado=True))
-    _subbloco("Ninguém fica na faixa com os carros em verde",
-              "Quem começa a atravessar no fim do verde ainda está na faixa quando os carros recebem o verde. A "
-              "BetterWay vê a pessoa e só libera a avenida com a faixa vazia.")
-    _player("conflito")
-    # dobra 2 · to move: trânsito andando e ambulância chegando antes
-    _bloco("to move", "rota", "Faz o trânsito andar",
-           "Quando a rua de lado está vazia, o verde volta para a avenida sem esperar o tempo fixo.")
-    _player("transito")
-    _subbloco("Abre caminho para a ambulância",
-              "O semáforo dá prioridade a ela com a faixa vazia, e os motoristas à frente recebem um alerta para abrir "
-              "espaço.")
-    _player("ambulancia")
-    _barras_sistema()
-    # dobra 3 · to be free: tempo para quem precisa
-    _bloco("to be free", "pedestre", "Dá tempo a quem precisa atravessar",
-           "A câmera reconhece cadeira de rodas, andador, muleta ou bengala, e o verde espera a pessoa chegar.")
-    _player("pedestre")
-    st.page_link(PAGINAS["sobre"], label="Como a BetterWay funciona, de onde vêm os dados e como protegemos a "
-                                         "privacidade", icon=":material/arrow_forward:")
+    """Quatro cenários, um por vez: o take da câmera ao lado da simulação. A seta troca o cenário, sem rolar."""
+    i = st.session_state.get("vg_cenario", 0) % len(vg.CENARIOS)
+    c = vg.CENARIOS[i]
+    html('<div class="bw-vg-chamada">Mais seguro para quem atravessa, <span class="fim">mais rápido para quem '
+         'dirige.</span></div>')
+    with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
+        html(f'<div class="bw-vg-topo"><span class="icone">{es.icone(c.icone, es.VERDE, 24)}</span><div>'
+             f'<div class="verbo">{es.esc(c.verbo)}</div><div class="titulo">{es.esc(c.titulo)}</div>'
+             f'<p>{es.esc(c.texto)}</p></div></div>')
+        video, sim, seta = st.columns([10, 13, 1.3], gap="medium", vertical_alignment="center")
+        with video:
+            html(_video_cenario(c))
+        with sim:
+            _player(c.cena, compacto=True)
+        with seta:
+            st.button("", icon=":material/arrow_forward:", key="vg_proximo", help="Próximo cenário",
+                      on_click=_ir_cenario, args=(vg.proximo(i),))
+    with st.container(horizontal=True, key="vg_pontos", vertical_alignment="center", gap="small"):
+        for n, outro in enumerate(vg.CENARIOS):
+            st.button(str(n + 1), key=f"vg_ponto_{n}", help=outro.titulo, disabled=n == i,
+                      type="primary" if n == i else "secondary", on_click=_ir_cenario, args=(n,))
+        html(f'<span class="bw-nota bw-vg-conta">{i + 1} de {len(vg.CENARIOS)}</span>')
+        st.page_link(PAGINAS["sobre"], label="Como funciona, de onde vêm os dados e a privacidade",
+                     icon=":material/arrow_forward:")
 
 
-def _subbloco(titulo: str, texto: str) -> None:
-    html(f'<div style="margin:26px 0 10px;max-width:80ch"><div style="font-size:18px;font-weight:600">{es.esc(titulo)}'
-         f'</div><p class="bw-nota" style="font-size:15px;color:#D9DAD5;margin:4px 0 0">{es.esc(texto)}</p></div>')
-
-
-def _player(cena: str) -> None:
+def _player(cena: str, compacto: bool = False) -> None:
     import cruzamento as cz
     try:
         dados, met = cz.carregar(cena)
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met), height=800, scrolling=False)
+    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=540 if compacto else 800,
+                    scrolling=False)
 
 
 # ---------------------------------------------------------------- sobre
@@ -352,6 +351,7 @@ def pagina_sobre() -> None:
       <div class="bw-passo"><span class="n">4</span><b>A equipe valida</b><span>Trânsito confirma cada suspeita de
         acidente; Saúde recebe o alerta e despacha o atendimento.</span></div>
     </div>""")
+    _barras_sistema()
     c1, c2 = st.columns(2, gap="large")
     with c1:
         html('<div class="bw-secao">O piloto: Largo da Concórdia, no Brás</div>')
