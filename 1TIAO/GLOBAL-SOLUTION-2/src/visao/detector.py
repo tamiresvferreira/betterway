@@ -11,7 +11,14 @@ from visao import Deteccao, ler_video
 
 PESOS = Path(__file__).resolve().parents[2] / "models" / "yolov8s-worldv2.pt"   # *.pt fica fora do Git
 CLASSES_PADRAO = ["person", "car", "motorcycle", "bus", "truck", "bicycle", "wheelchair", "walker", "crutch", "cane",
-                  "license plate"]
+                  "license plate", "zimmer frame", "walking cane"]
+# termos extras que o modelo reconhece melhor (19/11: "zimmer frame" acha o andador a 0,38; "walker", não); viram o
+# nome canônico, então o resto do sistema não muda
+SINONIMOS = {"zimmer frame": "walker", "walking cane": "cane"}
+
+
+def nome_canonico(nome: str) -> str:
+    return SINONIMOS.get(nome, nome)
 
 
 def detectar(caminho_video, classes=CLASSES_PADRAO, a_cada: int = 1, conf: float = 0.1, pesos=PESOS):
@@ -36,5 +43,5 @@ def detectar(caminho_video, classes=CLASSES_PADRAO, a_cada: int = 1, conf: float
         if r.boxes is not None and len(r.boxes):
             ids = r.boxes.id.int().tolist() if r.boxes.id is not None else [None] * len(r.boxes)
             for caixa, c, p, tid in zip(r.boxes.xyxy.tolist(), r.boxes.cls.int().tolist(), r.boxes.conf.tolist(), ids):
-                dets.append(Deteccao(i, r.names[c], tuple(caixa), float(p), tid))
+                dets.append(Deteccao(i, nome_canonico(r.names[c]), tuple(caixa), float(p), tid))
         yield i, img, dets

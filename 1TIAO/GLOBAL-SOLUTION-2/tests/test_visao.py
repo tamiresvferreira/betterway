@@ -788,3 +788,10 @@ def test_cadeirante_com_cadeira_vista_como_bicicleta_nao_e_condutor():
         dets.append(vs.Deteccao(q, "bicycle", (15, 430, 95, 570), 0.4, 9))
     assert any(d.classe == "person" for d in vs.sem_condutores(dets))
     assert vs.contagem_bicicletas(dets, f) == 0
+
+
+def test_sinonimos_do_andador_e_da_bengala_viram_o_nome_canonico():
+    import detector as dt
+    assert dt.nome_canonico("zimmer frame") == "walker" and dt.nome_canonico("walking cane") == "cane"
+    assert dt.nome_canonico("wheelchair") == "wheelchair"
+    assert set(dt.SINONIMOS) <= set(dt.CLASSES_PADRAO)

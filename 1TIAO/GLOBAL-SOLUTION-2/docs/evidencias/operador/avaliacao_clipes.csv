@@ -1,5 +1,5 @@
 ﻿clipe;categoria;auxilio_esperado;auxilio_obtido;suspeita_esperada;suspeita_obtida;conflito_obtido;pessoas_na_faixa;acerto
-andador_01;andador;walker;nenhum;False;False;False;1;False
+andador_01;andador;walker;walker;False;False;False;1;True
 bengala_01;bengala;cane;nenhum;False;False;False;1;False
 cadeirante_01;cadeirante;wheelchair;nenhum;False;False;True;2;False
 cadeirante_02;cadeirante;wheelchair;wheelchair;False;False;True;5;True
