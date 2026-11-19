@@ -73,7 +73,7 @@ CSS = f"""
 html {{ font-size: 16px; -webkit-font-smoothing: antialiased; }}
 .stApp, [data-testid="stAppViewContainer"] {{ background: var(--bw-fundo) !important; color: var(--bw-texto); }}
 .block-container {{ max-width: 100% !important; padding: 96px 48px 64px !important; }}
-@media (max-width: 760px) {{ .block-container {{ padding: 80px 16px 48px !important; }} }}
+@media (max-width: 760px) {{ .block-container {{ padding: 80px 16px 96px !important; }} }}
 .stApp h1, .stApp h2, .stApp h3, .stApp h4 {{ text-wrap: balance; letter-spacing: -0.01em; color: var(--bw-texto); }}
 .stApp p, .stApp li {{ text-wrap: pretty; }}
 .stApp h1 {{ font-size: 30px !important; line-height: 36px !important; font-weight: 600 !important; padding: 0 0 8px !important; }}
