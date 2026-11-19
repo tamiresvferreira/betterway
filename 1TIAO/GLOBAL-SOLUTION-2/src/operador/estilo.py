@@ -85,6 +85,9 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-tempo {{ font-size: 14px; }}
 .bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid #343A41; }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
+.st-key-leitor {{ position: fixed; top: 4px; right: 16px; width: 200px; height: 40px; z-index: 1000000; }}
+.st-key-leitor iframe {{ height: 40px; }}
+@media (max-width: 760px) {{ .st-key-leitor {{ top: auto; bottom: 12px; right: 12px; }} }}
 /* Câmeras: o cartão inteiro é clicável (botão transparente por cima, com foco visível no teclado) */
 [class*="st-key-camcard_"] {{ position: relative; gap: 0; }}
 [class*="st-key-camcard_"] .bw-cam {{ transition: border-color .15s ease-out, transform .15s ease-out; }}

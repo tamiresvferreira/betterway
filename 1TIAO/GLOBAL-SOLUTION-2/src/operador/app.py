@@ -39,6 +39,7 @@ import ocorrencias as oc  # noqa: E402
 import padrao as pdr  # noqa: E402
 import registros as rg  # noqa: E402
 import sinais as sn  # noqa: E402
+import leitor  # noqa: E402
 import visao_geral as vg  # noqa: E402
 from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
 from perfis import PERFIS, SemPermissao, exigir, pode  # noqa: E402
@@ -1259,6 +1260,8 @@ def main() -> None:
     alvo = st.session_state.pop("ir_para", None)          # atalho interno (e para os testes)
     if alvo in POR_PERFIL[u.perfil]:
         st.switch_page(PAGINAS[alvo])
+    with st.container(key="leitor"):                      # acessibilidade: lê a página em voz alta
+        components.html(leitor.html_botao(), height=40)
     nav.run()
 
 
