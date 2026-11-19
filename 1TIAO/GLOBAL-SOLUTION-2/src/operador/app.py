@@ -44,6 +44,8 @@ EVID = RAIZ / "docs" / "evidencias"
 MARCA = RAIZ / "assets" / "marca"
 PILOTO, LAT, LON = 139, -23.54183, -46.61613          # Largo da Concórdia (Brás)
 VIDEO_DEMO = "cdmx_pexels_25775484"
+# lema da BetterWay (login e Visão geral); a segunda metade sai em verde
+LEMA = "To live, to move, <span>to drive, to be free.</span>"
 CLIPE_PILOTO = "cadeirante_02"          # o clipe em que a visão acerta (ver Sobre: como testamos a câmera)
 ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "escola": "Escola", "chuva": "Chuva",
                    "alagamento": "Alagamento", "ambulancia": "Ambulância"}
@@ -151,7 +153,7 @@ CSS_LOGIN = """
 .block-container {{ padding-top: 0 !important; }}
 .bw-login-espaco {{ height: 22vh; }}
 .bw-login-titulo {{ font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; line-height: 1.15; margin: 18px 0 8px; }}
-.bw-login-titulo span {{ color: #00C27A; }}
+.bw-login-titulo span {{ color: #00C27A; display: block; }}
 .bw-login-sub {{ color: #C9CBC6; font-size: 15px; margin: 0 0 22px; }}
 [data-testid="stForm"] {{ background: rgba(26, 29, 33, .78); backdrop-filter: blur(6px); }}
 @media (max-width: 760px) {{
@@ -173,8 +175,8 @@ def tela_login() -> None:
         logo = MARCA / "betterway-logo-horizontal-escuro.png"
         if logo.exists():
             st.image(str(logo), width=260)
-        html('<div class="bw-login-titulo">Mais seguro para quem atravessa, <span>mais rápido para quem dirige.'
-             '</span></div><p class="bw-login-sub">Entre com o usuário da sua equipe.</p>')
+        html(f'<div class="bw-login-titulo">{LEMA}</div>'
+             '<p class="bw-login-sub">Entre com o usuário da sua equipe.</p>')
         if st.session_state.get("aviso_login"):
             st.info(st.session_state["aviso_login"])
         token = st.query_params.get("convite")
@@ -296,8 +298,10 @@ def pagina_visao_geral() -> None:
     """Quatro cenários, um por vez: o take da câmera ao lado da simulação. A seta troca o cenário, sem rolar."""
     i = st.session_state.get("vg_cenario", 0) % len(vg.CENARIOS)
     c = vg.CENARIOS[i]
-    html('<div class="bw-vg-chamada">Mais seguro para quem atravessa, <span class="fim">mais rápido para quem '
-         'dirige.</span></div>')
+    html(f'<div class="bw-vg-chamada">{LEMA}</div><p class="bw-vg-sub">Os semáforos de hoje funcionam no relógio: o '
+         'tempo é o mesmo para todos, com ou sem gente na faixa. A BetterWay dá olhos ao semáforo. A câmera vê a '
+         'faixa, a plataforma entende o risco do momento e o sinal se ajusta na hora, para quem atravessa, para quem '
+         'dirige e para a ambulância que precisa passar.</p>')
     with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
         html(f'<div class="bw-vg-topo"><span class="icone">{es.icone(c.icone, es.VERDE, 24)}</span><div>'
              f'<div class="verbo">{es.esc(c.verbo)}</div><div class="titulo">{es.esc(c.titulo)}</div>'

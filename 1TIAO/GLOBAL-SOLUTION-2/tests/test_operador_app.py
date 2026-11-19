@@ -57,6 +57,7 @@ def test_sem_login_so_aparece_a_entrada_sem_textos_extras(banco):
     assert [t.label for t in at.text_input] == ["E-mail ou usuário", "Senha"]
     txt = _texto(at)
     assert "demonstração" not in txt and "Central de operação" not in txt and "Acesso por perfil" not in txt
+    assert "To live, to move, <span>to drive, to be free.</span>" in txt and "Mais seguro para quem" not in txt
 
 
 def test_senha_errada_nao_entra(banco):
@@ -83,6 +84,8 @@ def test_visao_geral_um_cenario_por_vez_e_a_seta_avanca(banco, tmp_path, monkeyp
     assert "Ninguém fica na faixa com os carros em verde" in txt and "Faz o trânsito andar" not in txt
     assert "Vídeo do cenário em breve" in txt and "visao_geral_conflito.mp4" in txt
     assert "Leitura da situação" not in txt and "Tudo ligado junto" not in txt
+    assert "to drive, to be free" in txt and "Mais seguro para quem" not in txt
+    assert "dá olhos ao semáforo" in txt
     for titulo in ["Faz o trânsito andar", "Abre caminho para a ambulância", "Dá tempo a quem precisa atravessar",
                    "Ninguém fica na faixa com os carros em verde"]:
         at.button(key="vg_proximo").click().run()

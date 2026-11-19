@@ -88,7 +88,8 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 /* Visão geral: um cenário por vez (vídeo + simulação), trocado pela seta */
 .bw-vg-chamada {{ font-size: clamp(20px, 2.1vw, 28px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
   margin: 0 0 14px; color: {CLARO}; }}
-.bw-vg-chamada .fim {{ color: {VERDE}; }}
+.bw-vg-chamada span {{ color: {VERDE}; }}
+.bw-vg-sub {{ font-size: 16px; line-height: 1.55; color: #D9DAD5; margin: -6px 0 18px; max-width: 88ch; }}
 .bw-vg-topo {{ display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; max-width: 92ch; }}
 .bw-vg-topo .icone {{ margin-top: 2px; }}
 .bw-vg-topo .verbo {{ color: {VERDE}; font-weight: 600; font-size: 13px; }}
