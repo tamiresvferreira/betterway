@@ -239,6 +239,10 @@ def _abrir_sessao(u: au.Usuario) -> None:
     st.session_state.clear()
     st.session_state["usuario"] = u
     st.session_state["ultimo_uso"] = datetime.now().replace(microsecond=0)
+    # quem acabou de sair continua no endereço /sair: sem isto, a página de sair rodaria de novo logo após o login
+    caminho = (st.context.url or "").split("?")[0].rstrip("/")
+    if caminho.endswith("/sair"):
+        st.session_state["ir_para"] = "visao"
     st.rerun()
 
 
@@ -1286,9 +1290,9 @@ PAGINAS = {
     "equipe": st.Page(pagina_equipe, title="Equipe", url_path="equipe"),
     "sair": st.Page(sair, title="Sair", url_path="sair"),
 }
-POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "sobre", "perfil", "sair"],
-              "transito": ["visao", "camera", "cameras", "sala", "sobre", "perfil", "sair"],
-              "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "perfil", "sair"]}
+POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "perfil", "sobre", "sair"],
+              "transito": ["visao", "camera", "cameras", "sala", "perfil", "sobre", "sair"],
+              "saude": ["visao", "confirmadas", "cameras", "sala", "perfil", "sobre", "sair"]}
 
 
 def _login_em(chave: str):
