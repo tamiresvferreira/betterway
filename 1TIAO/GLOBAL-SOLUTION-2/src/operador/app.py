@@ -354,32 +354,34 @@ def _video_cenario(c: vg.Cenario) -> str:
 
 
 def pagina_visao_geral() -> None:
-    """Quatro cenários, um por vez: o take da câmera ao lado da simulação. A seta troca o cenário, sem rolar."""
+    """Cinco cenários, um por vez. A câmera é a protagonista; a simulação mostra o que o sistema faz; o texto só
+    complementa. As setas ficam no topo do cenário, sem roubar largura da câmera."""
     i = st.session_state.get("vg_cenario", 0) % len(vg.CENARIOS)
     c = vg.CENARIOS[i]
-    passos = [("camera", "Vê a faixa", "quem atravessa e quem precisa de mais tempo"),
-              ("decide", "Entende o momento", "câmera, chuva, horário e histórico do local"),
-              ("semaforo", "Ajusta o sinal", "na hora, para pedestres, carros e ambulância")]
-    lista = "".join(f'<li><span class="bw-chip">{es.icone(ic, es.DESTAQUE, 22)}</span><div><b>{es.esc(t)}</b>'
-                    f'<span class="t">{es.esc(d)}</span></div></li>' for ic, t, d in passos)
-    html(f'<section class="bw-abertura"><div><span class="bw-chip">{es.icone("semaforo", es.DESTAQUE, 24)}</span>'
-         f'<div class="lema">{LEMA}</div><p>Os semáforos de hoje funcionam no relógio: o tempo é o mesmo para todos, '
-         f'com ou sem gente na faixa. A BetterWay dá olhos ao semáforo.</p></div><ul>{lista}</ul></section>')
+    passos = [("camera", "Vê a faixa"), ("decide", "Entende o momento"), ("semaforo", "Ajusta o sinal na hora")]
+    pilulas = "".join(f'<li><span class="bw-chip">{es.icone(ic, es.DESTAQUE, 20)}</span>{es.esc(t)}</li>'
+                      for ic, t in passos)
+    html(f'<section class="bw-abertura"><div><div class="lema">{LEMA}</div><p>Os semáforos de hoje funcionam no '
+         f'relógio: o tempo é o mesmo para todos, com ou sem gente na faixa. A BetterWay dá olhos ao semáforo.</p>'
+         f'</div><ul>{pilulas}</ul></section>')
     with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
-        volta, esquerda, sim, seta = st.columns([1.5, 9, 15, 1.5], gap="small", vertical_alignment="center")
-        with volta:
+        topo, nav = st.columns([5, 1], vertical_alignment="center")
+        with topo:
+            html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone(c.icone, es.DESTAQUE, 22)}</span><div>'
+                 f'<div class="titulo"><span class="verbo">{es.esc(c.verbo)}</span>{es.esc(c.titulo)}</div>'
+                 f'<p>{es.esc(c.texto)}</p></div></div>')
+        with nav, st.container(horizontal=True, key="vg_setas", horizontal_alignment="right",
+                               vertical_alignment="center", gap="small"):
+            html(f'<span class="bw-nota bw-vg-conta">{i + 1} de {len(vg.CENARIOS)}</span>')
             st.button("Cenário anterior", key="vg_anterior", help="Cenário anterior",
                       on_click=_ir_cenario, args=(vg.anterior(i),))
-        with esquerda:
-            html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone(c.icone, es.DESTAQUE, 22)}</span><div>'
-                 f'<div class="verbo">{es.esc(c.verbo)}</div><div class="titulo">{es.esc(c.titulo)}</div>'
-                 f'<p>{es.esc(c.texto)}</p></div></div>')
+            st.button("Próximo cenário", key="vg_proximo", help="Próximo cenário",
+                      on_click=_ir_cenario, args=(vg.proximo(i),))
+        video, sim = st.columns([52, 48], gap="medium", vertical_alignment="top")
+        with video:
             html(_video_cenario(c))
         with sim:
             _player(c.cena, compacto=True)
-        with seta:
-            st.button("Próximo cenário", key="vg_proximo", help="Próximo cenário",
-                      on_click=_ir_cenario, args=(vg.proximo(i),))
         _pontos_cenario(i)
 
 
@@ -388,7 +390,6 @@ def _pontos_cenario(i: int) -> None:
         for n, outro in enumerate(vg.CENARIOS):
             st.button(str(n + 1), key=f"vg_ponto_{n}", help=outro.titulo, disabled=n == i,
                       type="primary" if n == i else "secondary", on_click=_ir_cenario, args=(n,))
-        html(f'<span class="bw-nota bw-vg-conta">{i + 1} de {len(vg.CENARIOS)}</span>')
         st.page_link(PAGINAS["sobre"], label="Como funciona, de onde vêm os dados e a privacidade")
 
 
@@ -399,7 +400,7 @@ def _player(cena: str, compacto: bool = False) -> None:
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=560 if compacto else 800,
+    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=450 if compacto else 800,
                     scrolling=False)
 
 
@@ -1326,10 +1327,10 @@ def main() -> None:
         st.switch_page(PAGINAS[alvo])
     with st.container(key="leitor"):                      # acessibilidade: lê a página em voz alta
         components.html(leitor.html_botao(), height=40)
+    claro = tema() == "light"
+    html(f"<style>.st-key-tema_btn button{{background-image:"
+         f"{es.icone_url('lua' if claro else 'sol', '#1A1D21' if claro else '#F5F5F2')} !important}}</style>")
     with st.container(key="tema_btn"):
-        claro = tema() == "light"
-        html(f"<style>.st-key-tema_btn button{{background-image:"
-             f"{es.icone_url('lua' if claro else 'sol', '#1A1D21' if claro else '#F5F5F2')} !important}}</style>")
         st.button("Mudar o tema", key="tema_trocar",
                   help="Mudar para o modo escuro" if claro else "Mudar para o modo claro", on_click=_trocar_tema)
     nav.run()

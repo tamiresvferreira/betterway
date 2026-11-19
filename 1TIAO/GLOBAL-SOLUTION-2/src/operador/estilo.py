@@ -24,11 +24,13 @@ TEMAS = {
     "escuro": {"fundo": "#181818", "cartao": "#1F1F1F", "cartao-2": "#272727", "menu": "#272727", "borda": "#313131",
                "texto": "#F5F5F2", "texto-2": "#D4D4D0", "muted": "#A3A3A0", "trilho": "#3D3D3D",
                "destaque": "#00C27A", "alerta-texto": "#FF6B6B", "ambar-texto": "#FFB000", "chip": "#272727",
-               "nav": "rgba(31,31,31,.72)"},
+               "nav": "rgba(31,31,31,.72)",
+               "sombra": "0 0 0 1px rgba(255,255,255,.08), 0 1px 0 rgba(255,255,255,.04) inset"},
     "claro": {"fundo": "#EEEFEC", "cartao": "#FFFFFF", "cartao-2": "#F5F6F3", "menu": "#FFFFFF", "borda": "#E1E3DE",
               "texto": "#1A1D21", "texto-2": "#3A4047", "muted": "#5F666E", "trilho": "#D5D8D2",
               "destaque": "#00804F", "alerta-texto": "#C62834", "ambar-texto": "#8A5A00", "chip": "#E6F5EC",
-              "nav": "rgba(255,255,255,.72)"},
+              "nav": "rgba(255,255,255,.72)",
+              "sombra": "0 0 0 1px rgba(26,29,33,.06), 0 1px 2px -1px rgba(26,29,33,.08), 0 8px 24px rgba(26,29,33,.07)"},
 }
 
 
@@ -68,9 +70,9 @@ def superficie(icone_nome: str | None, titulo: str, corpo: str, classe: str = ""
 CSS = f"""
 <style>
 /* ---------- base: escala da skill (16 px), estilos de texto com nome ---------- */
-html {{ font-size: 16px; }}
+html {{ font-size: 16px; -webkit-font-smoothing: antialiased; }}
 .stApp, [data-testid="stAppViewContainer"] {{ background: var(--bw-fundo) !important; color: var(--bw-texto); }}
-.block-container {{ max-width: 1280px !important; padding: 96px 40px 64px !important; }}
+.block-container {{ max-width: 100% !important; padding: 96px 48px 64px !important; }}
 @media (max-width: 760px) {{ .block-container {{ padding: 80px 16px 48px !important; }} }}
 .stApp h1, .stApp h2, .stApp h3, .stApp h4 {{ text-wrap: balance; letter-spacing: -0.01em; color: var(--bw-texto); }}
 .stApp p, .stApp li {{ text-wrap: pretty; }}
@@ -122,11 +124,11 @@ html {{ font-size: 16px; }}
 button[kind="primary"], button[kind="primaryFormSubmit"] {{ color: {GRAFITE} !important; }}
 button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE} !important; font-weight: 600 !important; }}
 [data-testid="stExpander"] details {{ background: var(--bw-cartao); border-color: var(--bw-borda) !important;
-  border-radius: 16px !important; }}
+  border-radius: 16px !important; box-shadow: var(--bw-sombra); }}
 [data-testid="stCheckbox"] label span {{ border-color: var(--bw-trilho); }}
 /* ---------- cartões (superfícies): conteúdo sempre num cartão ---------- */
 .bw-sup, [class*="st-key-sup_"], .bw-kpi, .bw-leitura, .bw-card {{ background: var(--bw-cartao);
-  border: 1px solid var(--bw-borda); border-radius: 24px; padding: 24px; }}
+  border: 1px solid var(--bw-borda); border-radius: 24px; padding: 24px; box-shadow: var(--bw-sombra); }}
 .bw-sup, [class*="st-key-sup_"] {{ margin-bottom: 24px; }}
 [class*="st-key-sup_"] {{ gap: 12px; }}
 .bw-sup-topo {{ display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }}
@@ -179,7 +181,8 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-selo.neutro {{ background: var(--bw-cartao-2); color: {CLARO}; }}
 /* câmeras */
 .bw-mosaico {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 16px 0 24px; }}
-.bw-cam {{ margin: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000; }}
+.bw-cam {{ margin: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000;
+  box-shadow: var(--bw-sombra); }}
 .bw-cam video {{ width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }}
 .bw-cam .sem {{ aspect-ratio: 16 / 9; display: grid; place-items: center; color: {MUTED}; background: {CARTAO}; }}
 .bw-cam figcaption {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 12px 16px;
@@ -201,9 +204,10 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-tempo div {{ display: grid; grid-template-columns: 88px 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--bw-borda); }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
 /* botões fixos do topo: leitura em voz e tema */
-.st-key-leitor {{ position: fixed; top: 20px; right: 32px; width: 200px; height: 40px; z-index: 1000000; }}
+.st-key-leitor {{ position: fixed; top: 22px; right: 32px; width: 200px; height: 40px; z-index: 1000000; }}
 .st-key-leitor iframe {{ height: 40px; }}
-.st-key-tema_btn {{ position: fixed; top: 20px; right: 240px; z-index: 1000000; width: auto; }}
+.st-key-tema_btn {{ position: fixed; top: 22px; right: 240px; z-index: 1000000; width: auto; gap: 0; }}
+.st-key-tema_btn > div {{ margin: 0 !important; }}
 .st-key-tema_btn button {{ width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 9999px;
   background-color: var(--bw-cartao) !important; border: 1px solid var(--bw-borda) !important;
   background-repeat: no-repeat !important; background-position: center !important; background-size: 20px !important; }}
@@ -211,31 +215,30 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 @media (max-width: 760px) {{ .st-key-leitor {{ top: auto; bottom: 16px; right: 16px; }}
   .st-key-tema_btn {{ top: auto; bottom: 16px; right: auto; left: 16px; }} }}
 /* ---------- Visão geral ---------- */
-.bw-abertura {{ background: var(--bw-cartao); border: 1px solid var(--bw-borda); border-radius: 24px; padding: 32px;
-  margin: 0 0 24px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; align-items: center; }}
-.bw-abertura .lema {{ font-size: 36px; line-height: 40px; font-weight: 600; letter-spacing: -0.02em; margin: 16px 0 12px;
-  max-width: 680px; text-wrap: balance; color: transparent; -webkit-background-clip: text; background-clip: text;
-  background-image: linear-gradient(90deg, var(--bw-texto), var(--bw-muted)); }}
-.bw-abertura .lema span {{ color: {DESTAQUE}; -webkit-text-fill-color: {DESTAQUE}; }}
-.bw-abertura p {{ font-size: 18px; line-height: 28px; color: var(--bw-texto-2); margin: 0; max-width: 680px; text-wrap: pretty; }}
-.bw-abertura ul {{ list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }}
-.bw-abertura li {{ display: grid; grid-template-columns: 48px 1fr; gap: 12px; align-items: center;
-  background: var(--bw-cartao-2); border-radius: 16px; padding: 8px 16px 8px 8px; }}
-.bw-abertura li b {{ display: block; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--bw-texto); }}
-.bw-abertura li span.t {{ font-size: 14px; line-height: 20px; color: var(--bw-muted); }}
-@media (max-width: 900px) {{ .bw-abertura {{ grid-template-columns: 1fr; padding: 24px; }}
-  .bw-abertura .lema {{ font-size: 30px; line-height: 36px; }} }}
+.bw-abertura {{ background: var(--bw-cartao); border: 1px solid var(--bw-borda); border-radius: 24px; padding: 16px 24px;
+  margin: 0 0 16px; display: flex; gap: 24px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  box-shadow: var(--bw-sombra); }}
+.bw-abertura .lema {{ font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em; margin: 0;
+  color: var(--bw-texto); }}
+.bw-abertura .lema span {{ color: {DESTAQUE}; }}
+.bw-abertura p {{ font-size: 14px; line-height: 20px; color: var(--bw-muted); margin: 4px 0 0; max-width: 72ch; }}
+.bw-abertura ul {{ list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }}
+.bw-abertura li {{ display: flex; gap: 8px; align-items: center; background: var(--bw-cartao-2); border-radius: 9999px;
+  padding: 4px 16px 4px 4px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--bw-texto); }}
+.bw-abertura li .bw-chip {{ width: 32px; height: 32px; }}
 [class*="st-key-vg_cena_"] {{ background: var(--bw-cartao); border: 1px solid var(--bw-borda); border-radius: 24px;
-  padding: 24px; animation: bw-entra 500ms {CURVA} both; }}
+  padding: 24px; box-shadow: var(--bw-sombra); animation: bw-entra 500ms {CURVA} both; }}
 @keyframes bw-entra {{ from {{ opacity: 0; transform: translateX(24px); }} to {{ opacity: 1; transform: none; }} }}
 @media (prefers-reduced-motion: reduce) {{ [class*="st-key-vg_cena_"] {{ animation: bw-aparece 300ms {CURVA} both; }} }}
 @keyframes bw-aparece {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
 .bw-vg-topo {{ display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; }}
-.bw-vg-topo .verbo {{ color: {DESTAQUE}; font-size: 14px; line-height: 20px; font-weight: 500; }}
-.bw-vg-topo .titulo {{ font-size: 24px; line-height: 32px; font-weight: 600; margin: 0 0 4px; color: var(--bw-texto);
-  text-wrap: balance; }}
-.bw-vg-topo p {{ font-size: 16px; line-height: 24px; color: var(--bw-texto-2); margin: 0; text-wrap: pretty; }}
-.bw-vg-video {{ border-radius: 16px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000; aspect-ratio: 16 / 9; }}
+.bw-vg-topo {{ margin: 0; align-items: center; }}
+.bw-vg-topo .verbo {{ color: {DESTAQUE}; font-size: 14px; line-height: 20px; font-weight: 600; margin-right: 12px; }}
+.bw-vg-topo .titulo {{ font-size: 20px; line-height: 28px; font-weight: 600; margin: 0; color: var(--bw-texto); }}
+.bw-vg-topo p {{ font-size: 14px; line-height: 20px; color: var(--bw-muted); margin: 2px 0 0; max-width: 110ch;
+  text-wrap: pretty; }}
+.bw-vg-video {{ border-radius: 16px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000; aspect-ratio: 16 / 9;
+  box-shadow: 0 12px 32px rgba(0,0,0,.18); }}
 .bw-vg-video video {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
 .bw-vg-video.vazio {{ background: var(--bw-cartao-2); display: grid; place-items: center; text-align: center; }}
 .bw-vg-video.vazio > div {{ display: grid; justify-items: center; gap: 8px; padding: 16px; }}
@@ -243,6 +246,7 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-vg-video.vazio span {{ color: {MUTED}; font-size: 12px; line-height: 16px; }}
 .stApp .st-key-vg_proximo button, .stApp .st-key-vg_anterior button {{ width: 48px; height: 48px; min-height: 48px;
   min-width: 48px; flex: none; border-radius: 9999px; padding: 0; background-color: {VERDE} !important; border: 0 !important;
+  box-shadow: 0 4px 12px rgba(0, 194, 122, .28);
   background-repeat: no-repeat !important; background-position: center !important; background-size: 24px !important;
   transition: transform 500ms {CURVA}; }}
 .stApp .st-key-vg_proximo button {{ background-image: {icone_url("seta_dir", GRAFITE)} !important; }}
