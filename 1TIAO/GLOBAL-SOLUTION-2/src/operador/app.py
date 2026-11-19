@@ -156,11 +156,26 @@ CSS_LOGIN = """
 [data-testid="stHeader"] {{ display: none; }}
 [data-testid="stAppViewContainer"] {{ background: #0B0F12 url("{poster}") 40% center / cover no-repeat; }}
 [data-testid="stMain"] {{ position: relative; z-index: 1; background: transparent; }}
-.bw-login-video {{ position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: 40% center;
+.bw-login-video {{ position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: 30% center;
   z-index: -2; pointer-events: none; }}
 .bw-login-veu {{ position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(11,15,18,.94) 0%, rgba(11,15,18,.82) 30%, rgba(11,15,18,.25) 62%,
+  background: linear-gradient(270deg, rgba(11,15,18,.94) 0%, rgba(11,15,18,.82) 32%, rgba(11,15,18,.25) 62%,
               rgba(11,15,18,.05) 100%); }}
+/* o login é sempre escuro (fica sobre o vídeo), qualquer que seja o tema escolhido */
+.bw-login-titulo, .bw-login-sub, [data-testid="stForm"] label, [data-testid="stForm"] label p
+  {{ color: #F4F4EF !important; }}
+.bw-login-titulo span {{ color: #00C27A !important; }}
+.bw-login-sub {{ color: #C9CBC6 !important; }}
+[data-testid="stForm"] {{ border-color: #3A4047 !important; }}
+[data-testid="stForm"] [data-baseweb="input"], [data-testid="stForm"] [data-baseweb="base-input"],
+[data-testid="stForm"] input {{ background: #2A2E33 !important; color: #F4F4EF !important; border-color: #3A4047 !important; }}
+[data-testid="stForm"] input::placeholder {{ color: #9AA1AA !important; }}
+[data-testid="stForm"] [data-testid="stTextInputRootElement"] {{ background: #2A2E33 !important;
+  border: 1px solid #3A4047 !important; }}
+[data-testid="stForm"] [data-testid="stTextInputRootElement"]:focus-within {{ border-color: #00C27A !important; }}
+[data-testid="stForm"] [data-baseweb="input"] div {{ background: #2A2E33 !important; }}
+[data-testid="stForm"] [data-testid="stTextInputRootElement"] button {{ background: transparent !important;
+  color: #C9CBC6 !important; }}
 .block-container {{ padding-top: 0 !important; }}
 .bw-login-espaco {{ height: 22vh; }}
 .bw-login-titulo {{ font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; line-height: 1.15; margin: 18px 0 8px; }}
@@ -185,7 +200,7 @@ def tela_login() -> None:
         html(f'<video class="bw-login-video" src="{_estatico(MARCA / "login-video-1080.mp4")}" poster="{poster}" '
              f'autoplay muted loop playsinline aria-hidden="true"></video>')
     html('<div class="bw-login-veu"></div>')
-    esquerda, _ = st.columns([0.85, 1.5])
+    _, esquerda = st.columns([1.5, 0.85])                # formulário à direita: a cena do vídeo fica livre
     with esquerda:
         html('<div class="bw-login-espaco"></div>')
         logo = MARCA / "betterway-logo-horizontal-escuro.png"
