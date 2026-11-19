@@ -44,6 +44,10 @@ def proximo(i: int) -> int:
     return (i + 1) % len(CENARIOS)
 
 
+def anterior(i: int) -> int:
+    return (i - 1) % len(CENARIOS)
+
+
 def video_do_cenario(c: Cenario, pasta: Path = PASTA_VIDEOS) -> Path | None:
     f = Path(pasta) / c.arquivo_video
     return f if f.is_file() else None

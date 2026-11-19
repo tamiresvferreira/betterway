@@ -115,11 +115,12 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 [class*="st-key-vg_cena_"] {{ animation: bw-entra .4s ease-out both; }}
 @keyframes bw-entra {{ from {{ opacity: 0; transform: translateX(28px); }} to {{ opacity: 1; transform: none; }} }}
 @media (prefers-reduced-motion: reduce) {{ [class*="st-key-vg_cena_"] {{ animation: none; }} }}
-.st-key-vg_proximo button {{ width: 56px; height: 56px; min-height: 56px; border-radius: 50%; padding: 0;
+.st-key-vg_proximo button, .st-key-vg_anterior button {{ width: 56px; height: 56px; min-height: 56px; border-radius: 50%; padding: 0;
   background: {VERDE}; border: 0; color: {GRAFITE}; box-shadow: 0 6px 18px rgba(0, 194, 122, .28);
   transition: transform .15s ease-out; }}
+.st-key-vg_anterior button:hover {{ transform: translateX(-3px); background: {VERDE}; color: {GRAFITE}; }}
 .st-key-vg_proximo button:hover {{ transform: translateX(3px); background: {VERDE}; color: {GRAFITE}; }}
-.st-key-vg_proximo button span {{ font-size: 30px; color: {GRAFITE}; }}
+.st-key-vg_proximo button span, .st-key-vg_anterior button span {{ font-size: 30px; color: {GRAFITE}; }}
 .st-key-vg_pontos {{ margin-top: 8px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button {{ width: 14px; height: 14px; min-height: 14px; padding: 0;
   border-radius: 50%; background: #4A5058; border: 0; }}

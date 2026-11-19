@@ -93,6 +93,8 @@ def test_visao_geral_um_cenario_por_vez_e_a_seta_avanca(banco, tmp_path, monkeyp
         assert titulo in _texto(at)
     at.button(key="vg_ponto_2").click().run()
     assert "Abre caminho para a ambulância" in _texto(at)
+    at.button(key="vg_anterior").click().run()
+    assert "Faz o trânsito andar" in _texto(at)
 
 
 def test_sobre_mostra_as_barras_do_sistema(banco):
@@ -205,6 +207,28 @@ def test_relatorio_pela_camera_com_ambulancia_vai_para_a_saude(banco):
     con.close()
     saude = _ir(_entrar("saude1"), "confirmadas")
     assert "Avenida do Imperador" in _texto(saude) and "relatório Nº" in _texto(saude)
+
+
+def test_saude_valida_sinal_simulado_e_fica_quem_e_area(banco):
+    at = _ir(_entrar("saude1"), "sala-de-controle")
+    assert not at.exception, at.exception
+    at.button(key="sim_enviar").click().run()
+    assert not at.exception, at.exception
+    [conf] = [b for b in at.button if (b.key or "").startswith("sconf_simulado_")][:1]
+    conf.click().run()
+    assert not at.exception, at.exception
+    txt = _texto(at)
+    assert "Confirmado por Operador(a) saude 1 (saude1) · Saúde" in txt and "simulado" in txt
+    linha = sqlite3.connect(banco).execute("SELECT usuario, area, decisao FROM validacoes_sinais").fetchall()
+    assert linha[-1] == ("saude1", "Saúde", "confirmado")
+
+
+def test_gestao_ve_os_sinais_mas_nao_valida(banco):
+    at = _ir(_entrar("gestao1"), "sala-de-controle")
+    at.button(key="sim_enviar").click().run()
+    assert not at.exception, at.exception
+    assert not [b for b in at.button if (b.key or "").startswith("sconf_")]
+    assert "Aguardando validação do Trânsito ou da Saúde" in _texto(at)
 
 
 def test_convite_pela_tela_e_login_com_codigo(banco):

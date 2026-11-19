@@ -38,3 +38,8 @@ def test_video_presente_devolve_o_caminho(tmp_path):
     f.write_bytes(b"\x00")
     assert vg.video_do_cenario(vg.CENARIOS[2], tmp_path) == f
     assert vg.CENARIOS[2].arquivo_video == "visao_geral_ambulancia.mp4"
+
+
+@pytest.mark.parametrize("i, esperado", [(0, 3), (1, 0), (3, 2)])
+def test_seta_de_voltar_vai_ao_anterior_e_do_primeiro_ao_ultimo(i, esperado):
+    assert vg.anterior(i) == esperado

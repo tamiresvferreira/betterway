@@ -64,6 +64,30 @@ def _hora(iso: str | None) -> str:
         return "sem horário"
 
 
+def texto_evento(e: dict) -> tuple[str, str]:
+    """Ícone e frase de um sinal do nó, como aparece no feed."""
+    ic, txt = _EVENTOS_NO.get(e.get("tipo"), ("duvida", e.get("tipo", "?")))
+    modo = (e.get("detalhe") or {}).get("modo")
+    return ic, txt.format(modo=_MODOS.get(modo, modo or "?"))
+
+
+def linha_sinal(e: dict, validacao: dict | None, nome_validador: str = "") -> str:
+    """Um sinal do nó com o estado da validação (quem, área e hora) ou 'aguardando'."""
+    ic, txt = texto_evento(e)
+    cor = AMBAR if ic == "alerta" else VERDE
+    simulado = ' <span class="bw-sim">simulado</span>' if (e.get("detalhe") or {}).get("simulado") else ""
+    if validacao is None:
+        estado = '<span class="bw-val pendente">Aguardando validação do Trânsito ou da Saúde</span>'
+    else:
+        ok = validacao["decisao"] == "confirmado"
+        quem = f'{esc(nome_validador or validacao["usuario"])} · {esc(validacao["area"])} · {_hora(validacao["timestamp"])}'
+        motivo = f' · “{esc(validacao["nota"])}”' if validacao.get("nota") else ""
+        estado = (f'<span class="bw-val {"ok" if ok else "contestado"}">{"Confirmado" if ok else "Contestado"} por '
+                  f'{quem}{motivo}</span>')
+    return (f'<div class="bw-sinal">{icone(ic, cor, 20)}<div><b>{esc(txt)}</b>{simulado}<br>{estado}</div>'
+            f'<time>{_hora(e.get("recebido_em"))}</time></div>')
+
+
 def feed_eventos(eventos: list[dict], limite: int = 12) -> str:
     if not eventos:
         return '<div class="bw-feed vazio">Nenhum evento do nó ainda. Eles aparecem aqui assim que o nó relatar algo.</div>'
@@ -172,6 +196,16 @@ CSS = f"""
 .bw-feed li {{ display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center;
   padding: 12px 16px; border-top: 1px solid #343A41; font-size: 15px; }}
 .bw-feed li:first-child {{ border-top: 0; }}
+.bw-sinal {{ display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start; padding: 12px 14px 12px;
+  font-size: 14px; line-height: 1.45; }}
+.bw-sinal time {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
+.bw-sim {{ background: #343A41; color: #C9CBC6; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }}
+.bw-val {{ font-size: 13px; }}
+.bw-val.pendente {{ color: {AMBAR}; }}
+.bw-val.ok {{ color: {VERDE}; }}
+.bw-val.contestado {{ color: #FF8A92; }}
+[class*="st-key-sinal_"] {{ background: {CARTAO}; border: 1px solid #343A41; border-radius: 14px; padding: 0 0 10px; gap: 4px; }}
+[class*="st-key-sinal_"] [data-testid="stHorizontalBlock"] {{ padding: 0 14px 0 50px; }}
 .bw-feed time {{ color: {MUTED}; font-variant-numeric: tabular-nums; font-size: 14px; }}
 .bw-feed.vazio {{ padding: 16px; color: {MUTED}; font-size: 15px; }}
 .bw-quadro {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }}
