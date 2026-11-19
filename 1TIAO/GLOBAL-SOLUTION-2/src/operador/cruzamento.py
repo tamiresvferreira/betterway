@@ -52,7 +52,8 @@ def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict
                         f"para {_num(com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum, 0)} por rodada. "
                         f"Um semáforo que só reage aos carros chegaria a {_num(so.atraso_medio_carro_s)} s, mas soltaria os "
                         f"carros com gente atravessando ({_num(so.na_faixa_carros_verde_reduzida + so.na_faixa_carros_verde_comum)} "
-                        f"pessoas por rodada); a BetterWay só dá verde à avenida com a faixa vazia."}
+                        f"pessoas por rodada); a BetterWay só troca o verde depois de 4 s sem carro chegando, com amarelo "
+                        f"e vermelho total, e só dá verde à avenida com a faixa vazia."}
     r = resumo[resumo.comparacao == cena].set_index("sistema")
     sem, com = r.loc["sem"], r.loc["com"]
     if cena == "pedestre":
@@ -63,7 +64,8 @@ def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict
                         f"porém, {_num(sem.na_faixa_carros_verde_reduzida)} pessoa(s) com mobilidade reduzida por rodada "
                         "ficaram na faixa com os carros da avenida já em verde. Com a extensão, nenhuma. Sozinha, a "
                         f"extensão custa aos carros {_num(sem.atraso_medio_carro_s)} s → {_num(com.atraso_medio_carro_s)} s "
-                        "de atraso; junto com o semáforo que libera a via vazia, o custo some (veja a cena do trânsito)."}
+                        "de atraso. Com tudo ligado junto, o atraso fica perto disso, pouco mais de 1 s por carro: o preço "
+                        "de nunca soltar os carros com gente na faixa (veja a cena do trânsito)."}
     return {"rotulo": "Tempo médio da ambulância para passar o cruzamento",
             "sem": f"{_num(sem.tempo_ambulancia_s)} s", "com": f"{_num(com.tempo_ambulancia_s)} s",
             "nota": f"Pior caso: {_num(sem.tempo_ambulancia_max_s_max, 0)} s para {_num(com.tempo_ambulancia_max_s_max, 0)} s. "

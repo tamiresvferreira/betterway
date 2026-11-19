@@ -6,7 +6,7 @@ import pytest
 import cruzamento as cz
 
 
-@pytest.mark.parametrize("cena,sem,com", [("pedestre", "100%", "0%"), ("ambulancia", "46,9 s", "40,7 s")])
+@pytest.mark.parametrize("cena,sem,com", [("pedestre", "100%", "0%"), ("ambulancia", "49,3 s", "40,6 s")])
 def test_metricas_vem_do_resumo(cena, sem, com):
     dados, met = cz.carregar(cena)
     assert (met["sem"], met["com"]) == (sem, com)
@@ -37,7 +37,7 @@ def test_cena_do_acidente_evitado_nunca_libera_carros_com_gente_na_faixa():
     em_risco = lambda q: q["verde_avenida"] and any(p[4] for p in q["pessoas"])  # noqa: E731
     assert any(em_risco(q) for q in dados["sem"])
     assert not any(em_risco(q) for q in dados["com"])
-    assert (met["sem"], met["com"]) == ("6,0", "0")
+    assert (met["sem"], met["com"]) == ("5,6", "0")
 
 
 def test_modo_compacto_so_na_visao_geral():

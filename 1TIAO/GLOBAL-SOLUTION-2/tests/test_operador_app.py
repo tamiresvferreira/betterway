@@ -287,3 +287,10 @@ def test_botao_de_tema_troca_claro_e_escuro_e_mantem_entre_paginas(banco):
     at = _ir(at, "sobre")
     assert at.session_state["tema"] == depois
     assert any("--bw-fundo:" + ("#E4E7E2" if depois == "light" else "#1A1D21") in m.value for m in at.markdown)
+
+
+def test_sobre_mostra_onde_a_betterway_funciona(banco):
+    at = _ir(_entrar("gestao1"), "sobre")
+    assert not at.exception, at.exception
+    txt = _texto(at)
+    assert "Onde a BetterWay funciona" in txt and "Faixa no meio da quadra" in txt and "Frente de escola" in txt

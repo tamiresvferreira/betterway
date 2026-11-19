@@ -422,6 +422,22 @@ def pagina_sobre() -> None:
     html('<div class="bw-passos2">' + "".join(
         es.superficie(ic, t, f"<p>{es.esc(d)}</p>").replace("</h3>", f'</h3><span class="n">{n} de 4</span>', 1)
         for n, (ic, t, d) in enumerate(passos, 1)) + "</div>")
+    html('<div class="bw-secao">Onde a BetterWay funciona</div>')
+    html('<p class="bw-nota" style="margin:-6px 0 14px;max-width:80ch">O piloto e as simulações são de um cruzamento, '
+         'mas o que o sistema controla é a faixa e o semáforo. A mesma lógica serve em qualquer ponto com travessia '
+         'ou sinal.</p>')
+    lugares = [("pedestre", "Faixa no meio da quadra", "Sem cruzamento: o sinal da faixa espera quem ainda está "
+                "atravessando e só libera os carros com a faixa vazia."),
+               ("semaforo", "Cruzamento", "O verde vai para onde há carros e pessoas, e uma via vazia não segura o "
+                "trânsito da outra."),
+               ("escola", "Frente de escola", "Na entrada e na saída, toda travessia ganha mais tempo e o painel "
+                "pede 30 km/h aos motoristas."),
+               ("ambulancia", "Hospital e rota de emergência", "Os sinais no caminho abrem passagem para a "
+                "ambulância e avisam quem está à frente."),
+               ("rota", "Avenida e corredor de ônibus", "Vários nós na mesma avenida seguem o mesmo critério, "
+                "faixa a faixa, sem depender de tempo fixo.")]
+    html('<div class="bw-grade cinco">' + "".join(es.superficie(ic, ti, f"<p>{es.esc(tx)}</p>") for ic, ti, tx in lugares)
+         + '</div>')
     with st.container(key="sup_barras"):
         _barras_sistema()
     piloto = (f"{n_pil} atropelamentos entre 2022 e 2025, {f_pil} com morte. " if n_pil else "") + \
@@ -692,6 +708,10 @@ def _barras(rotulo: str, sem: float, com: float, unidade: str, menor_melhor: boo
             f'{abs(var):.0f}%</div></div>')
 
 
+def _br(v: float) -> str:
+    return f"{v:.1f}".replace(".", ",")
+
+
 def _barras_sistema() -> None:
     """Hoje × BetterWay com tudo ligado junto (rodadas de 30 min do Estudo A)."""
     p = EVID / "estudo_a" / "estudo_a_resumo.csv"
@@ -710,9 +730,10 @@ def _barras_sistema() -> None:
          _barras("Atraso médio de cada carro", s.atraso_medio_carro_s, c.atraso_medio_carro_s, "s") +
          '</div>')
     html(f'<p class="bw-nota">Média de 5 rodadas de 30 minutos simulados no SUMO; resultado esperado de simulação. '
-         f'Dar mais tempo a quem atravessa não piora o trânsito quando o semáforo também libera a via vazia: o atraso '
-         f'dos carros fica praticamente igual. Um semáforo que só reage aos carros andaria mais rápido ({so.atraso_medio_carro_s:.1f} s), mas '
-         f'soltaria os carros com gente na faixa.</p>'.replace(".", ",", 0))
+         f'Segurança primeiro: o semáforo só troca o verde depois de 4 s sem carro chegando, sempre com amarelo e '
+         f'vermelho total, e nunca solta os carros com gente na faixa. O custo é de cerca de '
+         f'{_br(abs(c.atraso_medio_carro_s - s.atraso_medio_carro_s))} s a mais por carro. Um semáforo que só reage aos '
+         f'carros andaria mais rápido ({_br(so.atraso_medio_carro_s)} s), mas soltaria os carros com gente na faixa.</p>')
 
 
 def _clipes_sinteticos() -> None:

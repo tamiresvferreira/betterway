@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2026-11-17T00:17:45.877013-03:00 by Eclipse SUMO netconvert 1.28.0
+<!-- generated on 2026-11-19T02:10:21.882297-03:00 by Eclipse SUMO netconvert 1.28.0
 <netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="C:\Users\tamir\AppData\Local\Temp\tmp80eyfcos\n.nod.xml"/>
-        <edge-files value="C:\Users\tamir\AppData\Local\Temp\tmp80eyfcos\e.edg.xml"/>
+        <node-files value="C:\Users\tamir\AppData\Local\Temp\tmpeb25um3d\n.nod.xml"/>
+        <edge-files value="C:\Users\tamir\AppData\Local\Temp\tmpeb25um3d\e.edg.xml"/>
     </input>
 
     <output>
-        <output-file value="C:\Users\tamir\OneDrive\Documentos\GitHub\Global-Solution-2026.2-Oficial\1TIAO\GLOBAL-SOLUTION-2\src\simulacao\rede\cruzamento_actuated.net.xml"/>
+        <output-file value="C:\Users\tamir\OneDrive\Documentos\GitHub\Global-Solution-2026.2-Oficial\1TIAO\GLOBAL-SOLUTION-2\src\simulacao\rede\cruzamento_static_seguro.net.xml"/>
     </output>
 
     <tls_building>
-        <tls.default-type value="actuated"/>
+        <tls.yellow.time value="3"/>
+        <tls.allred.time value="2"/>
+        <tls.default-type value="static"/>
+        <tls.min-dur value="6"/>
     </tls_building>
 
     <junctions>
@@ -178,13 +181,15 @@
         <lane id="SC_1" index="1" disallow="pedestrian" speed="11.11" length="287.90" shape="301.60,0.00 301.60,287.90"/>
     </edge>
 
-    <tlLogic id="C" type="actuated" programID="0" offset="0">
-        <phase duration="37" state="rrrgGGGgrrrgGGGgGrGr" minDur="5" maxDur="50"/>
+    <tlLogic id="C" type="static" programID="0" offset="0">
+        <phase duration="35" state="rrrgGGGgrrrgGGGgGrGr"/>
         <phase duration="5"  state="rrrgGGGgrrrgGGGgrrrr"/>
         <phase duration="3"  state="rrryyyyyrrryyyyyrrrr"/>
-        <phase duration="37" state="gGgrrrrrgGgrrrrrrGrG" minDur="5" maxDur="50"/>
+        <phase duration="2"  state="rrrrrrrrrrrrrrrrrrrr"/>
+        <phase duration="35" state="gGgrrrrrgGgrrrrrrGrG"/>
         <phase duration="5"  state="gGgrrrrrgGgrrrrrrrrr"/>
         <phase duration="3"  state="yyyrrrrryyyrrrrrrrrr"/>
+        <phase duration="2"  state="rrrrrrrrrrrrrrrrrrrr"/>
     </tlLogic>
 
     <junction id="C" type="traffic_light" x="300.00" y="300.00" incLanes="NC_0 NC_1 LC_0 LC_1 LC_2 LC_3 SC_0 SC_1 OC_0 OC_1 OC_2 OC_3 :C_w1_0 :C_w2_0 :C_w3_0 :C_w0_0" intLanes=":C_16_0 :C_1_0 :C_17_0 :C_18_0 :C_4_0 :C_4_1 :C_4_2 :C_19_0 :C_20_0 :C_9_0 :C_21_0 :C_22_0 :C_12_0 :C_12_1 :C_12_2 :C_23_0 :C_c0_0 :C_c1_0 :C_c2_0 :C_c3_0" shape="294.80,312.10 305.20,312.10 305.42,310.99 305.70,310.60 306.09,310.32 306.59,310.16 307.20,310.10 307.20,289.90 306.09,289.68 305.70,289.40 305.42,289.01 305.26,288.51 305.20,287.90 294.80,287.90 294.58,289.01 294.30,289.40 293.91,289.68 293.41,289.84 292.80,289.90 292.80,310.10 293.91,310.32 294.30,310.60 294.58,310.99 294.74,311.49">

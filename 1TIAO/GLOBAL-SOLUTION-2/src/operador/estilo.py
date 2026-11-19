@@ -157,6 +157,8 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
   place-items: center; flex: none; }}
 .bw-grade {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 18px; }}
 .bw-grade .bw-sup {{ margin: 0; }}
+@media (min-width: 1200px) {{ .bw-grade.cinco {{ grid-template-columns: repeat(5, minmax(0, 1fr)); }} }}
+.bw-sup .bw-tempo div {{ grid-template-columns: 86px 1fr; }}
 .bw-passos2 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 18px; }}
 .bw-passos2 .bw-sup {{ margin: 0; }}
 .bw-passos2 .n {{ color: var(--bw-muted); font-weight: 600; font-size: .9rem; margin-left: auto; white-space: nowrap; }}
@@ -251,6 +253,7 @@ _IC = {
     "editar": '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
     "perfil": '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     "sinal": '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/>',
+    "escola": '<path d="M3 10 12 5l9 5-9 5-9-5Z"/><path d="M7 12.5V17c2.5 2 7.5 2 10 0v-4.5"/>',
     "pino": '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
     "grafico": '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
 }

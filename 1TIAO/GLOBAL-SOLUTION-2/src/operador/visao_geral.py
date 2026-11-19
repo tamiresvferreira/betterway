@@ -30,7 +30,9 @@ CENARIOS: tuple[Cenario, ...] = (
             "Quem começa a atravessar no fim do verde ainda está na faixa quando os carros recebem o verde. A "
             "BetterWay vê a pessoa e só libera a avenida com a faixa vazia.", "conflito"),
     Cenario("transito", "to move", "rota", "Faz o trânsito andar",
-            "Quando a rua de lado está vazia, o verde volta para a avenida sem esperar o tempo fixo.", "transito"),
+            "Quando a rua de lado fica 4 segundos sem nenhum carro chegando, o verde volta para a avenida, sempre com "
+            "amarelo e vermelho total antes da troca. Se um carro chega nesse meio-tempo, a preferência continua com "
+            "ele.", "transito"),
     Cenario("ambulancia", "to move", "rota", "Abre caminho para a ambulância",
             "Os motoristas à frente recebem um alerta e abrem espaço antes de ela chegar. O semáforo dá prioridade "
             "a ela com a faixa vazia, e ela passa direto.", "ambulancia"),

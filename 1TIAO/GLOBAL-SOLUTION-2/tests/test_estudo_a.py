@@ -71,7 +71,8 @@ def test_ciclo_do_tempo_fixo_tem_cerca_de_75s():
         a._programa_fixo()
         fases = a.traci.trafficlight.getAllProgramLogics(a.TLS)[0].phases
         assert 70 <= sum(f.duration for f in fases) <= 80
-        assert sorted(f.duration for f in fases) == [3, 3, 5, 5, a.VERDE_PEDESTRE_S, a.VERDE_AVENIDA_S]
+        assert sorted(f.duration for f in fases) == [a.VERMELHO_TOTAL_S] * 2 + [3, 3, 5, 5, a.VERDE_PEDESTRE_S,
+                                                    a.VERDE_AVENIDA_S]
     finally:
         a.traci.close()
 
@@ -95,5 +96,30 @@ def test_sistema_completo_protege_a_travessia_sem_piorar_o_transito():
     sem, com = a.rodar("completo", False, 1, DUR), a.rodar("completo", True, 1, DUR)
     assert com["na_faixa_carros_verde_reduzida"] + com["na_faixa_carros_verde_comum"] == 0
     assert com["surpreendidos_reduzida_pct"] < sem["surpreendidos_reduzida_pct"]
-    assert com["atraso_medio_carro_s"] <= sem["atraso_medio_carro_s"] * 1.05
+    # o intervalo seguro (4 s de via vazia, amarelo e vermelho total, nunca soltar carros com gente na faixa) custa
+    # um pouco de atraso aos carros; o custo tem de ficar limitado
+    assert com["atraso_medio_carro_s"] <= sem["atraso_medio_carro_s"] * 1.15
     assert com["tempo_ambulancia_s"] < sem["tempo_ambulancia_s"]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("tipo", ["static", "actuated"])
+def test_intervalo_seguro_vermelho_total_e_verde_minimo(tipo):
+    """Amarelo de 3 s e vermelho total de 2 s antes de qualquer verde; no semáforo que reage, verde mínimo de 10 s
+    e só troca depois de 4 s sem nenhum carro chegando."""
+    a.traci.start([str(a.SUMO_PKG / "bin" / "sumo.exe"), "-n", str(a.gerar_rede(tipo)), "--no-warnings",
+                   "--no-step-log"])
+    try:
+        fases = a.traci.trafficlight.getAllProgramLogics(a.TLS)[0].phases
+        estados = [f.state for f in fases]
+        for k, f in enumerate(fases):
+            if "y" in f.state:
+                seguinte = fases[(k + 1) % len(fases)]
+                assert set(seguinte.state) <= {"r"} and seguinte.duration == a.VERMELHO_TOTAL_S, estados
+        if tipo == "actuated":
+            verdes = [f for f in fases if "G" in f.state and f.minDur > 0 and f.maxDur > f.minDur]
+            assert verdes and all(f.minDur >= a.VERDE_MINIMO_S for f in verdes)
+            a.configurar_atuado()
+            assert float(a.traci.trafficlight.getParameter(a.TLS, "max-gap")) == a.RUA_VAZIA_S
+    finally:
+        a.traci.close()
