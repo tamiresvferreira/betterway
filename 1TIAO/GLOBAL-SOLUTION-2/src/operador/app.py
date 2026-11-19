@@ -153,7 +153,13 @@ def _estatico(origem: Path) -> str:
 CSS_LOGIN = """
 <style>
 [data-testid="stHeader"] {{ display: none; }}
-[data-testid="stAppViewContainer"] {{ background: #0B0F12 url("{grande}") right center / cover no-repeat; }}
+[data-testid="stAppViewContainer"] {{ background: #0B0F12 url("{poster}") 40% center / cover no-repeat; }}
+[data-testid="stMain"] {{ position: relative; z-index: 1; background: transparent; }}
+.bw-login-video {{ position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: 40% center;
+  z-index: -2; pointer-events: none; }}
+.bw-login-veu {{ position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(11,15,18,.94) 0%, rgba(11,15,18,.82) 30%, rgba(11,15,18,.25) 62%,
+              rgba(11,15,18,.05) 100%); }}
 .block-container {{ padding-top: 0 !important; }}
 .bw-login-espaco {{ height: 22vh; }}
 .bw-login-titulo {{ font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; line-height: 1.15; margin: 18px 0 8px; }}
@@ -161,18 +167,23 @@ CSS_LOGIN = """
 .bw-login-sub {{ color: #C9CBC6; font-size: 15px; margin: 0 0 22px; }}
 [data-testid="stForm"] {{ background: rgba(26, 29, 33, .78); backdrop-filter: blur(6px); }}
 @media (max-width: 760px) {{
-  [data-testid="stAppViewContainer"] {{
-    background: linear-gradient(to bottom, rgba(11,15,18,0) 0, rgba(11,15,18,.2) 30vh, #0B0F12 46vh),
-                #0B0F12 url("{celular}") center top / 100% auto no-repeat; }}
+  .bw-login-video {{ height: 46vh; object-position: 42% center; }}
+  .bw-login-veu {{ background: linear-gradient(to bottom, rgba(11,15,18,.05) 0, rgba(11,15,18,.35) 30vh, #0B0F12 46vh); }}
+  [data-testid="stAppViewContainer"] {{ background: #0B0F12; }}
   .bw-login-espaco {{ height: 30vh; }}
 }}
+@media (prefers-reduced-motion: reduce) {{ .bw-login-video {{ display: none; }} }}
 </style>
 """
 
 
 def tela_login() -> None:
-    html(CSS_LOGIN.format(grande=_estatico(MARCA / "login-faixa.jpg"),
-                          celular=_estatico(MARCA / "login-faixa-celular.jpg")))
+    poster = _estatico(MARCA / "login-video-poster.jpg")
+    html(CSS_LOGIN.format(poster=poster))
+    if (MARCA / "login-video-1080.mp4").exists():        # sem o vídeo, fica o primeiro quadro dele como imagem
+        html(f'<video class="bw-login-video" src="{_estatico(MARCA / "login-video-1080.mp4")}" poster="{poster}" '
+             f'autoplay muted loop playsinline aria-hidden="true"></video>')
+    html('<div class="bw-login-veu"></div>')
     esquerda, _ = st.columns([0.85, 1.5])
     with esquerda:
         html('<div class="bw-login-espaco"></div>')

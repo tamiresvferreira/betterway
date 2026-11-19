@@ -36,3 +36,6 @@ data/processed/veo3/
 
 # quadros anexados aos relatórios das câmeras (imagens, mesmo borradas, ficam fora do Git)
 data/processed/registros/
+
+# vídeo de fundo do login (versão leve, 1080p sem áudio, ~3,6 MB); o original em 4K fica fora
+!assets/marca/login-video-1080.mp4
