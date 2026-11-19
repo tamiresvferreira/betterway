@@ -35,6 +35,7 @@ import leitura as lt  # noqa: E402
 import mensagens as m  # noqa: E402
 import ocorrencias as oc  # noqa: E402
 import padrao as pdr  # noqa: E402
+import registros as rg  # noqa: E402
 import visao_geral as vg  # noqa: E402
 from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
 from perfis import PERFIS, SemPermissao, exigir, pode  # noqa: E402
@@ -724,33 +725,46 @@ def clipes_da_rede() -> list[cam.Clipe]:
     return cam.clipes_disponiveis(incluir_reais=True)
 
 
+def _abrir_camera(cam_id: str | None) -> None:
+    st.session_state["cam_aberta"] = cam_id
+
+
+def _chave(cam_id: str) -> str:
+    return cam_id.replace(" ", "_")
+
+
+def _nome_de(usuario: str | None) -> str:
+    if not usuario:
+        return ""
+    linha = conexao().execute("SELECT nome FROM usuarios WHERE usuario = ?", (usuario,)).fetchone()
+    return f"{linha[0]} ({usuario})" if linha else usuario
+
+
+def _hora(ts: str | None) -> str:
+    return datetime.fromisoformat(ts).strftime("%d/%m %H:%M:%S") if ts else ""
+
+
 def pagina_cameras() -> None:
     u = st.session_state["usuario"]
-    st.title("Câmeras")
-    st.caption("Todas as câmeras da rede BetterWay, ao vivo. Abra uma para acompanhar de perto quando precisar.")
     pontos = consultar("SELECT cluster_id, rank_urbano, via_principal FROM clusters WHERE rank_urbano IS NOT NULL "
                        "AND (rank_urbano <= 12 OR cluster_id = ?) ORDER BY rank_urbano", (PILOTO,)).to_dict("records")
     rede = cam.rede_de_cameras(pontos, clipes_da_rede(), piloto=PILOTO, n=6, clipe_piloto=CLIPE_PILOTO)
     urls = {c.id: cam.url_estatica(c.clipe) for c in rede}
-    nomes = {f"{c.id} · {c.local}": c for c in rede}
-    rotulo = st.segmented_control("Abrir câmera", list(nomes), key="cam_aberta")
-    if rotulo:
-        c = nomes[rotulo]
-        escolha = c.id
-        if st.session_state.get("cam_registrada") != escolha:
-            con = conexao()
-            cam.migrar(con)
-            cam.registrar_visualizacao(con, u.usuario, escolha)
-            st.session_state["cam_registrada"] = escolha
-        if c.clipe is None:
-            st.info("Esta câmera está sem vídeo agora.")
-        else:
-            modo = (no_ao_vivo().estado or {}).get("modo") if c.instalada else None
-            components.html(cam.html_player(c.clipe, modo, video_url=urls[c.id], camera=rotulo), height=560)
-        origem = ("Câmera instalada com o nó da faixa." if c.instalada else
-                  "Câmera simulada: vídeo de referência num ponto crítico do ranking.")
-        html(f'<p class="bw-nota">{origem} Seu acesso a esta câmera foi registrado.</p>')
-    html(cam.html_mosaico(rede, urls))
+    aberta = next((c for c in rede if c.id == st.session_state.get("cam_aberta")), None)
+    if aberta is not None:
+        _camera_aberta(aberta, urls[aberta.id], u)
+        return
+    st.title("Câmeras")
+    st.caption("Todas as câmeras da rede BetterWay, ao vivo. Clique numa câmera para acompanhar de perto e registrar "
+               "uma ocorrência.")
+    por_linha = 5
+    for ini in range(0, len(rede), por_linha):
+        cols = st.columns(por_linha, gap="small")
+        for col, c in zip(cols, rede[ini:ini + por_linha]):
+            with col, st.container(key=f"camcard_{_chave(c.id)}"):
+                html(cam.html_cartao(c, urls.get(c.id)))
+                st.button(f"Abrir {c.id}", key=f"abrir_{_chave(c.id)}", on_click=_abrir_camera, args=(c.id,))
+    _relatorios_enviados()
     if u.perfil == "gestao":
         con = conexao()
         cam.migrar(con)
@@ -760,14 +774,159 @@ def pagina_cameras() -> None:
                                 "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
 
 
+def _camera_aberta(c, url: str | None, u) -> None:
+    st.button("Voltar às câmeras", icon=":material/arrow_back:", key="cam_voltar", on_click=_abrir_camera,
+              args=(None,))
+    st.title(f"{c.id} · {c.local}")
+    if st.session_state.get("cam_registrada") != c.id:
+        con = conexao()
+        cam.migrar(con)
+        cam.registrar_visualizacao(con, u.usuario, c.id)
+        st.session_state["cam_registrada"] = c.id
+    esq, dir_ = st.columns([3, 2], gap="large")
+    with esq:
+        if c.clipe is None or url is None:
+            st.info("Esta câmera está sem vídeo agora.")
+        else:
+            modo = (no_ao_vivo().estado or {}).get("modo") if c.instalada else None
+            components.html(cam.html_player(c.clipe, modo, video_url=url, camera=f"{c.id} · {c.local}"), height=560)
+        origem = ("Câmera instalada com o nó da faixa." if c.instalada else
+                  "Câmera simulada: vídeo de referência num ponto crítico do ranking.")
+        html(f'<p class="bw-nota">{origem} Seu acesso a esta câmera foi registrado.</p>')
+    with dir_:
+        _form_registro(c, u)
+
+
+def _guardar(chave: str) -> None:
+    """Copia o valor do campo para fora do widget: o rascunho sobrevive a sair da câmera e voltar."""
+    st.session_state["_rasc_" + chave] = st.session_state[chave]
+
+
+def _restaurar(*chaves: str) -> None:
+    for k in chaves:
+        if k not in st.session_state and "_rasc_" + k in st.session_state:
+            st.session_state[k] = st.session_state["_rasc_" + k]
+
+
+def _form_registro(c, u) -> None:
+    st.subheader("Registrar ocorrência")
+    if st.session_state.get("aviso_registro"):
+        st.success(st.session_state.pop("aviso_registro"))
+    con = conexao()
+    rg.migrar(con)
+    chave = f"registro_{_chave(c.id)}"
+    rid = st.session_state.get(chave)
+    if rid is None:
+        st.caption("Viu algo nesta câmera? Descreva o que aconteceu, anexe quadros do vídeo e acione quem precisa ir.")
+        if st.button("Começar registro", type="primary", key="reg_comecar", icon=":material/edit_note:"):
+            try:
+                st.session_state[chave] = rg.iniciar(con, usuario=u, camera=c.id, local=c.local,
+                                                     cluster_id=c.cluster_id,
+                                                     video_id=f"veo3_{c.clipe.nome}" if c.clipe else None)
+                st.rerun()
+            except SemPermissao as erro:
+                st.error(str(erro))
+        return
+    r = rg.obter(con, rid)
+    html(f'<p class="bw-nota">Relatório Nº {rid} · registrado por {es.esc(_nome_de(r["registrado_por"]))} em '
+         f'{_hora(r["registrado_em"])}</p>')
+    _restaurar(f"reg_sit_{rid}", f"reg_desc_{rid}", f"reg_seg_{rid}", *(f"reg_ac_{a}_{rid}" for a in rg.ACIONAMENTOS))
+    situacao = st.selectbox("O que aconteceu", list(rg.SITUACOES), format_func=rg.SITUACOES.get, index=None,
+                            placeholder="Escolha o tipo de situação", key=f"reg_sit_{rid}", on_change=_guardar,
+                            args=(f"reg_sit_{rid}",))
+    descricao = st.text_area("Descreva o que você viu", key=f"reg_desc_{rid}", height=110,
+                             placeholder="Ex.: motociclista caiu na faixa, está consciente e sentado na calçada.",
+                             on_change=_guardar, args=(f"reg_desc_{rid}",))
+    html("<b>Acionar</b> <span class='bw-nota'>(simulado: nenhum chamado real é feito)</span>")
+    acion = [a for a, nome in rg.ACIONAMENTOS.items()
+             if st.checkbox(nome, key=f"reg_ac_{a}_{rid}", on_change=_guardar, args=(f"reg_ac_{a}_{rid}",))]
+    html("<b>Quadros do vídeo</b>")
+    video = c.clipe.video if c.clipe is not None else None
+    if video is None or not Path(video).exists():
+        st.caption("Sem vídeo para capturar.")
+    else:
+        dur = rg.duracao_s(Path(video))
+        seg = st.slider("Momento do vídeo (s)", 0.0, max(dur - 0.1, 0.1), 0.0, 0.1, key=f"reg_seg_{rid}",
+                        on_change=_guardar, args=(f"reg_seg_{rid}",))
+        img = rg.quadro_do_video(Path(video), seg)
+        if img is not None:
+            st.image(img[:, :, ::-1], caption=f"Prévia do momento {seg:.1f} s".replace(".", ","), width=360)
+        if st.button("Capturar este quadro", icon=":material/photo_camera:", key=f"reg_cap_{rid}"):
+            try:
+                q = rg.capturar(con, rid, usuario=u, video=Path(video), segundo=seg)
+                st.toast(f"Quadro anexado às {_hora(q.capturado_em)[-8:]}")
+            except (ValueError, SemPermissao) as erro:
+                st.error(str(erro))
+    anexos = rg.quadros(con, rid)
+    if anexos:
+        cols = st.columns(3)
+        for i, q in enumerate(anexos):
+            with cols[i % 3]:
+                if q.arquivo.exists():
+                    st.image(str(q.arquivo), width="stretch", caption=(
+                        f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)[-8:]}").replace(".", ",", 1))
+                if st.button("Remover", key=f"reg_rm_{q.id}", icon=":material/delete:"):
+                    rg.remover_quadro(con, q.id)
+                    st.rerun()
+    st.write("")
+    if st.button("Enviar relatório", type="primary", key=f"reg_enviar_{rid}", icon=":material/send:",
+                 width="stretch"):
+        try:
+            n = rg.enviar(con, rid, usuario=u, situacao=situacao or "", descricao=descricao, acionamentos=acion)
+            st.session_state.pop(chave, None)
+            st.session_state["aviso_registro"] = (
+                f"Relatório Nº {rid} enviado." + (f" A Saúde recebeu a ocorrência Nº {n} em Atendimentos." if n else ""))
+            st.rerun()
+        except (ValueError, SemPermissao) as erro:
+            st.error(str(erro).capitalize())
+
+
+def _relatorios_enviados() -> None:
+    con = conexao()
+    rg.migrar(con)
+    lista = rg.enviados(con)
+    st.subheader("Relatórios enviados")
+    if not lista:
+        st.caption("Nenhum relatório enviado ainda. Abra uma câmera para registrar.")
+        return
+    for r in lista:
+        acion = [rg.ACIONAMENTOS[a] for a in (r["acionamentos"] or "").split(",") if a in rg.ACIONAMENTOS]
+        saude = f" · ocorrência Nº {r['ocorrencia_id']} na Saúde" if r["ocorrencia_id"] else ""
+        with st.expander(f"Nº {r['id']} · {r['camera']} · {r['local']} · {rg.SITUACOES.get(r['situacao'], '')} · "
+                         f"{_hora(r['enviado_em'])[:-3]}"):
+            html(f'<div class="bw-tempo">'
+                 f'<div><span class="h">Registro</span><span>{es.esc(_nome_de(r["registrado_por"]))}, '
+                 f'{_hora(r["registrado_em"])}</span></div>'
+                 f'<div><span class="h">Envio</span><span>{es.esc(_nome_de(r["enviado_por"]))}, '
+                 f'{_hora(r["enviado_em"])}</span></div>'
+                 f'<div><span class="h">Acionou</span><span>{es.esc(", ".join(acion) or "ninguém")}{saude}'
+                 f'</span></div></div>')
+            html(f'<p style="margin:12px 0">{es.esc(r["descricao"])}</p>')
+            anexos = [q for q in rg.quadros(con, r["id"]) if q.arquivo.exists()]
+            if anexos:
+                cols = st.columns(4)
+                for i, q in enumerate(anexos):
+                    cols[i % 4].image(str(q.arquivo), width="stretch", caption=(
+                        f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)} por "
+                        f"{q.capturado_por}").replace(".", ",", 1))
+
+
 # ---------------------------------------------------------------- Trânsito e Saúde
 def _cartao_oc(o: dict) -> None:
     origem = "aberta pela câmera" if o["origem"] == "visao" else "reportada por operador(a)"
-    clipe = f" · no clipe {o['video_id'].removeprefix('veo3_')}, aos {o['segundo']:.1f} s" if o.get("video_id") else ""
+    clipe = (f" · no clipe {o['video_id'].removeprefix('veo3_')}, aos {o['segundo']:.1f} s"
+             if o.get("video_id") and o.get("segundo") is not None else "")
+    local = "Largo da Concórdia"
+    if o["tipo"] == "registro_camera":
+        con = conexao()
+        rg.migrar(con)
+        r = rg.do_ocorrencia(con, o["id"])
+        if r:
+            local, origem, clipe = r["local"], f"registrada na {r['camera']} pelo relatório Nº {r['id']}", ""
     classe = "padrao" if o["estado"] in ("pendente", "confirmada") else "atencao"
     html(f'<div class="bw-leitura {classe}" style="padding:16px 18px;margin-bottom:10px">'
          f'<div class="titulo" style="font-size:17px">Nº {o["id"]} · {es.esc(oc.TIPOS.get(o["tipo"], o["tipo"]))}</div>'
-         f'<div class="bw-nota">Largo da Concórdia · {origem}{es.esc(clipe)} · '
+         f'<div class="bw-nota">{es.esc(local)} · {es.esc(origem)}{es.esc(clipe)} · '
          f'{datetime.fromisoformat(o["aberta_em"]):%H:%M} · {es.esc(NOMES_ESTADO.get(o["estado"], o["estado"]))}</div></div>')
 
 

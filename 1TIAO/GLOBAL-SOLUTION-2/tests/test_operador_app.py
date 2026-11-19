@@ -127,20 +127,84 @@ def test_gestao_so_le(banco, pagina):
     assert not rotulos & {"Confirmar", "Despachar ambulância (SIMULADA)", "Reportar ocorrência", "Normal"}
 
 
-def test_abrir_uma_camera_registra_quem_abriu(banco):
+def _clusters(banco):
     con = sqlite3.connect(banco)
     con.execute("CREATE TABLE clusters (cluster_id INTEGER, rank_urbano INTEGER, via_principal TEXT)")
     con.executemany("INSERT INTO clusters VALUES (?, ?, ?)", [(139, 26, "AVENIDA RANGEL PESTANA"),
                                                              (48, 1, "AVENIDA DO IMPERADOR")])
     con.commit()
     con.close()
+
+
+def test_clicar_na_camera_abre_e_registra_quem_abriu(banco):
+    _clusters(banco)
     at = _ir(_entrar("saude1"), "cameras")
     assert not at.exception, at.exception
-    assert at.segmented_control[0].options == ["CAM 01 · Largo da Concórdia", "CAM 02 · Avenida do Imperador"]
-    at.segmented_control[0].set_value("CAM 01 · Largo da Concórdia").run()
+    assert not at.segmented_control                                   # o seletor saiu: o cartão é clicável
+    assert {b.key for b in at.button} >= {"abrir_CAM_01", "abrir_CAM_02"}
+    at.button(key="abrir_CAM_01").click().run()
     assert not at.exception, at.exception
+    assert "CAM 01 · Largo da Concórdia" in _texto(at)
     linhas = list(sqlite3.connect(banco).execute("SELECT usuario, camera FROM acessos_camera"))
     assert linhas == [("saude1", "CAM 01")]
+    at.button(key="cam_voltar").click().run()
+    assert "abrir_CAM_02" in {b.key for b in at.button}
+
+
+def test_saude_ve_relatorio_de_camera_com_video(banco):
+    import registros as rg
+    con = sqlite3.connect(banco)
+    rg.migrar(con)
+    i = rg.iniciar(con, usuario=Usuario("transito1", "T", "transito"), camera="CAM 03", local="Avenida Braz Leme",
+                   cluster_id=5, video_id="veo3_normal_01")
+    rg.enviar(con, i, usuario=Usuario("transito1", "T", "transito"), situacao="acidente", descricao="x",
+              acionamentos=["ambulancia"])
+    con.close()
+    at = _ir(_entrar("saude1"), "confirmadas")
+    assert not at.exception, at.exception
+    assert "Avenida Braz Leme" in _texto(at) and "CAM 03" in _texto(at)
+
+
+def test_rascunho_sobrevive_a_sair_da_camera_e_voltar(banco):
+    _clusters(banco)
+    at = _ir(_entrar("saude1"), "cameras")
+    at.button(key="abrir_CAM_01").click().run()
+    at.button(key="reg_comecar").click().run()
+    at.selectbox[0].set_value("pessoa_ajuda")
+    at.text_area[0].input("Idosa caída na calçada.")
+    [amb] = [cb for cb in at.checkbox if "Ambulância" in cb.label]
+    amb.check()
+    at.run()
+    at.button(key="cam_voltar").click().run()
+    at.button(key="abrir_CAM_01").click().run()
+    assert not at.exception, at.exception
+    assert at.selectbox[0].value == "pessoa_ajuda" and at.text_area[0].value == "Idosa caída na calçada."
+    assert [cb.value for cb in at.checkbox if "Ambulância" in cb.label] == [True]
+
+
+def test_relatorio_pela_camera_com_ambulancia_vai_para_a_saude(banco):
+    _clusters(banco)
+    at = _ir(_entrar("transito1"), "cameras")
+    at.button(key="abrir_CAM_02").click().run()
+    at.button(key="reg_comecar").click().run()
+    assert not at.exception, at.exception
+    at.selectbox[0].set_value("acidente")
+    at.text_area[0].input("Moto caiu na faixa; pessoa consciente.")
+    for cb in at.checkbox:
+        if "Ambulância" in cb.label or "Polícia" in cb.label:
+            cb.check()
+    at.run()
+    [enviar] = [b for b in at.button if (b.key or "").startswith("reg_enviar_")]
+    enviar.click().run()
+    assert not at.exception, at.exception
+    assert any("enviado" in s.value and "Atendimentos" in s.value for s in at.success)
+    con = sqlite3.connect(banco)
+    r = con.execute("SELECT camera, registrado_por, enviado_por, enviado_em, acionamentos, ocorrencia_id "
+                    "FROM registros").fetchone()
+    assert r[:3] == ("CAM 02", "transito1", "transito1") and r[3] and r[4] == "ambulancia,policia" and r[5]
+    con.close()
+    saude = _ir(_entrar("saude1"), "confirmadas")
+    assert "Avenida do Imperador" in _texto(saude) and "relatório Nº" in _texto(saude)
 
 
 def test_convite_pela_tela_e_login_com_codigo(banco):

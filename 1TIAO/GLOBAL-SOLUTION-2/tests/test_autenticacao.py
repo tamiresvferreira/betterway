@@ -85,5 +85,6 @@ def test_permissoes_por_perfil():
     assert pf.pode("transito", "confirmar") and pf.pode("transito", "reportar") and pf.pode("transito", "cenario")
     assert pf.pode("saude", "despachar") and pf.pode("saude", "encerrar")
     assert not pf.pode("saude", "confirmar") and not pf.pode("transito", "despachar")
-    assert [a for a in pf.ACOES if pf.pode("gestao", a)] == ["convidar"]     # só convida; não opera
+    assert [a for a in pf.ACOES if pf.pode("gestao", a)] == ["convidar", "registrar"]  # convida e registra pela câmera
+    assert all(pf.pode(p, "registrar") for p in ("transito", "saude", "gestao"))
     assert not pf.pode("intruso", "confirmar") and not pf.pode(None, "confirmar")

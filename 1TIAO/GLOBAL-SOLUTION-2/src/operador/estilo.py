@@ -85,6 +85,17 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-tempo {{ font-size: 14px; }}
 .bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid #343A41; }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
+/* Câmeras: o cartão inteiro é clicável (botão transparente por cima, com foco visível no teclado) */
+[class*="st-key-camcard_"] {{ position: relative; gap: 0; }}
+[class*="st-key-camcard_"] .bw-cam {{ transition: border-color .15s ease-out, transform .15s ease-out; }}
+[class*="st-key-camcard_"]:hover .bw-cam {{ border-color: {VERDE}; transform: translateY(-2px); }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] {{ position: absolute; inset: 0; z-index: 3; margin: 0; }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] div, [class*="st-key-camcard_"] [class*="st-key-abrir_"] button
+  {{ width: 100%; height: 100%; }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] button {{ opacity: 0; cursor: pointer; border-radius: 14px; }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] button:focus-visible {{ opacity: 1; background: transparent;
+  box-shadow: inset 0 0 0 3px {VERDE}; }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] button:focus-visible p {{ visibility: hidden; }}
 /* Visão geral: um cenário por vez (vídeo + simulação), trocado pela seta */
 .bw-vg-chamada {{ font-size: clamp(20px, 2.1vw, 28px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
   margin: 0 0 14px; color: {CLARO}; }}

@@ -33,3 +33,6 @@ src/operador/static/
 
 # visão dos clipes Veo 3: detecções, eventos e vídeos anotados (fora do Git)
 data/processed/veo3/
+
+# quadros anexados aos relatórios das câmeras (imagens, mesmo borradas, ficam fora do Git)
+data/processed/registros/

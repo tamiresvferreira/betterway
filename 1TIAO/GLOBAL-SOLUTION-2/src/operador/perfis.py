@@ -5,11 +5,11 @@ A permissão é conferida aqui, no servidor, antes de gravar ou publicar — esc
 from __future__ import annotations
 
 PERFIS = {"transito": "Trânsito", "saude": "Saúde", "gestao": "Gestão"}
-ACOES = ("confirmar", "descartar", "reportar", "cenario", "despachar", "encerrar", "convidar")
+ACOES = ("confirmar", "descartar", "reportar", "cenario", "despachar", "encerrar", "convidar", "registrar")
 _PERMISSOES = {
-    "transito": {"confirmar", "descartar", "reportar", "cenario"},
-    "saude": {"despachar", "encerrar"},
-    "gestao": {"convidar"},     # lê tudo e convida a equipe
+    "transito": {"confirmar", "descartar", "reportar", "cenario", "registrar"},
+    "saude": {"despachar", "encerrar", "registrar"},
+    "gestao": {"convidar", "registrar"},     # lê tudo, convida a equipe e registra pela câmera
 }
 
 

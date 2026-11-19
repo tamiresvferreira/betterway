@@ -184,18 +184,19 @@ def url_estatica(clipe: Clipe | None) -> str | None:
     return f"app/static/cameras/{destino.name}"
 
 
+def html_cartao(c: CameraRede, url: str | None) -> str:
+    """Cartão de uma câmera do mosaico (vídeo servido como arquivo, sem embutir)."""
+    video = (f'<video src="{html.escape(url)}" autoplay muted loop playsinline preload="metadata"></video>'
+             if url else '<div class="sem">sem vídeo</div>')
+    selo = ('<span class="vivo">● Ao vivo</span>' if c.instalada else '<span class="sim">Simulada</span>')
+    rank = f" · {c.rank_urbano}º do ranking" if c.rank_urbano else ""
+    return (f'<figure class="bw-cam">{video}<figcaption><b>{html.escape(c.id)}</b> {selo}'
+            f'<span class="onde">{html.escape(c.local)}{rank}</span></figcaption></figure>')
+
+
 def html_mosaico(rede: list[CameraRede], urls: dict[str, str | None]) -> str:
     """Mosaico das câmeras (vídeos servidos como arquivo, sem embutir)."""
-    blocos = []
-    for c in rede:
-        url = urls.get(c.id)
-        video = (f'<video src="{html.escape(url)}" autoplay muted loop playsinline preload="metadata"></video>'
-                 if url else '<div class="sem">sem vídeo</div>')
-        selo = ('<span class="vivo">● Ao vivo</span>' if c.instalada else '<span class="sim">Simulada</span>')
-        rank = f" · {c.rank_urbano}º do ranking" if c.rank_urbano else ""
-        blocos.append(f'<figure class="bw-cam">{video}<figcaption><b>{html.escape(c.id)}</b> {selo}'
-                      f'<span class="onde">{html.escape(c.local)}{rank}</span></figcaption></figure>')
-    return '<div class="bw-mosaico">' + "".join(blocos) + "</div>"
+    return '<div class="bw-mosaico">' + "".join(html_cartao(c, urls.get(c.id)) for c in rede) + "</div>"
 
 
 # ---------------------------------------------------------------- quem assistiu (LGPD)
