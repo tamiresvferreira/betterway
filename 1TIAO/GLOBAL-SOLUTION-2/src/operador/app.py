@@ -364,7 +364,7 @@ def pagina_visao_geral() -> None:
     with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
         volta, esquerda, sim, seta = st.columns([1.5, 11, 13, 1.5], gap="small", vertical_alignment="center")
         with volta:
-            st.button("", icon=":material/arrow_back:", key="vg_anterior", help="Cenário anterior",
+            st.button("Cenário anterior", key="vg_anterior", help="Cenário anterior",
                       on_click=_ir_cenario, args=(vg.anterior(i),))
         with esquerda:
             html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone(c.icone, es.DESTAQUE, 22)}</span><div>'
@@ -374,7 +374,7 @@ def pagina_visao_geral() -> None:
         with sim:
             _player(c.cena, compacto=True)
         with seta:
-            st.button("", icon=":material/arrow_forward:", key="vg_proximo", help="Próximo cenário",
+            st.button("Próximo cenário", key="vg_proximo", help="Próximo cenário",
                       on_click=_ir_cenario, args=(vg.proximo(i),))
         _pontos_cenario(i)
 
@@ -385,8 +385,7 @@ def _pontos_cenario(i: int) -> None:
             st.button(str(n + 1), key=f"vg_ponto_{n}", help=outro.titulo, disabled=n == i,
                       type="primary" if n == i else "secondary", on_click=_ir_cenario, args=(n,))
         html(f'<span class="bw-nota bw-vg-conta">{i + 1} de {len(vg.CENARIOS)}</span>')
-        st.page_link(PAGINAS["sobre"], label="Como funciona, de onde vêm os dados e a privacidade",
-                     icon=":material/arrow_forward:")
+        st.page_link(PAGINAS["sobre"], label="Como funciona, de onde vêm os dados e a privacidade")
 
 
 def _player(cena: str, compacto: bool = False) -> None:
@@ -784,7 +783,8 @@ def pagina_sala() -> None:
                             f"atualizado às {no.estado_recebido_em:%H:%M:%S}" if no.estado_recebido_em else
                             "o nó ainda não respondeu"))
             with k[1]:
-                html(es.kpi("Conexão", "Conectada" if no.conectado else "Desconectada", "com a central"))
+                html(es.kpi("Conexão", "Conectada à central" if no.conectado else "Sem conexão com a central", "",
+                            estado="ok" if no.conectado else "alerta"))
         with c2:
             with cartao("sinais_do_no", "sinal", "Sinais do nó"):
                 _sinais(list(no.eventos)[:8], u)
@@ -834,9 +834,9 @@ def _sinais(eventos: list[dict], u) -> None:
             html(cp.linha_sinal(e, v, _nome_de(v["usuario"]) if v else ""))
             if v is None and pode(u.perfil, "validar_sinal"):
                 a, b = st.columns(2)
-                a.button("Confirmar", key=f"sconf_{k}", icon=":material/check:", width="stretch",
+                a.button("Confirmar", key=f"sconf_{k}", width="stretch",
                          on_click=_validar_sinal, args=(e, "confirmado"))
-                with b.popover("Contestar", icon=":material/close:", width="stretch"):
+                with b.popover("Contestar", width="stretch"):
                     st.text_input("Por que o sinal não confere?", key=f"snota_{k}")
                     st.button("Contestar sinal", key=f"scont_{k}", on_click=_validar_sinal,
                               args=(e, "contestado", f"snota_{k}"))
@@ -860,7 +860,7 @@ def _simular_sinal(no) -> None:
                  "botao_recusado_ambulancia": "Botão recusado: ambulância chegando",
                  "pedido_atendido_apos_ambulancia": "Pedido atendido depois da ambulância"}
         st.selectbox("Sinal", list(tipos), format_func=tipos.get, key="sim_tipo")
-        st.button("Simular sinal do nó", icon=":material/sensors:", key="sim_enviar", on_click=_enviar_simulado,
+        st.button("Simular sinal do nó", key="sim_enviar", on_click=_enviar_simulado,
                   args=(no,))
 
 
@@ -922,7 +922,7 @@ def pagina_cameras() -> None:
 
 
 def _camera_aberta(c, url: str | None, u) -> None:
-    st.button("Voltar às câmeras", icon=":material/arrow_back:", key="cam_voltar", on_click=_abrir_camera,
+    st.button("Voltar às câmeras", key="cam_voltar", on_click=_abrir_camera,
               args=(None,))
     st.title(f"{c.id} · {c.local}")
     if st.session_state.get("cam_registrada") != c.id:
@@ -965,7 +965,7 @@ def _form_registro(c, u) -> None:
         rid = st.session_state.get(chave)
         if rid is None:
             st.caption("Viu algo nesta câmera? Descreva o que aconteceu, anexe quadros do vídeo e acione quem precisa ir.")
-            if st.button("Começar registro", type="primary", key="reg_comecar", icon=":material/edit_note:"):
+            if st.button("Começar registro", type="primary", key="reg_comecar"):
                 try:
                     st.session_state[chave] = rg.iniciar(con, usuario=u, camera=c.id, local=c.local,
                                                          cluster_id=c.cluster_id,
@@ -998,7 +998,7 @@ def _form_registro(c, u) -> None:
             img = rg.quadro_do_video(Path(video), seg)
             if img is not None:
                 st.image(img[:, :, ::-1], caption=f"Prévia do momento {seg:.1f} s".replace(".", ","), width=360)
-            if st.button("Capturar este quadro", icon=":material/photo_camera:", key=f"reg_cap_{rid}"):
+            if st.button("Capturar este quadro", key=f"reg_cap_{rid}"):
                 try:
                     q = rg.capturar(con, rid, usuario=u, video=Path(video), segundo=seg)
                     st.toast(f"Quadro anexado às {_hora(q.capturado_em)[-8:]}")
@@ -1012,11 +1012,11 @@ def _form_registro(c, u) -> None:
                     if q.arquivo.exists():
                         st.image(str(q.arquivo), width="stretch", caption=(
                             f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)[-8:]}").replace(".", ",", 1))
-                    if st.button("Remover", key=f"reg_rm_{q.id}", icon=":material/delete:"):
+                    if st.button("Remover", key=f"reg_rm_{q.id}"):
                         rg.remover_quadro(con, q.id)
                         st.rerun()
         st.write("")
-        if st.button("Enviar relatório", type="primary", key=f"reg_enviar_{rid}", icon=":material/send:",
+        if st.button("Enviar relatório", type="primary", key=f"reg_enviar_{rid}",
                      width="stretch"):
             try:
                 n = rg.enviar(con, rid, usuario=u, situacao=situacao or "", descricao=descricao, acionamentos=acion)
@@ -1296,19 +1296,19 @@ def pagina_equipe() -> None:
 
 # ---------------------------------------------------------------- navegação
 PAGINAS = {
-    "visao": st.Page(pagina_visao_geral, title="Visão geral", icon=":material/home:", url_path="visao-geral",
+    "visao": st.Page(pagina_visao_geral, title="Visão geral", url_path="visao-geral",
                      default=True),
-    "painel": st.Page(pagina_painel, title="Painel", icon=":material/monitoring:", url_path="painel"),
-    "cameras": st.Page(pagina_cameras, title="Câmeras", icon=":material/videocam:", url_path="cameras"),
-    "ocorrencias": st.Page(pagina_ocorrencias_gestao, title="Ocorrências", icon=":material/assignment:",
+    "painel": st.Page(pagina_painel, title="Painel", url_path="painel"),
+    "cameras": st.Page(pagina_cameras, title="Câmeras", url_path="cameras"),
+    "ocorrencias": st.Page(pagina_ocorrencias_gestao, title="Ocorrências",
                            url_path="ocorrencias"),
-    "sala": st.Page(pagina_sala, title="Sala de controle", icon=":material/traffic:", url_path="sala-de-controle"),
-    "camera": st.Page(pagina_camera, title="Validar ocorrências", icon=":material/fact_check:", url_path="validar"),
-    "confirmadas": st.Page(pagina_confirmadas, title="Atendimentos", icon=":material/emergency:",
+    "sala": st.Page(pagina_sala, title="Sala de controle", url_path="sala-de-controle"),
+    "camera": st.Page(pagina_camera, title="Validar ocorrências", url_path="validar"),
+    "confirmadas": st.Page(pagina_confirmadas, title="Atendimentos",
                            url_path="atendimentos"),
-    "sobre": st.Page(pagina_sobre, title="Sobre", icon=":material/info:", url_path="sobre"),
-    "equipe": st.Page(pagina_equipe, title="Equipe", icon=":material/group:", url_path="equipe"),
-    "sair": st.Page(sair, title="Sair", icon=":material/logout:", url_path="sair"),
+    "sobre": st.Page(pagina_sobre, title="Sobre", url_path="sobre"),
+    "equipe": st.Page(pagina_equipe, title="Equipe", url_path="equipe"),
+    "sair": st.Page(sair, title="Sair", url_path="sair"),
 }
 POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "equipe", "sobre", "perfil", "sair"],
               "transito": ["visao", "camera", "cameras", "sala", "sobre", "perfil", "sair"],
@@ -1325,8 +1325,7 @@ def main() -> None:
     fundo_claro = tema() == "light"
     st.logo(str(MARCA / f"betterway-logo-horizontal-{'fundo-claro' if fundo_claro else 'escuro'}.png"), size="large")
     pf = au.perfil(conexao(), u.usuario)
-    PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil",
-                                icon=":material/account_circle:", url_path="perfil")
+    PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil", url_path="perfil")
     nav = st.navigation([PAGINAS[k] for k in POR_PERFIL[u.perfil]], position="top")
     alvo = st.session_state.pop("ir_para", None)          # atalho interno (e para os testes)
     if alvo in POR_PERFIL[u.perfil]:
@@ -1335,7 +1334,9 @@ def main() -> None:
         components.html(leitor.html_botao(), height=40)
     with st.container(key="tema_btn"):
         claro = tema() == "light"
-        st.button("", icon=":material/dark_mode:" if claro else ":material/light_mode:", key="tema_trocar",
+        html(f"<style>.st-key-tema_btn button{{background-image:"
+             f"{es.icone_url('lua' if claro else 'sol', '#1A1D21' if claro else '#F5F5F2')} !important}}</style>")
+        st.button("Mudar o tema", key="tema_trocar",
                   help="Mudar para o modo escuro" if claro else "Mudar para o modo claro", on_click=_trocar_tema)
     nav.run()
 

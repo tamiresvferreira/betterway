@@ -7,21 +7,21 @@ from __future__ import annotations
 
 # elementos lidos, na ordem da página; os textos de dentro de gráficos e vídeos (iframes) ficam de fora
 SELETORES = ("h1, h2, h3, p, li, label, [data-testid='stCaptionContainer'], [data-testid='stExpander'] summary, "
-             ".titulo, .verbo, .bw-kpi .r, .bw-kpi .v, .bw-kpi .s, .bw-sinal b, .bw-val, figcaption")
+             ".titulo, .verbo, .bw-kpi .r, .bw-kpi .v, .bw-kpi .frase, .bw-kpi .s, .bw-sinal b, .bw-val, figcaption")
 
 HTML = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:transparent;display:flex;justify-content:flex-end;font-family:Montserrat,system-ui,sans-serif}
 button{display:inline-flex;align-items:center;gap:8px;border:1px solid #3A4047;background:#2A2E33;color:#F4F4EF;
-border-radius:999px;padding:7px 14px;font:600 13px Montserrat,system-ui,sans-serif;cursor:pointer}
+border-radius:9999px;padding:8px 12px;font:600 14px/20px Montserrat,system-ui,sans-serif;cursor:pointer;
+transition:background-color 300ms cubic-bezier(0.22,1,0.36,1)}
 button[aria-pressed=true]{background:#00C27A;color:#1A1D21;border-color:#00C27A}
 button:focus-visible{outline:3px solid #00C27A;outline-offset:2px}
-svg{width:18px;height:18px}
+svg{width:20px;height:20px}
 </style></head><body>
 <button id="ouvir" type="button" aria-pressed="false" title="Lê em voz alta os textos desta página">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
- aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+<svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">__ICONE__</svg>
 <span id="rot">Ouvir esta página</span></button>
 <script>
 const SEL = __SELETORES__;
@@ -59,4 +59,5 @@ estado(!!(voz && voz.speaking));
 
 def html_botao() -> str:
     import json
-    return HTML.replace("__SELETORES__", json.dumps(SELETORES))
+    from icones import ICONES
+    return HTML.replace("__SELETORES__", json.dumps(SELETORES)).replace("__ICONE__", ICONES["som"])
