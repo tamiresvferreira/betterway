@@ -53,8 +53,8 @@ VIDEO_DEMO = "cdmx_pexels_25775484"
 # lema da BetterWay (login e Visão geral); a segunda metade sai em verde
 LEMA = "To live, to move, <span>to drive, to be free.</span>"
 CLIPE_PILOTO = "cadeirante_02"          # o clipe em que a visão acerta (ver Sobre: como testamos a câmera)
-ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "escola": "Escola", "chuva": "Chuva",
-                   "alagamento": "Alagamento", "ambulancia": "Ambulância"}
+ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "camera_tempo": "Câmera pede mais tempo",
+                   "escola": "Escola", "chuva": "Chuva", "alagamento": "Alagamento", "ambulancia": "Ambulância"}
 DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
 
 
@@ -763,9 +763,9 @@ def pagina_sala() -> None:
             ambulância. A central escolhe sozinha pelo horário, pela chuva e pela câmera.</span></div>
           <div><span class="h">Semáforo</span><span>O desenho mostra a luz acesa agora para os carros e para o
             pedestre, escrita ao lado.</span></div>
-          <div><span class="h">Sinais</span><span>Tudo o que o nó avisou: botão de travessia apertado, verde
-            estendido, ambulância chegando. Trânsito e Saúde validam cada sinal: confirmam que é real ou contestam
-            com um motivo, e fica registrado quem validou, de que área e quando.</span></div>
+          <div><span class="h">Sinais</span><span>Tudo o que o nó fez, em ordem: cartão lido, câmera pedindo
+            mais tempo para quem tem andador ou cadeira de rodas, verde estendido, ambulância chegando. O tempo extra
+            é automático: ninguém precisa liberar.</span></div>
           <div><span class="h">Quem muda</span><span>Só a equipe de Trânsito pode trocar o modo à mão. Gestão e Saúde
             acompanham.</span></div></div>""")
     no = no_ao_vivo()
@@ -787,7 +787,7 @@ def pagina_sala() -> None:
                             estado="ok" if no.conectado else "alerta"))
         with c2:
             with cartao("sinais_do_no", "sinal", "Sinais do nó"):
-                _sinais(list(no.eventos)[:8], u)
+                _sinais(list(no.eventos))
     estado()
     _simular_sinal(no)
     st.write("")
@@ -807,61 +807,36 @@ def pagina_sala() -> None:
         st.caption("Só a equipe de Trânsito muda o modo do semáforo.")
 
 
-def _validar_sinal(e: dict, decisao: str, chave_nota: str | None = None) -> None:
-    try:
-        sn.validar(conexao(), e, usuario=st.session_state["usuario"], decisao=decisao,
-                   nota=st.session_state.get(chave_nota) if chave_nota else None)
-        st.session_state["aviso_sinal"] = ("ok", "Sinal " + ("confirmado." if decisao == "confirmado" else "contestado."))
-    except (ValueError, SemPermissao) as erro:
-        st.session_state["aviso_sinal"] = ("erro", str(erro).capitalize())
-
-
-def _sinais(eventos: list[dict], u) -> None:
+def _sinais(eventos: list[dict]) -> None:
+    """Registro automático do que o nó fez. Cartão e câmera pedem o tempo extra sozinhos: ninguém precisa liberar."""
     if not eventos:
         html(cp.feed_eventos([]))
         return
-    aviso = st.session_state.pop("aviso_sinal", None)
-    if aviso:
-        (st.success if aviso[0] == "ok" else st.error)(aviso[1])
-    con = conexao()
-    sn.migrar(con)
-    vals = sn.validacoes(con)
-    for e in eventos:
-        boot, seq = str(e.get("boot")), e.get("seq")
-        k = f"{boot}_{seq}".replace(" ", "_")
-        v = vals.get((boot, seq))
-        with st.container(key=f"sinal_{k}"):
-            html(cp.linha_sinal(e, v, _nome_de(v["usuario"]) if v else ""))
-            if v is None and pode(u.perfil, "validar_sinal"):
-                a, b = st.columns(2)
-                a.button("Confirmar", key=f"sconf_{k}", width="stretch",
-                         on_click=_validar_sinal, args=(e, "confirmado"))
-                with b.popover("Contestar", width="stretch"):
-                    st.text_input("Por que o sinal não confere?", key=f"snota_{k}")
-                    st.button("Contestar sinal", key=f"scont_{k}", on_click=_validar_sinal,
-                              args=(e, "contestado", f"snota_{k}"))
+    html(cp.feed_eventos(eventos, limite=8))
+
+
+SIMULAVEIS = {"cartao_lido": "Cartão encostado no leitor", "camera_pediu_tempo": "Câmera viu alguém com andador",
+              "pedido_atendido_apos_ambulancia": "Pedido atendido depois da ambulância"}
 
 
 def _enviar_simulado(no) -> None:
-    """Roda no clique, antes de a página ser montada: o sinal já aparece no feed desta mesma atualização."""
+    """Roda no clique, antes de a página ser montada: o sinal já aparece no registro desta mesma atualização."""
     seq = st.session_state.get("sim_seq", 0) + 1
     st.session_state["sim_seq"] = seq
-    evento = sn.evento_simulado(st.session_state.get("sim_tipo", "botao_pressionado"), int(time_mod.time()) * 100 + seq)
-    no.receber(m.TOPICO_EVENTO, json.dumps(evento).encode())
-    st.toast("Sinal simulado enviado ao feed")
+    base = int(time_mod.time()) * 100 + seq * 2
+    tipo = st.session_state.get("sim_tipo", "cartao_lido")
+    for k, t in enumerate([tipo] + (["travessia_estendida"] if tipo in ("cartao_lido", "camera_pediu_tempo") else [])):
+        no.receber(m.TOPICO_EVENTO, json.dumps(sn.evento_simulado(t, base + k)).encode())
+    st.toast("Sinal simulado enviado ao registro")
 
 
 def _simular_sinal(no) -> None:
     """Plano B da demonstração: o mesmo evento que o ESP32 mandaria, marcado como simulado."""
     with st.expander("Demonstração sem o ESP32: simular um sinal do nó"):
-        st.caption("Use se o Wokwi estiver fora do ar ou sem rede. O sinal entra no feed como se viesse do nó, com o "
-                   "selo simulado, e pode ser validado normalmente.")
-        tipos = {"botao_pressionado": "Botão de travessia apertado", "travessia_estendida": "Verde do pedestre estendido",
-                 "botao_recusado_ambulancia": "Botão recusado: ambulância chegando",
-                 "pedido_atendido_apos_ambulancia": "Pedido atendido depois da ambulância"}
-        st.selectbox("Sinal", list(tipos), format_func=tipos.get, key="sim_tipo")
-        st.button("Simular sinal do nó", key="sim_enviar", on_click=_enviar_simulado,
-                  args=(no,))
+        st.caption("Use se o Wokwi estiver fora do ar ou sem rede. O sinal entra no registro como se viesse do nó, "
+                   "com o selo simulado.")
+        st.selectbox("Sinal", list(SIMULAVEIS), format_func=SIMULAVEIS.get, key="sim_tipo")
+        st.button("Simular sinal do nó", key="sim_enviar", on_click=_enviar_simulado, args=(no,))
 
 
 # ---------------------------------------------------------------- câmeras

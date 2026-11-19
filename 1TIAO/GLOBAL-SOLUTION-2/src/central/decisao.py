@@ -21,6 +21,7 @@ class Entradas:
     chuva_mm_h: float | None = None      # None = sem dado
     chuva_simulada: bool = False
     pessoas_na_faixa: int = 0            # registros da visão de pessoa na faixa (último minuto, ou do vídeo de demo)
+    pcd_na_faixa: int = 0                # registros da visão de pessoa com andador, muleta, bengala ou cadeira
     ambulancia_eta_s: float | None = None
     ambulancia_passou: bool = False
 
@@ -52,6 +53,9 @@ def decidir(e: Entradas) -> Decisao:
                        f"chuva {e.chuva_mm_h:.1f} mm/h{origem}" + (" · risco de alagamento" if forte else ""))
     if em_horario_escola(e.quando):
         return Decisao("escola", {}, f"horário de entrada/saída de escola ({e.quando:%H:%M}, cenário)")
+    if e.pcd_na_faixa > 0:      # quem esqueceu o cartão: a câmera pede o tempo extra
+        return Decisao("pedestre", {"faixa_ocupada": True, "estendida": True},
+                       f"visão: pessoa com auxílio de mobilidade na faixa ({e.pcd_na_faixa} registros), tempo extra")
     if e.pessoas_na_faixa > 0:
         return Decisao("pedestre", {"faixa_ocupada": True}, f"visão: {e.pessoas_na_faixa} registros de pessoa na faixa")
     chuva = "chuva: sem dado" if e.chuva_mm_h is None else "sem chuva"     # falta de dado não vira fato

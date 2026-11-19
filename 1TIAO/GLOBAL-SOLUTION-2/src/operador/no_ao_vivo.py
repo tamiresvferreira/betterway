@@ -13,7 +13,8 @@ from datetime import datetime
 import mensagens as m
 from despacho import Despachante, despachadas_recentes
 
-CENARIOS = {"normal": ("normal", {}), "pedestre": ("pedestre", {"faixa_ocupada": True}), "escola": ("escola", {}),
+CENARIOS = {"normal": ("normal", {}), "pedestre": ("pedestre", {"faixa_ocupada": True}),
+            "camera_tempo": ("pedestre", {"faixa_ocupada": True, "estendida": True}), "escola": ("escola", {}),
             "chuva": ("chuva", {"alagamento": False}), "alagamento": ("chuva", {"alagamento": True}),
             "ambulancia": ("ambulancia", {"eta_s": 40})}
 

@@ -20,9 +20,11 @@ TOPICO_EVENTO = PREFIXO + "evento"
 VERSAO = 1
 MODOS = ("normal", "pedestre", "escola", "chuva", "ambulancia")
 # campo opcional → modo em que ele é permitido
-OPCIONAIS = {"faixa_ocupada": "pedestre", "alagamento": "chuva", "eta_s": "ambulancia", "fim": "ambulancia"}
+OPCIONAIS = {"faixa_ocupada": "pedestre", "estendida": "pedestre", "alagamento": "chuva", "eta_s": "ambulancia",
+             "fim": "ambulancia"}
 TIPOS_EVENTO = frozenset({
-    "botao_pressionado", "travessia_estendida", "botao_recusado_ambulancia", "pedido_atendido_apos_ambulancia",
+    "cartao_lido", "camera_pediu_tempo", "travessia_estendida", "pedido_recusado_ambulancia",
+    "pedido_atendido_apos_ambulancia",
     "modo_alterado", "sem_central_volta_normal", "comando_invalido",
 })
 

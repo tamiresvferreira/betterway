@@ -46,9 +46,10 @@ def semaforo_svg(fase: str | None) -> str:
 
 # ---------------------------------------------------------------- feed de eventos do nó
 _EVENTOS_NO = {
-    "botao_pressionado": ("pedestre", "Botão de travessia apertado"),
+    "cartao_lido": ("pedestre", "Cartão lido: pedido de mais tempo"),
+    "camera_pediu_tempo": ("camera", "A câmera viu quem precisa de mais tempo"),
     "travessia_estendida": ("pedestre", "Verde do pedestre estendido"),
-    "botao_recusado_ambulancia": ("ambulancia", "Botão recusado: ambulância chegando"),
+    "pedido_recusado_ambulancia": ("ambulancia", "Pedido adiado: ambulância chegando"),
     "pedido_atendido_apos_ambulancia": ("ok", "Pedido atendido depois da ambulância"),
     "modo_alterado": ("rota", "Modo mudou para {modo}"),
     "sem_central_volta_normal": ("alerta", "Sem contato com a central: voltou ao normal"),
@@ -97,7 +98,8 @@ def feed_eventos(eventos: list[dict], limite: int = 12) -> str:
         modo = (e.get("detalhe") or {}).get("modo")
         txt = txt.format(modo=_MODOS.get(modo, modo or "?"))
         cor = AMBAR if ic == "alerta" else VERDE
-        itens.append(f'<li>{icone(ic, cor, 20)}<span>{esc(txt)}</span><time>{_hora(e.get("recebido_em"))}</time></li>')
+        selo = ' <span class="bw-sim">simulado</span>' if (e.get("detalhe") or {}).get("simulado") else ""
+        itens.append(f'<li>{icone(ic, cor, 20)}<span>{esc(txt)}{selo}</span><time>{_hora(e.get("recebido_em"))}</time></li>')
     return '<ul class="bw-feed">' + "".join(itens) + "</ul>"
 
 

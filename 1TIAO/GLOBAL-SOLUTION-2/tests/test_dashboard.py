@@ -25,7 +25,7 @@ def banco(tmp_path):
         [(139, -23.5418, -46.6161, 2, 20, 26, 150, 5.8, 40, 26, 12, 1.0, "AVENIDA RANGEL PESTANA", 100, 8, "x", 0, 4),
          (1, -23.60, -46.70, 5, 30, 45, 300, 6.7, 1, 1, 20, 1.0, "AVENIDA X", 100, 8, "x", 2, 1)])
     con.execute("INSERT INTO eventos (timestamp, origem, cluster_id, tipo, payload_json, chave) VALUES "
-                "('2026-11-17T08:00:00-03:00', 'esp32', 139, 'botao_recusado_ambulancia', '{}', 'k1')")
+                "('2026-11-17T08:00:00-03:00', 'esp32', 139, 'pedido_recusado_ambulancia', '{}', 'k1')")
     con.execute("INSERT INTO alertas (timestamp, cluster_id, modo, motivo, risco, enviado) VALUES "
                 "('2026-11-17T08:00:00-03:00', 139, 'chuva', 'chuva 6,0 mm/h (SIMULADA)', 0.008, 1)")
     con.commit()

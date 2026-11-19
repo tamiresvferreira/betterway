@@ -12,10 +12,10 @@ def test_semaforo_acende_a_luz_certa_e_escreve_o_estado():
 
 
 def test_feed_traduz_os_eventos_do_no():
-    h = cp.feed_eventos([{"tipo": "botao_recusado_ambulancia", "recebido_em": "2026-11-18T17:40:02-03:00"},
+    h = cp.feed_eventos([{"tipo": "pedido_recusado_ambulancia", "recebido_em": "2026-11-18T17:40:02-03:00"},
                          {"tipo": "modo_alterado", "detalhe": {"modo": "chuva"}, "recebido_em": "2026-11-18T17:39:00-03:00"},
                          {"tipo": "desconhecido", "recebido_em": "2026-11-18T17:38:00-03:00"}])
-    assert "Botão recusado: ambulância chegando" in h and "17:40" in h
+    assert "Pedido adiado: ambulância chegando" in h and "17:40" in h
     assert "Modo mudou para Chuva" in h and "desconhecido" in h
     assert "Nenhum evento" in cp.feed_eventos([])
 

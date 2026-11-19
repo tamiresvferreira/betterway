@@ -209,26 +209,24 @@ def test_relatorio_pela_camera_com_ambulancia_vai_para_a_saude(banco):
     assert "Avenida do Imperador" in _texto(saude) and "relatório Nº" in _texto(saude)
 
 
-def test_saude_valida_sinal_simulado_e_fica_quem_e_area(banco):
+def test_sala_registra_cartao_e_camera_sem_validacao_manual(banco):
     at = _ir(_entrar("saude1"), "sala-de-controle")
     assert not at.exception, at.exception
+    at.selectbox(key="sim_tipo").set_value("cartao_lido")
     at.button(key="sim_enviar").click().run()
-    assert not at.exception, at.exception
-    [conf] = [b for b in at.button if (b.key or "").startswith("sconf_simulado_")][:1]
-    conf.click().run()
+    at.selectbox(key="sim_tipo").set_value("camera_pediu_tempo")
+    at.button(key="sim_enviar").click().run()
     assert not at.exception, at.exception
     txt = _texto(at)
-    assert "Confirmado por Operador(a) saude 1 (saude1) · Saúde" in txt and "simulado" in txt
-    linha = sqlite3.connect(banco).execute("SELECT usuario, area, decisao FROM validacoes_sinais").fetchall()
-    assert linha[-1] == ("saude1", "Saúde", "confirmado")
+    assert "Cartão lido: pedido de mais tempo" in txt and "A câmera viu quem precisa de mais tempo" in txt
+    assert "Verde do pedestre estendido" in txt and "simulado" in txt
+    assert not [b for b in at.button if (b.key or "").startswith(("sconf_", "scont_"))]   # ninguém precisa liberar
 
 
-def test_gestao_ve_os_sinais_mas_nao_valida(banco):
-    at = _ir(_entrar("gestao1"), "sala-de-controle")
-    at.button(key="sim_enviar").click().run()
+def test_transito_ve_o_modo_camera_pede_tempo(banco):
+    at = _ir(_entrar("transito1"), "sala-de-controle")
     assert not at.exception, at.exception
-    assert not [b for b in at.button if (b.key or "").startswith("sconf_")]
-    assert "Aguardando validação do Trânsito ou da Saúde" in _texto(at)
+    assert "cen_camera_tempo" in {b.key for b in at.button}
 
 
 def test_convite_pela_tela_e_login_com_codigo(banco):

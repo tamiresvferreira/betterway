@@ -37,10 +37,10 @@ def test_no_ao_vivo_guarda_o_ultimo_estado_e_os_eventos():
     enviados = []
     no = nav.NoAoVivo(publicar_bruto=lambda t, p: enviados.append((t, p)) or True)
     no.receber(m.TOPICO_ESTADO, json.dumps({"v": 1, "modo": "chuva", "fase": "verde_veiculos"}).encode())
-    no.receber(m.TOPICO_EVENTO, json.dumps({"v": 1, "tipo": "botao_pressionado", "seq": 1, "boot": "x"}).encode())
+    no.receber(m.TOPICO_EVENTO, json.dumps({"v": 1, "tipo": "cartao_lido", "seq": 1, "boot": "x"}).encode())
     no.receber(m.TOPICO_EVENTO, b"lixo")
     assert no.estado["modo"] == "chuva" and no.estado_recebido_em is not None
-    assert [e["tipo"] for e in no.eventos] == ["botao_pressionado"]
+    assert [e["tipo"] for e in no.eventos] == ["cartao_lido"]
     assert no.publicar(m.comando("escola"))
     assert enviados[0][0] == m.TOPICO_COMANDO and json.loads(enviados[0][1])["modo"] == "escola"
 

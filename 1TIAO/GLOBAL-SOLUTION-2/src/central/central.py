@@ -167,7 +167,9 @@ def main(argv=None):
                 elif t < a.ambulancia[0] / (a.ambulancia[1] / 3.6) + 1:
                     amb["ambulancia_passou"] = True
             e = d.Entradas(quando=quando, chuva_mm_h=chuva_real,
-                           pessoas_na_faixa=f.pessoas_na_faixa(con, desde=quando - timedelta(minutes=1)), **amb)
+                           pessoas_na_faixa=f.pessoas_na_faixa(con, desde=quando - timedelta(minutes=1)),
+                           pcd_na_faixa=f.pessoas_na_faixa(con, desde=quando - timedelta(minutes=1), tipo="pcd_na_faixa"),
+                           **amb)
             hora = quando.strftime("%H:%M")
         else:
             if t > DURACAO_DEMO_S:
