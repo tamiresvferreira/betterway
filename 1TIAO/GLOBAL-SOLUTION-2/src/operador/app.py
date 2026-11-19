@@ -159,8 +159,10 @@ CSS_LOGIN = """
 .bw-login-video {{ position: fixed; inset: 0; width: 100vw; height: 100vh; object-fit: cover; object-position: 30% center;
   z-index: -2; pointer-events: none; }}
 .bw-login-veu {{ position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(270deg, rgba(11,15,18,.94) 0%, rgba(11,15,18,.82) 32%, rgba(11,15,18,.25) 62%,
-              rgba(11,15,18,.05) 100%); }}
+  background: radial-gradient(ellipse 30% 48% at 80% 50%, rgba(11,15,18,.5) 0%, rgba(11,15,18,.28) 55%,
+              rgba(11,15,18,0) 100%); }}
+.bw-login-titulo, .bw-login-sub {{ text-shadow: 0 1px 12px rgba(0,0,0,.45); }}
+[data-testid="stForm"] {{ background: rgba(20, 23, 27, .62) !important; backdrop-filter: blur(10px); }}
 /* o login é sempre escuro (fica sobre o vídeo), qualquer que seja o tema escolhido */
 .bw-login-titulo, .bw-login-sub, [data-testid="stForm"] label, [data-testid="stForm"] label p
   {{ color: #F4F4EF !important; }}
@@ -297,6 +299,17 @@ def sair() -> None:
     st.rerun()
 
 
+def tema() -> str:
+    """Tema da sessão: começa no do sistema e muda pelo botão de sol e lua."""
+    if "tema" not in st.session_state:
+        st.session_state["tema"] = "light" if st.context.theme.type == "light" else "dark"
+    return st.session_state["tema"]
+
+
+def _trocar_tema() -> None:
+    st.session_state["tema"] = "dark" if tema() == "light" else "light"
+
+
 def html(conteudo: str) -> None:
     st.markdown(conteudo, unsafe_allow_html=True)
 
@@ -329,25 +342,33 @@ def pagina_visao_geral() -> None:
     """Quatro cenários, um por vez: o take da câmera ao lado da simulação. A seta troca o cenário, sem rolar."""
     i = st.session_state.get("vg_cenario", 0) % len(vg.CENARIOS)
     c = vg.CENARIOS[i]
-    html(f'<div class="bw-vg-chamada">{LEMA}</div><p class="bw-vg-sub">Os semáforos de hoje funcionam no relógio: o '
-         'tempo é o mesmo para todos, com ou sem gente na faixa. A BetterWay dá olhos ao semáforo. A câmera vê a '
-         'faixa, a plataforma entende o risco do momento e o sinal se ajusta na hora, para quem atravessa, para quem '
-         'dirige e para a ambulância que precisa passar.</p>')
+    passos = [("camera", "Vê a faixa", "quem atravessa e quem precisa de mais tempo"),
+              ("decide", "Entende o momento", "câmera, chuva, horário e histórico do local"),
+              ("semaforo", "Ajusta o sinal", "na hora, para pedestres, carros e ambulância")]
+    lista = "".join(f'<li><span class="bw-chip">{es.icone(ic, es.DESTAQUE, 22)}</span><div><b>{es.esc(t)}</b>'
+                    f'<span class="t">{es.esc(d)}</span></div></li>' for ic, t, d in passos)
+    html(f'<section class="bw-abertura"><div><span class="bw-chip">{es.icone("semaforo", es.DESTAQUE, 24)}</span>'
+         f'<div class="lema">{LEMA}</div><p>Os semáforos de hoje funcionam no relógio: o tempo é o mesmo para todos, '
+         f'com ou sem gente na faixa. A BetterWay dá olhos ao semáforo.</p></div><ul>{lista}</ul></section>')
     with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
-        html(f'<div class="bw-vg-topo"><span class="icone">{es.icone(c.icone, es.VERDE, 24)}</span><div>'
-             f'<div class="verbo">{es.esc(c.verbo)}</div><div class="titulo">{es.esc(c.titulo)}</div>'
-             f'<p>{es.esc(c.texto)}</p></div></div>')
-        volta, video, sim, seta = st.columns([1.3, 10, 13, 1.3], gap="medium", vertical_alignment="center")
+        volta, esquerda, sim, seta = st.columns([1.5, 11, 13, 1.5], gap="small", vertical_alignment="center")
         with volta:
             st.button("", icon=":material/arrow_back:", key="vg_anterior", help="Cenário anterior",
                       on_click=_ir_cenario, args=(vg.anterior(i),))
-        with video:
+        with esquerda:
+            html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone(c.icone, es.DESTAQUE, 22)}</span><div>'
+                 f'<div class="verbo">{es.esc(c.verbo)}</div><div class="titulo">{es.esc(c.titulo)}</div>'
+                 f'<p>{es.esc(c.texto)}</p></div></div>')
             html(_video_cenario(c))
         with sim:
             _player(c.cena, compacto=True)
         with seta:
             st.button("", icon=":material/arrow_forward:", key="vg_proximo", help="Próximo cenário",
                       on_click=_ir_cenario, args=(vg.proximo(i),))
+        _pontos_cenario(i)
+
+
+def _pontos_cenario(i: int) -> None:
     with st.container(horizontal=True, key="vg_pontos", vertical_alignment="center", gap="small"):
         for n, outro in enumerate(vg.CENARIOS):
             st.button(str(n + 1), key=f"vg_ponto_{n}", help=outro.titulo, disabled=n == i,
@@ -364,7 +385,7 @@ def _player(cena: str, compacto: bool = False) -> None:
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=540 if compacto else 800,
+    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=500 if compacto else 800,
                     scrolling=False)
 
 
@@ -375,47 +396,47 @@ def pagina_sobre() -> None:
     pil = consultar("SELECT COUNT(*) AS n, SUM(fatal) AS f FROM sinistros WHERE cluster_id = ?", (PILOTO,))
     n_pil, f_pil = (int(pil.n.iloc[0]), int(pil.f.iloc[0] or 0)) if not pil.empty else (None, None)
     st.title("Sobre a BetterWay")
-    html('<p class="bw-nota" style="font-size:17px;color:var(--bw-texto-2);max-width:72ch">Uma plataforma de segurança viária '
-         'que junta dados reais de atropelamentos, uma câmera que entende a faixa de pedestres e um semáforo '
-         'conectado, para proteger quem atravessa e fazer o trânsito andar. Sem identificar ninguém.</p>')
+    html(es.superficie("semaforo", "Um semáforo que enxerga a faixa",
+                       "<p>Uma plataforma de segurança viária que junta dados reais de atropelamentos, uma câmera que "
+                       "entende a faixa de pedestres e um semáforo conectado, para proteger quem atravessa e fazer o "
+                       "trânsito andar. Sem identificar ninguém.</p>"))
     html('<div class="bw-secao">Como funciona, do começo ao fim</div>')
-    html("""<div class="bw-passos">
-      <div class="bw-passo"><span class="n">1</span><b>A câmera vê a faixa</b><span>Conta quem atravessa, mede o
-        tempo e percebe conflitos com veículos. Rostos e placas saem borrados.</span></div>
-      <div class="bw-passo"><span class="n">2</span><b>A central decide</b><span>Junta câmera, chuva, horário e o
-        histórico do local, e escolhe o modo do semáforo.</span></div>
-      <div class="bw-passo"><span class="n">3</span><b>O nó na faixa age</b><span>O ESP32 estende o verde, avisa
-        os motoristas no painel de LED ou dá prioridade à ambulância.</span></div>
-      <div class="bw-passo"><span class="n">4</span><b>A equipe valida</b><span>Trânsito confirma cada suspeita de
-        acidente; Saúde recebe o alerta e despacha o atendimento.</span></div>
-    </div>""")
-    _barras_sistema()
-    c1, c2 = st.columns(2, gap="large")
-    with c1:
-        html('<div class="bw-secao">O piloto: Largo da Concórdia, no Brás</div>')
-        texto = (f"{n_pil} atropelamentos entre 2022 e 2025, {f_pil} com morte. " if n_pil else "") + \
-            "Uma avenida de seis faixas com 16 metros de travessia: mais do que muita gente consegue atravessar no " \
-            "tempo do verde." + (f" A plataforma ordena {n_grupos} pontos críticos urbanos da cidade." if n_grupos else "")
-        html(f'<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">{es.esc(texto)}</p>')
-        html('<div class="bw-secao">Privacidade</div>')
-        html('<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">Nenhum rosto é reconhecido. Rostos e placas '
-             'saem borrados antes de qualquer imagem ser mostrada, e o sistema guarda só números e horários. Cada vez '
-             'que alguém abre uma câmera, o acesso fica registrado com nome e horário.</p>')
-    with c2:
-        html('<div class="bw-secao">De onde vêm os dados</div>')
-        html("""<div class="bw-tempo">
+    passos = [("camera", "A câmera vê a faixa", "Conta quem atravessa, mede o tempo e percebe conflitos com veículos. "
+               "Rostos e placas saem borrados."),
+              ("decide", "A central decide", "Junta câmera, chuva, horário e o histórico do local, e escolhe o modo "
+               "do semáforo."),
+              ("semaforo", "O nó na faixa age", "O ESP32 estende o verde, avisa os motoristas no painel de LED ou dá "
+               "prioridade à ambulância."),
+              ("ok", "A equipe valida", "Trânsito confirma cada suspeita de acidente; Saúde recebe o alerta e "
+               "despacha o atendimento.")]
+    html('<div class="bw-passos2">' + "".join(
+        es.superficie(ic, t, f"<p>{es.esc(d)}</p>").replace("</h3>", f'</h3><span class="n">{n} de 4</span>', 1)
+        for n, (ic, t, d) in enumerate(passos, 1)) + "</div>")
+    with st.container(key="sup_barras"):
+        _barras_sistema()
+    piloto = (f"{n_pil} atropelamentos entre 2022 e 2025, {f_pil} com morte. " if n_pil else "") + \
+        "Uma avenida de seis faixas com 16 metros de travessia: mais do que muita gente consegue atravessar no " \
+        "tempo do verde." + (f" A plataforma ordena {n_grupos} pontos críticos urbanos da cidade." if n_grupos else "")
+    dados = """<div class="bw-tempo">
           <div><span class="h">Acidentes</span><span>Infosiga-SP, atropelamentos de 2022 a 2025</span></div>
           <div><span class="h">Chuva</span><span>Open-Meteo, previsão hora a hora</span></div>
           <div><span class="h">Cidade</span><span>OpenStreetMap e GeoSampa: semáforos e escolas</span></div>
           <div><span class="h">Câmera</span><span>vídeos públicos (Pexels) e clipes gerados por IA para testes</span></div>
           <div><span class="h">Trânsito</span><span>simulação no SUMO de um cruzamento com as medidas do piloto</span></div>
-        </div>""")
-        html('<div class="bw-secao" style="margin-top:20px">Limites</div>')
-        html('<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">Os ganhos no trânsito são resultados esperados '
-             'de simulação. Só o Largo da Concórdia tem câmera instalada; as outras câmeras da rede são simuladas. A '
-             'ambulância despachada é simulada e não há integração com a CET ou o SAMU.</p>')
-    _clipes_sinteticos()
-    html('<p class="bw-nota" style="margin-top:28px">Global Solution FIAP 2026.2 · Tamires Vitória Ferreira dos Santos, '
+        </div>"""
+    html('<div class="bw-grade">'
+         + es.superficie("pino", "O piloto: Largo da Concórdia, no Brás", f"<p>{es.esc(piloto)}</p>")
+         + es.superficie("cadeado", "Privacidade", "<p>Nenhum rosto é reconhecido. Rostos e placas saem borrados antes "
+                         "de qualquer imagem ser mostrada, e o sistema guarda só números e horários. Cada vez que "
+                         "alguém abre uma câmera, o acesso fica registrado com nome e horário.</p>")
+         + es.superficie("dados", "De onde vêm os dados", dados)
+         + es.superficie("info", "Limites", "<p>Os ganhos no trânsito são resultados esperados de simulação. Só o Largo "
+                         "da Concórdia tem câmera instalada; as outras câmeras da rede são simuladas. A ambulância "
+                         "despachada é simulada e não há integração com a CET ou o SAMU.</p>")
+         + "</div>")
+    with st.container(key="sup_clipes"):
+        _clipes_sinteticos()
+    html('<p class="bw-nota" style="margin-top:12px">Global Solution FIAP 2026.2 · Tamires Vitória Ferreira dos Santos, '
          'turma 1TIAO.</p>')
 
 
@@ -524,8 +545,8 @@ def _curva_risco(quando: datetime) -> None:
         return
     df = pd.DataFrame(pontos)
     df["rotulo"] = df["hora"].map(lambda h: f"{h:02d}h")
-    tema = st.context.theme.type
-    c_texto, c_muted, c_borda = es.cor("texto", tema), es.cor("muted", tema), es.cor("borda", tema)
+    t = tema()
+    c_texto, c_muted, c_borda = es.cor("texto", t), es.cor("muted", t), es.cor("borda", t)
     base = alt.Chart(df).encode(x=alt.X("hora:Q", title=None, scale=alt.Scale(domain=[0, 23]),
                                         axis=alt.Axis(values=list(range(0, 24, 3)), labelExpr="datum.value + 'h'")))
     area = base.mark_area(color=es.VERDE, opacity=0.14, interpolate="monotone").encode(y="risco:Q")
@@ -1264,13 +1285,13 @@ POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "e
 
 def main() -> None:
     st.set_page_config(page_title="BetterWay", page_icon=str(MARCA / "betterway-simbolo.png"), layout="wide")
-    html(es.tokens(st.context.theme.type) + es.CSS + cp.CSS)
+    html(es.tokens(tema()) + es.CSS + cp.CSS)
     u = usuario()
     if u is None:
         st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
         return
-    fundo_claro = st.context.theme.type == "light"
-    st.logo(str(MARCA / f"betterway-logo-horizontal-{'claro' if fundo_claro else 'escuro'}.png"), size="large")
+    fundo_claro = tema() == "light"
+    st.logo(str(MARCA / f"betterway-logo-horizontal-{'fundo-claro' if fundo_claro else 'escuro'}.png"), size="large")
     pf = au.perfil(conexao(), u.usuario)
     PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil",
                                 icon=":material/account_circle:", url_path="perfil")
@@ -1280,6 +1301,10 @@ def main() -> None:
         st.switch_page(PAGINAS[alvo])
     with st.container(key="leitor"):                      # acessibilidade: lê a página em voz alta
         components.html(leitor.html_botao(), height=40)
+    with st.container(key="tema_btn"):
+        claro = tema() == "light"
+        st.button("", icon=":material/dark_mode:" if claro else ":material/light_mode:", key="tema_trocar",
+                  help="Mudar para o modo escuro" if claro else "Mudar para o modo claro", on_click=_trocar_tema)
     nav.run()
 
 

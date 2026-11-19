@@ -14,13 +14,15 @@ CARTAO, CLARO, MUTED, DESTAQUE = "var(--bw-cartao)", "var(--bw-texto)", "var(--b
 AMBAR, ALERTA, ALERTA_INK = "#FFB000", "#E63946", "var(--bw-alerta-texto)"
 
 TEMAS = {
-    "escuro": {"fundo": "#1A1D21", "cartao": "#2A2E33", "cartao-2": "var(--bw-cartao-2)", "borda": "var(--bw-borda)",
-               "texto": "#F4F4EF", "texto-2": "var(--bw-texto-2)", "muted": "#9AA1AA", "trilho": "var(--bw-trilho)",
-               "destaque": "#00C27A", "alerta-texto": "#FF6B6B", "ambar-texto": "#FFB000", "sombra": "none"},
-    "claro": {"fundo": "#ECEEEA", "cartao": "#FAFAF8", "cartao-2": "#F1F2EE", "borda": "#DCDFD9",
-              "texto": "#1A1D21", "texto-2": "#3D434A", "muted": "#5F666E", "trilho": "#D3D7D0",
-              "destaque": "#00804F", "alerta-texto": "#C62834", "ambar-texto": "#8A5A00",
-              "sombra": "0 1px 2px rgba(26,29,33,.04), 0 8px 24px rgba(26,29,33,.05)"},
+    "escuro": {"fundo": "#1A1D21", "cartao": "#24282D", "cartao-2": "#1E2125", "menu": "#2A2E33", "borda": "#33383F",
+               "texto": "#F4F4EF", "texto-2": "#D9DAD5", "muted": "#A3AAB2", "trilho": "#4A5058",
+               "destaque": "#00C27A", "alerta-texto": "#FF6B6B", "ambar-texto": "#FFB000", "chip": "#1F3A2F",
+               "sombra": "0 1px 0 rgba(255,255,255,.03) inset", "vidro": "none"},
+    "claro": {"fundo": "#E4E7E2", "cartao": "rgba(255,255,255,.80)", "cartao-2": "#F2F3F0", "menu": "#FFFFFF",
+              "borda": "rgba(26,29,33,.09)", "texto": "#1A1D21", "texto-2": "#353B42", "muted": "#5A6169",
+              "trilho": "#D3D7D0", "destaque": "#00804F", "alerta-texto": "#C62834", "ambar-texto": "#8A5A00",
+              "chip": "#E2F4EA", "sombra": "0 1px 2px rgba(26,29,33,.04), 0 10px 30px rgba(26,29,33,.06)",
+              "vidro": "blur(14px)"},
 }
 
 
@@ -34,9 +36,38 @@ def tokens(tipo: str | None) -> str:
     t = TEMAS["claro" if tipo == "light" else "escuro"]
     return "<style>:root{" + "".join(f"--bw-{k}:{v};" for k, v in t.items()) + "}</style>"
 
+
+def superficie(icone_nome: str | None, titulo: str, corpo: str, classe: str = "") -> str:
+    """Cartão com ícone em círculo, título e conteúdo (HTML já escapado)."""
+    chip = f'<span class="bw-chip">{icone(icone_nome, DESTAQUE, 22)}</span>' if icone_nome else ""
+    return (f'<section class="bw-sup {classe}"><div class="bw-sup-topo">{chip}<h3>{esc(titulo)}</h3></div>'
+            f'{corpo}</section>')
+
 CSS = f"""
 <style>
-.block-container {{ max-width: 100% !important; padding: 2.75rem 2.5rem 3rem !important; }}
+html {{ font-size: 17px; }}
+.block-container {{ max-width: 1440px !important; padding: 4.25rem 2.75rem 3.5rem !important; }}
+[data-testid="stHeaderLogo"], [data-testid="stLogo"] {{ height: 2.5rem !important; max-height: 2.5rem !important; }}
+.stApp, [data-testid="stAppViewContainer"] {{ background: var(--bw-fundo) !important; color: var(--bw-texto); }}
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp label, .stApp li, [data-testid="stMarkdownContainer"] p,
+[data-testid="stWidgetLabel"] p, [data-testid="stExpander"] summary p {{ color: var(--bw-texto); }}
+.stApp h1 {{ font-size: 2.35rem !important; }}
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {{ color: var(--bw-muted) !important;
+  font-size: .95rem !important; }}
+[data-testid="stHeader"] a, [data-testid="stHeader"] a span {{ color: var(--bw-texto) !important; }}
+[data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div,
+.stApp input, .stApp textarea, [data-testid="stTextInputRootElement"] {{ background: var(--bw-cartao-2) !important;
+  color: var(--bw-texto) !important; border-color: var(--bw-borda) !important; }}
+[data-baseweb="select"] span, [data-baseweb="select"] div {{ color: var(--bw-texto); }}
+[data-baseweb="popover"] > div, [data-baseweb="menu"], [role="listbox"], [data-testid="stPopoverBody"]
+  {{ background: var(--bw-menu) !important; color: var(--bw-texto) !important; }}
+[role="option"], [role="option"] * {{ color: var(--bw-texto) !important; }}
+.stApp button[kind="secondary"], .stApp [data-testid="stBaseButton-secondary"], .stApp [data-testid="stPopoverButton"]
+  {{ background: var(--bw-cartao); color: var(--bw-texto); border-color: var(--bw-borda); }}
+.stApp button[kind="secondary"] p, .stApp [data-testid="stPopoverButton"] p {{ color: var(--bw-texto); }}
+[data-testid="stExpander"] details {{ background: var(--bw-cartao); border-color: var(--bw-borda) !important;
+  border-radius: 20px !important; }}
+[data-testid="stCheckbox"] label span {{ border-color: var(--bw-trilho); }}
 @media (max-width: 760px) {{ .block-container {{ padding: 2rem 1rem 2.5rem !important; }} }}
 [data-testid="stHeader"] {{ background: var(--bw-fundo); border-bottom: 1px solid var(--bw-borda); }}
 h1, h2, h3 {{ letter-spacing: -0.015em; }}
@@ -72,8 +103,8 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-passo b {{ display: block; font-size: 16px; margin: 8px 0 4px; }}
 .bw-passo span {{ color: var(--bw-texto-2); font-size: 14px; line-height: 1.5; }}
 .bw-passo .n {{ color: {DESTAQUE}; font-weight: 700; font-size: 14px; }}
-.bw-secao {{ font-size: 22px; font-weight: 600; margin: 8px 0 12px; }}
-.bw-nota {{ color: {MUTED}; font-size: 14px; line-height: 1.5; }}
+.bw-secao {{ font-size: 1.35rem; font-weight: 600; margin: 8px 0 14px; color: var(--bw-texto); }}
+.bw-nota {{ color: {MUTED}; font-size: 15px; line-height: 1.55; }}
 .bw-kpi {{ background: {CARTAO}; border-radius: 22px; padding: 18px 20px; border: 1px solid var(--bw-borda);
   box-shadow: var(--bw-sombra); }}
 .bw-kpi .r {{ color: {MUTED}; font-size: 14px; font-weight: 500; }}
@@ -115,6 +146,43 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .st-key-leitor {{ position: fixed; top: 4px; right: 16px; width: 200px; height: 40px; z-index: 1000000; }}
 .st-key-leitor iframe {{ height: 40px; }}
 @media (max-width: 760px) {{ .st-key-leitor {{ top: auto; bottom: 12px; right: 12px; }} }}
+/* superfícies: tudo que é conteúdo mora num cartão */
+.bw-sup, [class*="st-key-sup_"] {{ background: var(--bw-cartao); border: 1px solid var(--bw-borda); border-radius: 28px;
+  padding: 24px 26px; box-shadow: var(--bw-sombra); backdrop-filter: var(--bw-vidro); margin-bottom: 18px; }}
+[class*="st-key-sup_"] {{ gap: .6rem; }}
+.bw-sup-topo {{ display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }}
+.bw-sup h3, .bw-sup-topo h3 {{ font-size: 1.2rem; font-weight: 600; margin: 0; padding: 0; color: var(--bw-texto); }}
+.bw-sup p {{ font-size: 1rem; line-height: 1.6; color: var(--bw-texto-2); margin: 0; max-width: 70ch; }}
+.bw-chip {{ width: 46px; height: 46px; border-radius: 50%; background: var(--bw-chip); display: grid;
+  place-items: center; flex: none; }}
+.bw-grade {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 18px; }}
+.bw-grade .bw-sup {{ margin: 0; }}
+.bw-passos2 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 18px; }}
+.bw-passos2 .bw-sup {{ margin: 0; }}
+.bw-passos2 .n {{ color: var(--bw-muted); font-weight: 600; font-size: .9rem; margin-left: auto; white-space: nowrap; }}
+.bw-abertura {{ position: relative; overflow: hidden; background: var(--bw-cartao); border: 1px solid var(--bw-borda);
+  border-radius: 32px; padding: 24px 34px; box-shadow: var(--bw-sombra); backdrop-filter: var(--bw-vidro);
+  margin: 0 0 18px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 26px;
+  align-items: center; }}
+.bw-abertura::after {{ content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 18px;
+  background: repeating-linear-gradient(180deg, {VERDE} 0 16px, transparent 16px 30px); opacity: .9; }}
+.bw-abertura .lema {{ font-size: clamp(1.6rem, 2.3vw, 2.25rem); font-weight: 700; letter-spacing: -0.02em;
+  line-height: 1.1; margin: 10px 0 10px; color: var(--bw-texto); }}
+.bw-abertura .lema span {{ color: {DESTAQUE}; }}
+.bw-abertura p {{ font-size: 1.05rem; line-height: 1.6; color: var(--bw-texto-2); margin: 0; max-width: 56ch; }}
+.bw-abertura ul {{ list-style: none; margin: 0; padding: 0 18px 0 0; display: grid; gap: 8px; align-content: center; }}
+.bw-abertura li {{ display: grid; grid-template-columns: 46px 1fr; gap: 14px; align-items: center;
+  background: var(--bw-cartao-2); border-radius: 18px; padding: 6px 14px 6px 6px; }}
+.bw-abertura li b {{ display: block; font-size: 1rem; color: var(--bw-texto); }}
+.bw-abertura li span.t {{ font-size: .92rem; color: var(--bw-muted); line-height: 1.4; }}
+@media (max-width: 900px) {{ .bw-abertura {{ grid-template-columns: 1fr; padding: 24px; }} }}
+[class*="st-key-vg_cena_"] {{ background: var(--bw-cartao); border: 1px solid var(--bw-borda); border-radius: 32px;
+  padding: 24px 22px 18px; box-shadow: var(--bw-sombra); backdrop-filter: var(--bw-vidro); }}
+.st-key-tema_btn {{ position: fixed; top: 6px; right: 228px; z-index: 1000000; width: auto; }}
+.st-key-tema_btn button {{ width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%;
+  background: var(--bw-cartao) !important; border: 1px solid var(--bw-borda) !important; }}
+.st-key-tema_btn button span {{ font-size: 22px; color: var(--bw-texto); }}
+@media (max-width: 760px) {{ .st-key-tema_btn {{ top: auto; bottom: 12px; right: auto; left: 12px; }} }}
 /* Câmeras: o cartão inteiro é clicável (botão transparente por cima, com foco visível no teclado) */
 [class*="st-key-camcard_"] {{ position: relative; gap: 0; }}
 [class*="st-key-camcard_"] .bw-cam {{ transition: border-color .15s ease-out, transform .15s ease-out; }}
@@ -131,11 +199,11 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
   margin: 0 0 14px; color: {CLARO}; }}
 .bw-vg-chamada span {{ color: {DESTAQUE}; }}
 .bw-vg-sub {{ font-size: 16px; line-height: 1.55; color: var(--bw-texto-2); margin: -6px 0 18px; max-width: 88ch; }}
-.bw-vg-topo {{ display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; max-width: 92ch; }}
+.bw-vg-topo {{ display: flex; gap: 14px; align-items: flex-start; margin: 0 0 16px; }}
 .bw-vg-topo .icone {{ margin-top: 2px; }}
-.bw-vg-topo .verbo {{ color: {DESTAQUE}; font-weight: 600; font-size: 13px; }}
-.bw-vg-topo .titulo {{ font-size: 21px; font-weight: 700; margin: 1px 0 3px; }}
-.bw-vg-topo p {{ font-size: 15px; line-height: 1.45; color: var(--bw-texto-2); margin: 0; }}
+.bw-vg-topo .verbo {{ color: {DESTAQUE}; font-weight: 600; font-size: .9rem; }}
+.bw-vg-topo .titulo {{ font-size: 1.35rem; font-weight: 700; margin: 1px 0 4px; color: var(--bw-texto); }}
+.bw-vg-topo p {{ font-size: 1rem; line-height: 1.5; color: var(--bw-texto-2); margin: 0; max-width: 80ch; }}
 .bw-vg-video {{ border-radius: 24px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000; aspect-ratio: 16 / 9; }}
 .bw-vg-video video {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
 .bw-vg-video.vazio {{ background: {CARTAO}; display: grid; place-items: center; text-align: center; }}
@@ -145,12 +213,13 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 [class*="st-key-vg_cena_"] {{ animation: bw-entra .4s ease-out both; }}
 @keyframes bw-entra {{ from {{ opacity: 0; transform: translateX(28px); }} to {{ opacity: 1; transform: none; }} }}
 @media (prefers-reduced-motion: reduce) {{ [class*="st-key-vg_cena_"] {{ animation: none; }} }}
-.st-key-vg_proximo button, .st-key-vg_anterior button {{ width: 56px; height: 56px; min-height: 56px; border-radius: 50%; padding: 0;
-  background: {VERDE}; border: 0; color: {GRAFITE}; box-shadow: 0 6px 18px rgba(0, 194, 122, .28);
+.stApp .st-key-vg_proximo button, .stApp .st-key-vg_anterior button {{ width: 50px; height: 50px; min-height: 50px;
+  min-width: 50px; flex: none; border-radius: 50%; padding: 0;
+  background: {VERDE} !important; border: 0 !important; color: {GRAFITE} !important; box-shadow: 0 6px 18px rgba(0, 194, 122, .28);
   transition: transform .15s ease-out; }}
 .st-key-vg_anterior button:hover {{ transform: translateX(-3px); background: {VERDE}; color: {GRAFITE}; }}
 .st-key-vg_proximo button:hover {{ transform: translateX(3px); background: {VERDE}; color: {GRAFITE}; }}
-.st-key-vg_proximo button span, .st-key-vg_anterior button span {{ font-size: 30px; color: {GRAFITE}; }}
+.stApp .st-key-vg_proximo button span, .stApp .st-key-vg_anterior button span {{ font-size: 30px; color: {GRAFITE}; }}
 .st-key-vg_pontos {{ margin-top: 8px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button {{ width: 14px; height: 14px; min-height: 14px; padding: 0;
   border-radius: 50%; background: var(--bw-trilho); border: 0; }}
@@ -173,6 +242,11 @@ _IC = {
     "ok": '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
     "menos": '<circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>',
     "duvida": '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+    "semaforo": '<rect x="7" y="2" width="10" height="20" rx="3"/><circle cx="12" cy="7" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="17" r="1.6"/>',
+    "dados": '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+    "cadeado": '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    "decide": '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="5"/><path d="m10 12 1.5 1.5L14 11"/>',
     "pino": '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
     "grafico": '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
 }

@@ -275,3 +275,15 @@ def test_meu_perfil_mostra_o_nome_e_salva_o_tratamento(banco):
     next(b for b in at.button if b.label == "Salvar dados").click().run()
     assert not at.exception, at.exception
     assert au.perfil(sqlite3.connect(banco), "saude1").primeiro_nome == "Dani"
+
+
+def test_botao_de_tema_troca_claro_e_escuro_e_mantem_entre_paginas(banco):
+    at = _entrar("gestao1")
+    antes = at.session_state["tema"]
+    at.button(key="tema_trocar").click().run()
+    assert not at.exception, at.exception
+    depois = at.session_state["tema"]
+    assert {antes, depois} == {"light", "dark"}
+    at = _ir(at, "sobre")
+    assert at.session_state["tema"] == depois
+    assert any("--bw-fundo:" + ("#E4E7E2" if depois == "light" else "#1A1D21") in m.value for m in at.markdown)

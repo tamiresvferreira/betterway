@@ -151,7 +151,8 @@ border:1px solid var(--ambar);border-radius:14px;padding:10px 12px;font-size:13p
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 @media (prefers-reduced-motion:reduce){.giro,.pulso{animation:none}}
-.compacto{max-width:760px}
+.compacto{max-width:680px}
+.compacto .lados{grid-template-columns:1fr 1fr}
 .compacto .pe,.compacto .sub{display:none}
 .compacto .barra{margin-bottom:8px}.compacto .barra button{padding:7px 14px;font-size:13px}
 .compacto .lados{gap:10px}
