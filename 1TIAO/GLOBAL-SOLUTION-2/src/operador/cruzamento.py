@@ -114,7 +114,8 @@ background:var(--verde);color:var(--grafite)}
 .barra button.sec{background:#343A41;color:var(--fundo)}
 .barra button:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
 .barra input[type=range]{flex:1;min-width:140px;accent-color:var(--verde)}
-.relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right}
+.relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right;
+background:#343A41;color:var(--fundo);border-radius:999px;padding:7px 12px}
 .lados{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:760px){.lados{grid-template-columns:1fr}}
 .lado{background:var(--cartao);border-radius:20px;overflow:hidden;border:1px solid #3A4047}

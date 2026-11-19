@@ -360,7 +360,7 @@ def pagina_sobre() -> None:
     pil = consultar("SELECT COUNT(*) AS n, SUM(fatal) AS f FROM sinistros WHERE cluster_id = ?", (PILOTO,))
     n_pil, f_pil = (int(pil.n.iloc[0]), int(pil.f.iloc[0] or 0)) if not pil.empty else (None, None)
     st.title("Sobre a BetterWay")
-    html('<p class="bw-nota" style="font-size:17px;color:#D9DAD5;max-width:72ch">Uma plataforma de segurança viária '
+    html('<p class="bw-nota" style="font-size:17px;color:var(--bw-texto-2);max-width:72ch">Uma plataforma de segurança viária '
          'que junta dados reais de atropelamentos, uma câmera que entende a faixa de pedestres e um semáforo '
          'conectado, para proteger quem atravessa e fazer o trânsito andar. Sem identificar ninguém.</p>')
     html('<div class="bw-secao">Como funciona, do começo ao fim</div>')
@@ -381,9 +381,9 @@ def pagina_sobre() -> None:
         texto = (f"{n_pil} atropelamentos entre 2022 e 2025, {f_pil} com morte. " if n_pil else "") + \
             "Uma avenida de seis faixas com 16 metros de travessia: mais do que muita gente consegue atravessar no " \
             "tempo do verde." + (f" A plataforma ordena {n_grupos} pontos críticos urbanos da cidade." if n_grupos else "")
-        html(f'<p class="bw-nota" style="font-size:16px;color:#D9DAD5">{es.esc(texto)}</p>')
+        html(f'<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">{es.esc(texto)}</p>')
         html('<div class="bw-secao">Privacidade</div>')
-        html('<p class="bw-nota" style="font-size:16px;color:#D9DAD5">Nenhum rosto é reconhecido. Rostos e placas '
+        html('<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">Nenhum rosto é reconhecido. Rostos e placas '
              'saem borrados antes de qualquer imagem ser mostrada, e o sistema guarda só números e horários. Cada vez '
              'que alguém abre uma câmera, o acesso fica registrado com nome e horário.</p>')
     with c2:
@@ -396,7 +396,7 @@ def pagina_sobre() -> None:
           <div><span class="h">Trânsito</span><span>simulação no SUMO de um cruzamento com as medidas do piloto</span></div>
         </div>""")
         html('<div class="bw-secao" style="margin-top:20px">Limites</div>')
-        html('<p class="bw-nota" style="font-size:16px;color:#D9DAD5">Os ganhos no trânsito são resultados esperados '
+        html('<p class="bw-nota" style="font-size:16px;color:var(--bw-texto-2)">Os ganhos no trânsito são resultados esperados '
              'de simulação. Só o Largo da Concórdia tem câmera instalada; as outras câmeras da rede são simuladas. A '
              'ambulância despachada é simulada e não há integração com a CET ou o SAMU.</p>')
     _clipes_sinteticos()
@@ -509,6 +509,8 @@ def _curva_risco(quando: datetime) -> None:
         return
     df = pd.DataFrame(pontos)
     df["rotulo"] = df["hora"].map(lambda h: f"{h:02d}h")
+    tema = st.context.theme.type
+    c_texto, c_muted, c_borda = es.cor("texto", tema), es.cor("muted", tema), es.cor("borda", tema)
     base = alt.Chart(df).encode(x=alt.X("hora:Q", title=None, scale=alt.Scale(domain=[0, 23]),
                                         axis=alt.Axis(values=list(range(0, 24, 3)), labelExpr="datum.value + 'h'")))
     area = base.mark_area(color=es.VERDE, opacity=0.14, interpolate="monotone").encode(y="risco:Q")
@@ -518,14 +520,14 @@ def _curva_risco(quando: datetime) -> None:
         y="risco:Q", tooltip=[alt.Tooltip("rotulo:N", title="Hora"),
                               alt.Tooltip("risco:Q", title="Risco (× cidade)", format=".1f")])
     agora = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": ["agora"]})).mark_rule(
-        color=es.CLARO, strokeDash=[4, 4]).encode(x="hora:Q")
+        color=c_texto, strokeDash=[4, 4]).encode(x="hora:Q")
     rotulo = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": [f"{quando:%H:%M}"]})).mark_text(
-        color=es.CLARO, dy=-8, align="left", dx=6, fontSize=14, font="Montserrat").encode(x="hora:Q", y=alt.value(12),
+        color=c_texto, dy=-8, align="left", dx=6, fontSize=14, font="Montserrat").encode(x="hora:Q", y=alt.value(12),
                                                                                          text="t:N")
     graf = (area + linha + pontos_ + agora + rotulo).properties(height=260).configure(
         background="transparent", font="Montserrat").configure_axis(
-        labelColor=es.MUTED, titleColor=es.MUTED, gridColor="#343A41", domainColor="#3A4047", labelFontSize=13,
-        titleFontSize=13, tickColor="#3A4047").configure_view(strokeWidth=0)
+        labelColor=c_muted, titleColor=c_muted, gridColor=c_borda, domainColor=c_borda, labelFontSize=13,
+        titleFontSize=13, tickColor=c_borda).configure_view(strokeWidth=0)
     st.altair_chart(graf, width="stretch")
     pico = df.loc[df.risco.idxmax()]
     vezes = f"{pico.risco:.1f}".replace(".", ",")
@@ -636,7 +638,7 @@ def _barras(rotulo: str, sem: float, com: float, unidade: str, menor_melhor: boo
     return (f'<div class="bw-card"><div class="r" style="color:{es.MUTED};font-size:13px;font-weight:500">'
             f'{es.esc(rotulo)}</div>'
             f'<div style="display:grid;grid-template-columns:86px 1fr 64px;gap:8px;align-items:center;margin-top:12px">'
-            f'<span class="bw-nota">Hoje</span><div style="height:12px;border-radius:6px;background:#4A5058;'
+            f'<span class="bw-nota">Hoje</span><div style="height:12px;border-radius:6px;background:var(--bw-trilho);'
             f'width:{sem / topo * 100:.0f}%"></div><b style="text-align:right">{fmt(sem)} {unidade}</b>'
             f'<span class="bw-nota">BetterWay</span><div style="height:12px;border-radius:6px;background:{es.VERDE};'
             f'width:{com / topo * 100:.0f}%"></div><b style="text-align:right">{fmt(com)} {unidade}</b></div>'
@@ -1247,12 +1249,13 @@ POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "e
 
 def main() -> None:
     st.set_page_config(page_title="BetterWay", page_icon=str(MARCA / "betterway-simbolo.png"), layout="wide")
-    html(es.CSS + cp.CSS)
+    html(es.tokens(st.context.theme.type) + es.CSS + cp.CSS)
     u = usuario()
     if u is None:
         st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
         return
-    st.logo(str(MARCA / "betterway-logo-horizontal-escuro.png"), size="large")
+    fundo_claro = st.context.theme.type == "light"
+    st.logo(str(MARCA / f"betterway-logo-horizontal-{'claro' if fundo_claro else 'escuro'}.png"), size="large")
     pf = au.perfil(conexao(), u.usuario)
     PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil",
                                 icon=":material/account_circle:", url_path="perfil")

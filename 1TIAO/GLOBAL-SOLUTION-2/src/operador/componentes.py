@@ -24,16 +24,16 @@ def semaforo_svg(fase: str | None) -> str:
 
     def luz(cx, cy, cor_nome, acesa, extra=""):
         cor = _COR_LUZ[cor_nome]
-        return (f'<circle cx="{cx}" cy="{cy}" r="15" fill="{cor if acesa else "#3A4047"}" '
+        return (f'<circle cx="{cx}" cy="{cy}" r="15" fill="{cor if acesa else "var(--bw-borda)"}" '
                 f'opacity="{1 if acesa else .55}" {extra}/>')
     pisca = 'class="pisca"' if ped == "pisca" else ""
     svg = (f'<svg viewBox="0 0 200 150" width="200" height="150" role="img" '
            f'aria-label="Semáforo: carros {carros or "sem sinal"}, pedestre {ped or "sem sinal"}" '
            f'data-carros="{carros or "nenhum"}" data-pedestre="{"vermelho" if ped == "pisca" else ped or "nenhum"}">'
-           f'<rect x="20" y="5" width="50" height="135" rx="14" fill="#111417" stroke="#3A4047"/>'
+           f'<rect x="20" y="5" width="50" height="135" rx="14" fill="#111417" stroke="var(--bw-borda)"/>'
            + luz(45, 32, "vermelho", carros == "vermelho") + luz(45, 72, "amarelo", carros == "amarelo")
            + luz(45, 112, "verde", carros == "verde") +
-           f'<rect x="120" y="35" width="50" height="95" rx="14" fill="#111417" stroke="#3A4047"/>'
+           f'<rect x="120" y="35" width="50" height="95" rx="14" fill="#111417" stroke="var(--bw-borda)"/>'
            + luz(145, 62, "vermelho", ped in ("vermelho", "pisca"), pisca) + luz(145, 102, "verde", ped == "verde")
            + '</svg>')
     if carros is None:
@@ -185,48 +185,48 @@ def cartoes_clipes(linhas: list[dict]) -> str:
 
 CSS = f"""
 <style>
-.bw-semaforo {{ display: flex; gap: 22px; align-items: center; background: {CARTAO}; border: 1px solid #343A41;
+.bw-semaforo {{ display: flex; gap: 22px; align-items: center; background: {CARTAO}; border: 1px solid var(--bw-borda);
   border-radius: 16px; padding: 16px 20px; flex-wrap: wrap; }}
 .bw-semaforo .leg {{ display: flex; flex-direction: column; gap: 4px; font-size: 18px; }}
-.bw-semaforo .leg span {{ color: #C9CBC6; font-size: 15px; }}
+.bw-semaforo .leg span {{ color: var(--bw-texto-2); font-size: 15px; }}
 .bw-semaforo .pisca {{ animation: bwpisca 1s steps(1) infinite; }}
 @keyframes bwpisca {{ 50% {{ opacity: .2; }} }}
 @media (prefers-reduced-motion: reduce) {{ .bw-semaforo .pisca {{ animation: none; }} }}
-.bw-feed {{ list-style: none; margin: 0; padding: 0; background: {CARTAO}; border: 1px solid #343A41; border-radius: 16px; }}
+.bw-feed {{ list-style: none; margin: 0; padding: 0; background: {CARTAO}; border: 1px solid var(--bw-borda); border-radius: 16px; }}
 .bw-feed li {{ display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center;
-  padding: 12px 16px; border-top: 1px solid #343A41; font-size: 15px; }}
+  padding: 12px 16px; border-top: 1px solid var(--bw-borda); font-size: 15px; }}
 .bw-feed li:first-child {{ border-top: 0; }}
 .bw-sinal {{ display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start; padding: 12px 14px 12px;
   font-size: 14px; line-height: 1.45; }}
 .bw-sinal time {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
-.bw-sim {{ background: #343A41; color: #C9CBC6; border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }}
+.bw-sim {{ background: var(--bw-borda); color: var(--bw-texto-2); border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }}
 .bw-val {{ font-size: 13px; }}
-.bw-val.pendente {{ color: {AMBAR}; }}
-.bw-val.ok {{ color: {VERDE}; }}
-.bw-val.contestado {{ color: #FF8A92; }}
-[class*="st-key-sinal_"] {{ background: {CARTAO}; border: 1px solid #343A41; border-radius: 14px; padding: 0 0 10px; gap: 4px; }}
+.bw-val.pendente {{ color: var(--bw-ambar-texto); }}
+.bw-val.ok {{ color: var(--bw-destaque); }}
+.bw-val.contestado {{ color: var(--bw-alerta-texto); }}
+[class*="st-key-sinal_"] {{ background: {CARTAO}; border: 1px solid var(--bw-borda); border-radius: 14px; padding: 0 0 10px; gap: 4px; }}
 [class*="st-key-sinal_"] [data-testid="stHorizontalBlock"] {{ padding: 0 14px 0 50px; }}
 .bw-feed time {{ color: {MUTED}; font-variant-numeric: tabular-nums; font-size: 14px; }}
 .bw-feed.vazio {{ padding: 16px; color: {MUTED}; font-size: 15px; }}
 .bw-quadro {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }}
-.bw-col {{ background: #23272C; border-radius: 16px; padding: 12px; min-height: 140px; }}
+.bw-col {{ background: var(--bw-cartao-2); border-radius: 16px; padding: 12px; min-height: 140px; }}
 .bw-col h4 {{ display: flex; align-items: center; gap: 8px; margin: 4px 4px 12px; font-size: 16px; font-weight: 600; }}
-.bw-col h4 .n {{ margin-left: auto; background: #343A41; border-radius: 999px; padding: 1px 10px; font-size: 14px; }}
-.bw-oc {{ background: {CARTAO}; border: 1px solid #343A41; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }}
+.bw-col h4 .n {{ margin-left: auto; background: var(--bw-borda); border-radius: 999px; padding: 1px 10px; font-size: 14px; }}
+.bw-oc {{ background: {CARTAO}; border: 1px solid var(--bw-borda); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }}
 .bw-oc .t {{ font-weight: 600; font-size: 15px; }}
 .bw-oc .m {{ color: {MUTED}; font-size: 14px; margin: 2px 0 10px; }}
-.bw-oc .p {{ display: flex; gap: 6px; flex-wrap: wrap; font-size: 14px; color: #C9CBC6; }}
-.bw-oc .passo {{ background: #343A41; border-radius: 8px; padding: 4px 8px; display: flex; gap: 6px; }}
+.bw-oc .p {{ display: flex; gap: 6px; flex-wrap: wrap; font-size: 14px; color: var(--bw-texto-2); }}
+.bw-oc .passo {{ background: var(--bw-borda); border-radius: 8px; padding: 4px 8px; display: flex; gap: 6px; }}
 .bw-oc .passo.feito {{ background: rgba(0,194,122,.16); }}
 .bw-oc .passo b {{ color: {VERDE}; }}
-.bw-oc .tag {{ background: #343A41; border-radius: 8px; padding: 4px 8px; }}
+.bw-oc .tag {{ background: var(--bw-borda); border-radius: 8px; padding: 4px 8px; }}
 .bw-oc.vazio {{ color: {MUTED}; font-size: 14px; text-align: center; }}
 .bw-ranking {{ list-style: none; margin: 0; padding: 0; }}
 .bw-ranking li {{ display: grid; grid-template-columns: 40px minmax(0, 1.3fr) 1fr 74px; gap: 10px; align-items: center;
-  padding: 7px 0; font-size: 15px; border-top: 1px solid #343A41; }}
+  padding: 7px 0; font-size: 15px; border-top: 1px solid var(--bw-borda); }}
 .bw-ranking li .r {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
 .bw-ranking li .v {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
-.bw-ranking li .b {{ background: #343A41; border-radius: 6px; height: 10px; overflow: hidden; }}
+.bw-ranking li .b {{ background: var(--bw-borda); border-radius: 6px; height: 10px; overflow: hidden; }}
 .bw-ranking li .b i {{ display: block; height: 100%; background: {ALERTA}; border-radius: 6px; }}
 .bw-ranking li b {{ text-align: right; }}
 .bw-ranking li b .m {{ display: block; color: {MUTED}; font-weight: 500; font-size: 12px; }}
@@ -234,8 +234,8 @@ CSS = f"""
 .bw-ranking li.piloto .b i {{ background: {VERDE}; }}
 .bw-acessos {{ list-style: none; margin: 0; padding: 0; }}
 .bw-acessos li {{ display: grid; grid-template-columns: 34px auto 1fr auto; gap: 10px; align-items: center; padding: 8px 0;
-  border-top: 1px solid #343A41; font-size: 15px; }}
-.bw-acessos .av {{ width: 30px; height: 30px; border-radius: 50%; background: #343A41; display: grid; place-items: center;
+  border-top: 1px solid var(--bw-borda); font-size: 15px; }}
+.bw-acessos .av {{ width: 30px; height: 30px; border-radius: 50%; background: var(--bw-borda); display: grid; place-items: center;
   font-weight: 700; color: {VERDE}; }}
 .bw-acessos time {{ color: {MUTED}; font-size: 14px; }}
 .bw-clipe h3 {{ text-transform: capitalize; }}

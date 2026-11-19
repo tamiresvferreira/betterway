@@ -8,15 +8,40 @@ from __future__ import annotations
 
 import html
 
-VERDE, VERDE_ESC, GRAFITE, CARTAO = "#00C27A", "#006B44", "#1A1D21", "#2A2E33"
-CLARO, MUTED, AMBAR, ALERTA, ALERTA_INK = "#F4F4EF", "#9AA1AA", "#FFB000", "#E63946", "#FF6B6B"
+VERDE, VERDE_ESC, GRAFITE = "#00C27A", "#006B44", "#1A1D21"
+# cores que mudam com o tema (claro ou escuro): ver tokens()
+CARTAO, CLARO, MUTED, DESTAQUE = "var(--bw-cartao)", "var(--bw-texto)", "var(--bw-muted)", "var(--bw-destaque)"
+AMBAR, ALERTA, ALERTA_INK = "#FFB000", "#E63946", "var(--bw-alerta-texto)"
+
+TEMAS = {
+    "escuro": {"fundo": "#1A1D21", "cartao": "#2A2E33", "cartao-2": "var(--bw-cartao-2)", "borda": "var(--bw-borda)",
+               "texto": "#F4F4EF", "texto-2": "var(--bw-texto-2)", "muted": "#9AA1AA", "trilho": "var(--bw-trilho)",
+               "destaque": "#00C27A", "alerta-texto": "#FF6B6B", "ambar-texto": "#FFB000", "sombra": "none"},
+    "claro": {"fundo": "#ECEEEA", "cartao": "#FAFAF8", "cartao-2": "#F1F2EE", "borda": "#DCDFD9",
+              "texto": "#1A1D21", "texto-2": "#3D434A", "muted": "#5F666E", "trilho": "#D3D7D0",
+              "destaque": "#00804F", "alerta-texto": "#C62834", "ambar-texto": "#8A5A00",
+              "sombra": "0 1px 2px rgba(26,29,33,.04), 0 8px 24px rgba(26,29,33,.05)"},
+}
+
+
+def cor(nome: str, tipo: str | None) -> str:
+    """Cor real (hex) de um token, para quem não entende variáveis CSS (gráficos do Altair/Vega)."""
+    return TEMAS["claro" if tipo == "light" else "escuro"][nome]
+
+
+def tokens(tipo: str | None) -> str:
+    """Variáveis CSS do tema: "light" usa o claro; qualquer outro valor, o escuro (o padrão da marca)."""
+    t = TEMAS["claro" if tipo == "light" else "escuro"]
+    return "<style>:root{" + "".join(f"--bw-{k}:{v};" for k, v in t.items()) + "}</style>"
 
 CSS = f"""
 <style>
 .block-container {{ max-width: 100% !important; padding: 2.75rem 2.5rem 3rem !important; }}
 @media (max-width: 760px) {{ .block-container {{ padding: 2rem 1rem 2.5rem !important; }} }}
-[data-testid="stHeader"] {{ background: {GRAFITE}; border-bottom: 1px solid #2F343A; }}
-h1, h2, h3 {{ letter-spacing: -0.01em; }}
+[data-testid="stHeader"] {{ background: var(--bw-fundo); border-bottom: 1px solid var(--bw-borda); }}
+h1, h2, h3 {{ letter-spacing: -0.015em; }}
+h1 {{ font-weight: 500 !important; }}
+.stApp {{ background: var(--bw-fundo); }}
 button[kind="primary"], button[kind="primaryFormSubmit"] {{ color: {GRAFITE} !important; font-weight: 600 !important; }}
 button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE} !important; font-weight: 600 !important; }}
 .bw-login-espaco {{ height: 12vh; }}
@@ -29,61 +54,63 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-hero > div {{ position: relative; z-index: 1; max-width: 640px; }}
 .bw-hero .chamada {{ font-size: clamp(30px, 4.2vw, 52px); line-height: 1.08; margin: 0 0 16px; font-weight: 700;
   color: {CLARO}; letter-spacing: -0.02em; }}
-.bw-hero .chamada .fim {{ color: {VERDE}; }}
-.bw-hero p {{ font-size: 17px; line-height: 1.6; color: #D9DAD5; margin: 0; max-width: 58ch; }}
+.bw-hero .chamada .fim {{ color: {DESTAQUE}; }}
+.bw-hero p {{ font-size: 17px; line-height: 1.6; color: var(--bw-texto-2); margin: 0; max-width: 58ch; }}
 @media (max-width: 760px) {{ .bw-hero {{ padding: 28px 22px 120px; }}
   .bw-hero::after {{ width: 100%; top: auto; height: 96px; right: 0; clip-path: none; }} }}
 .bw-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 4px 0 28px; }}
-.bw-card {{ background: {CARTAO}; border-radius: 16px; padding: 20px 22px; border: 1px solid #343A41; }}
+.bw-card {{ background: {CARTAO}; border-radius: 24px; padding: 22px 24px; border: 1px solid var(--bw-borda);
+  box-shadow: var(--bw-sombra); }}
 .bw-card h3 {{ font-size: 19px; margin: 10px 0 6px; font-weight: 600; }}
-.bw-card p {{ color: #C9CBC6; font-size: 15px; line-height: 1.55; margin: 0; }}
-.bw-card .verbo {{ color: {VERDE}; font-weight: 600; font-size: 14px; }}
-.bw-card .icone {{ color: {VERDE}; }}
+.bw-card p {{ color: var(--bw-texto-2); font-size: 15px; line-height: 1.55; margin: 0; }}
+.bw-card .verbo {{ color: {DESTAQUE}; font-weight: 600; font-size: 14px; }}
+.bw-card .icone {{ color: {DESTAQUE}; }}
 .bw-passos {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; margin: 4px 0 28px;
-             background: {CARTAO}; border-radius: 16px; border: 1px solid #343A41; overflow: hidden; }}
-.bw-passo {{ padding: 20px 22px; border-right: 1px solid #343A41; }}
+             background: {CARTAO}; border-radius: 16px; border: 1px solid var(--bw-borda); overflow: hidden; }}
+.bw-passo {{ padding: 20px 22px; border-right: 1px solid var(--bw-borda); }}
 .bw-passo:last-child {{ border-right: 0; }}
 .bw-passo b {{ display: block; font-size: 16px; margin: 8px 0 4px; }}
-.bw-passo span {{ color: #C9CBC6; font-size: 14px; line-height: 1.5; }}
-.bw-passo .n {{ color: {VERDE}; font-weight: 700; font-size: 14px; }}
+.bw-passo span {{ color: var(--bw-texto-2); font-size: 14px; line-height: 1.5; }}
+.bw-passo .n {{ color: {DESTAQUE}; font-weight: 700; font-size: 14px; }}
 .bw-secao {{ font-size: 22px; font-weight: 600; margin: 8px 0 12px; }}
 .bw-nota {{ color: {MUTED}; font-size: 14px; line-height: 1.5; }}
-.bw-kpi {{ background: {CARTAO}; border-radius: 16px; padding: 16px 18px; border: 1px solid #343A41; }}
+.bw-kpi {{ background: {CARTAO}; border-radius: 22px; padding: 18px 20px; border: 1px solid var(--bw-borda);
+  box-shadow: var(--bw-sombra); }}
 .bw-kpi .r {{ color: {MUTED}; font-size: 14px; font-weight: 500; }}
 .bw-kpi .v {{ font-size: 26px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }}
 .bw-kpi .s {{ color: {MUTED}; font-size: 14px; margin-top: 2px; }}
-.bw-leitura {{ border-radius: 20px; padding: 22px 24px; border: 1px solid #343A41; background: {CARTAO}; margin-bottom: 20px; }}
+.bw-leitura {{ border-radius: 24px; box-shadow: var(--bw-sombra); padding: 22px 24px; border: 1px solid var(--bw-borda); background: {CARTAO}; margin-bottom: 20px; }}
 .bw-leitura.padrao {{ border-color: {ALERTA}; box-shadow: inset 0 0 0 1px {ALERTA}; }}
 .bw-leitura.atencao {{ border-color: {AMBAR}; }}
 .bw-leitura .topo {{ display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }}
 .bw-leitura .titulo {{ font-size: 21px; font-weight: 700; }}
 .bw-ev {{ display: grid; grid-template-columns: 26px 140px 1fr auto; gap: 10px; align-items: baseline;
-          padding: 10px 0; border-top: 1px solid #343A41; font-size: 15px; }}
+          padding: 10px 0; border-top: 1px solid var(--bw-borda); font-size: 15px; }}
 .bw-ev .nome {{ font-weight: 600; }}
 .bw-ev .fonte {{ color: {MUTED}; font-size: 14px; text-align: right; }}
 @media (max-width: 760px) {{ .bw-ev {{ grid-template-columns: 22px 1fr; }} .bw-ev .fonte {{ text-align: left; grid-column: 2; }}
   .bw-ev .txt {{ grid-column: 2; }} }}
-.bw-conclusao {{ margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: #23272C; font-size: 15px; }}
+.bw-conclusao {{ margin-top: 12px; padding: 14px 16px; border-radius: 12px; background: var(--bw-cartao-2); font-size: 15px; }}
 .bw-selo {{ display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 12px;
             font-size: 14px; font-weight: 700; }}
 .bw-selo.ok {{ background: {VERDE}; color: {GRAFITE}; }}
 .bw-selo.atencao {{ background: {AMBAR}; color: {GRAFITE}; }}
 .bw-selo.risco {{ background: transparent; color: {ALERTA_INK}; box-shadow: inset 0 0 0 1.5px {ALERTA_INK}; }}
-.bw-selo.neutro {{ background: #343A41; color: {CLARO}; }}
+.bw-selo.neutro {{ background: var(--bw-borda); color: {CLARO}; }}
 .bw-demo-topo {{ display: flex; gap: 14px; align-items: flex-start; margin: 36px 0 14px; max-width: 80ch; }}
 .bw-demo-topo .icone {{ margin-top: 2px; }}
-.bw-demo-topo .verbo {{ color: {VERDE}; font-weight: 600; font-size: 14px; }}
+.bw-demo-topo .verbo {{ color: {DESTAQUE}; font-weight: 600; font-size: 14px; }}
 .bw-mosaico {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 12px 0 24px; }}
-.bw-cam {{ margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid #343A41; background: #000; }}
+.bw-cam {{ margin: 0; border-radius: 20px; box-shadow: var(--bw-sombra); overflow: hidden; border: 1px solid var(--bw-borda); background: #000; }}
 .bw-cam video {{ width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }}
 .bw-cam .sem {{ aspect-ratio: 16 / 9; display: grid; place-items: center; color: {MUTED}; background: {CARTAO}; }}
 .bw-cam figcaption {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px;
   background: {CARTAO}; font-size: 14px; }}
-.bw-cam .vivo {{ color: {VERDE}; font-weight: 700; }}
-.bw-cam .sim {{ background: #343A41; color: #C9CBC6; border-radius: 999px; padding: 2px 8px; font-weight: 600; }}
+.bw-cam .vivo {{ color: {DESTAQUE}; font-weight: 700; }}
+.bw-cam .sim {{ background: var(--bw-borda); color: var(--bw-texto-2); border-radius: 999px; padding: 2px 8px; font-weight: 600; }}
 .bw-cam .onde {{ color: {MUTED}; width: 100%; }}
 .bw-tempo {{ font-size: 14px; }}
-.bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid #343A41; }}
+.bw-tempo div {{ display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 8px 0; border-top: 1px solid var(--bw-borda); }}
 .bw-tempo .h {{ color: {MUTED}; font-variant-numeric: tabular-nums; }}
 .st-key-leitor {{ position: fixed; top: 4px; right: 16px; width: 200px; height: 40px; z-index: 1000000; }}
 .st-key-leitor iframe {{ height: 40px; }}
@@ -102,18 +129,18 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 /* Visão geral: um cenário por vez (vídeo + simulação), trocado pela seta */
 .bw-vg-chamada {{ font-size: clamp(20px, 2.1vw, 28px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
   margin: 0 0 14px; color: {CLARO}; }}
-.bw-vg-chamada span {{ color: {VERDE}; }}
-.bw-vg-sub {{ font-size: 16px; line-height: 1.55; color: #D9DAD5; margin: -6px 0 18px; max-width: 88ch; }}
+.bw-vg-chamada span {{ color: {DESTAQUE}; }}
+.bw-vg-sub {{ font-size: 16px; line-height: 1.55; color: var(--bw-texto-2); margin: -6px 0 18px; max-width: 88ch; }}
 .bw-vg-topo {{ display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; max-width: 92ch; }}
 .bw-vg-topo .icone {{ margin-top: 2px; }}
-.bw-vg-topo .verbo {{ color: {VERDE}; font-weight: 600; font-size: 13px; }}
+.bw-vg-topo .verbo {{ color: {DESTAQUE}; font-weight: 600; font-size: 13px; }}
 .bw-vg-topo .titulo {{ font-size: 21px; font-weight: 700; margin: 1px 0 3px; }}
-.bw-vg-topo p {{ font-size: 15px; line-height: 1.45; color: #D9DAD5; margin: 0; }}
-.bw-vg-video {{ border-radius: 18px; overflow: hidden; border: 1px solid #343A41; background: #000; aspect-ratio: 16 / 9; }}
+.bw-vg-topo p {{ font-size: 15px; line-height: 1.45; color: var(--bw-texto-2); margin: 0; }}
+.bw-vg-video {{ border-radius: 24px; overflow: hidden; border: 1px solid var(--bw-borda); background: #000; aspect-ratio: 16 / 9; }}
 .bw-vg-video video {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
 .bw-vg-video.vazio {{ background: {CARTAO}; display: grid; place-items: center; text-align: center; }}
 .bw-vg-video.vazio > div {{ display: grid; justify-items: center; gap: 6px; padding: 16px; }}
-.bw-vg-video.vazio b {{ font-size: 16px; color: #D9DAD5; }}
+.bw-vg-video.vazio b {{ font-size: 16px; color: var(--bw-texto-2); }}
 .bw-vg-video.vazio span {{ color: {MUTED}; font-size: 13px; font-family: ui-monospace, monospace; }}
 [class*="st-key-vg_cena_"] {{ animation: bw-entra .4s ease-out both; }}
 @keyframes bw-entra {{ from {{ opacity: 0; transform: translateX(28px); }} to {{ opacity: 1; transform: none; }} }}
@@ -126,7 +153,7 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .st-key-vg_proximo button span, .st-key-vg_anterior button span {{ font-size: 30px; color: {GRAFITE}; }}
 .st-key-vg_pontos {{ margin-top: 8px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button {{ width: 14px; height: 14px; min-height: 14px; padding: 0;
-  border-radius: 50%; background: #4A5058; border: 0; }}
+  border-radius: 50%; background: var(--bw-trilho); border: 0; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button:disabled {{ background: {VERDE}; opacity: 1; width: 30px;
   border-radius: 7px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button p {{ font-size: 0; }}
@@ -152,7 +179,7 @@ _IC = {
 
 
 def icone(nome: str, cor: str = "currentColor", tamanho: int = 22) -> str:
-    return (f'<svg width="{tamanho}" height="{tamanho}" viewBox="0 0 24 24" fill="none" stroke="{cor}" '
+    return (f'<svg width="{tamanho}" height="{tamanho}" viewBox="0 0 24 24" fill="none" style="stroke:{cor}" '
             f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{_IC[nome]}</svg>')
 
 
