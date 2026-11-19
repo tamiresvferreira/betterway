@@ -12,6 +12,7 @@ vídeos (testes).
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 import os
 import sqlite3
 import time as time_mod
@@ -310,6 +311,15 @@ def _trocar_tema() -> None:
     st.session_state["tema"] = "dark" if tema() == "light" else "light"
 
 
+@contextmanager
+def cartao(chave: str, icone: str, titulo: str):
+    """Bloco da página num cartão: ícone em círculo, título e o conteúdo (inclusive gráficos e botões) dentro."""
+    with st.container(key=f"sup_{chave}"):
+        html(f'<div class="bw-sup-topo"><span class="bw-chip">{es.icone(icone, es.DESTAQUE, 22)}</span>'
+             f'<h3>{es.esc(titulo)}</h3></div>')
+        yield
+
+
 def html(conteudo: str) -> None:
     st.markdown(conteudo, unsafe_allow_html=True)
 
@@ -502,36 +512,36 @@ def pagina_painel() -> None:
     st.write("")
     c1, c2 = st.columns([3, 2], gap="large")
     with c1:
-        st.subheader("Risco ao longo do dia no Largo")
-        _curva_risco(quando)
+        with cartao("risco_ao_longo_do_dia_no_largo", "grafico", "Risco ao longo do dia no Largo"):
+            _curva_risco(quando)
     with c2:
-        st.subheader("Linha do tempo das leituras")
-        hist_l = lt.historico(conexao(), 8)
-        if not hist_l:
-            st.caption("A primeira leitura aparece aqui.")
-        linhas = "".join(
-            f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%H:%M}</span><span>'
-            f'{es.selo_nivel(r["nivel"])}{" <span class=bw-nota>simulada</span>" if r["simulado"] else ""}'
-            f'<br><span class="bw-nota">{es.esc(r["resumo"].split(" · ")[0])}</span></span></div>' for r in hist_l)
-        html(f'<div class="bw-tempo">{linhas}</div>')
+        with cartao("linha_do_tempo_das_leituras", "relogio", "Linha do tempo das leituras"):
+            hist_l = lt.historico(conexao(), 8)
+            if not hist_l:
+                st.caption("A primeira leitura aparece aqui.")
+            linhas = "".join(
+                f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%H:%M}</span><span>'
+                f'{es.selo_nivel(r["nivel"])}{" <span class=bw-nota>simulada</span>" if r["simulado"] else ""}'
+                f'<br><span class="bw-nota">{es.esc(r["resumo"].split(" · ")[0])}</span></span></div>' for r in hist_l)
+            html(f'<div class="bw-tempo">{linhas}</div>')
     c1, c2 = st.columns([3, 2], gap="large")
     with c1:
-        st.subheader("Mapa de risco da cidade")
-        _mapa()
+        with cartao("mapa_de_risco_da_cidade", "pino", "Mapa de risco da cidade"):
+            _mapa()
     with c2:
-        st.subheader("Os pontos mais críticos")
-        top = consultar("SELECT cluster_id, rank_urbano, via_principal, n_fatais, n_nao_fatais FROM clusters "
-                        "WHERE rank_urbano IS NOT NULL AND (rank_urbano <= 9 OR cluster_id = ?) ORDER BY rank_urbano",
-                        (PILOTO,))
-        html(cp.ranking_pontos([{"rank_urbano": int(r.rank_urbano),
-                                 "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
-                                 "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "mortes": int(r.n_fatais),
-                                 "piloto": r.cluster_id == PILOTO}
-                                for r in top.itertuples()]))
-        html('<p class="bw-nota">O número é o total de atropelamentos do ponto (Infosiga-SP, 2022 a 2025). A posição segue '
-             'o índice de prioridade da CET (Companhia de Engenharia de Tráfego): cada morte pesa 3 vezes e o total é '
-             'dividido pelo tamanho do trecho. Por isso um ponto curto com mortes pode vir antes de um com mais '
-             'atropelamentos espalhados.</p>')
+        with cartao("os_pontos_mais_criticos", "alerta", "Os pontos mais críticos"):
+            top = consultar("SELECT cluster_id, rank_urbano, via_principal, n_fatais, n_nao_fatais FROM clusters "
+                            "WHERE rank_urbano IS NOT NULL AND (rank_urbano <= 9 OR cluster_id = ?) ORDER BY rank_urbano",
+                            (PILOTO,))
+            html(cp.ranking_pontos([{"rank_urbano": int(r.rank_urbano),
+                                     "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
+                                     "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "mortes": int(r.n_fatais),
+                                     "piloto": r.cluster_id == PILOTO}
+                                    for r in top.itertuples()]))
+            html('<p class="bw-nota">O número é o total de atropelamentos do ponto (Infosiga-SP, 2022 a 2025). A posição segue '
+                 'o índice de prioridade da CET (Companhia de Engenharia de Tráfego): cada morte pesa 3 vezes e o total é '
+                 'dividido pelo tamanho do trecho. Por isso um ponto curto com mortes pode vir antes de um com mais '
+                 'atropelamentos espalhados.</p>')
 
 
 def _curva_risco(quando: datetime) -> None:
@@ -754,23 +764,23 @@ def pagina_sala() -> None:
             with k[1]:
                 html(es.kpi("Conexão", "Conectada" if no.conectado else "Desconectada", "com a central"))
         with c2:
-            html('<div class="bw-secao" style="font-size:18px">Sinais do nó</div>')
-            _sinais(list(no.eventos)[:8], u)
+            with cartao("sinais_do_no", "sinal", "Sinais do nó"):
+                _sinais(list(no.eventos)[:8], u)
     estado()
     _simular_sinal(no)
     st.write("")
     if pode(u.perfil, "cenario"):
-        st.subheader("Mudar o modo do semáforo")
-        st.caption("Envia o comando direto ao nó. Não use ao mesmo tempo que a central automática.")
-        cols = st.columns(3)
-        for i, nome in enumerate(CENARIOS):
-            if cols[i % 3].button(ROTULOS_CENARIO[nome], key=f"cen_{nome}", width="stretch"):
-                try:
-                    exigir(u.perfil, "cenario")
-                    ok = no.publicar(comando_cenario(nome))
-                    st.toast(f"Modo {ROTULOS_CENARIO[nome]}: {'enviado' if ok else 'não enviado, sem conexão'}")
-                except SemPermissao as erro:
-                    st.error(str(erro))
+        with cartao("mudar_o_modo_do_semaforo", "semaforo", "Mudar o modo do semáforo"):
+            st.caption("Envia o comando direto ao nó. Não use ao mesmo tempo que a central automática.")
+            cols = st.columns(3)
+            for i, nome in enumerate(CENARIOS):
+                if cols[i % 3].button(ROTULOS_CENARIO[nome], key=f"cen_{nome}", width="stretch"):
+                    try:
+                        exigir(u.perfil, "cenario")
+                        ok = no.publicar(comando_cenario(nome))
+                        st.toast(f"Modo {ROTULOS_CENARIO[nome]}: {'enviado' if ok else 'não enviado, sem conexão'}")
+                    except SemPermissao as erro:
+                        st.error(str(erro))
     else:
         st.caption("Só a equipe de Trânsito muda o modo do semáforo.")
 
@@ -884,9 +894,9 @@ def pagina_cameras() -> None:
         con = conexao()
         cam.migrar(con)
         ac = pd.read_sql_query("SELECT timestamp, usuario, camera FROM acessos_camera ORDER BY id DESC LIMIT 10", con)
-        st.subheader("Quem abriu as câmeras")
-        html(cp.lista_acessos([{"usuario": r.usuario, "camera": r.camera,
-                                "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
+        with cartao("quem_abriu_as_cameras", "camera", "Quem abriu as câmeras"):
+            html(cp.lista_acessos([{"usuario": r.usuario, "camera": r.camera,
+                                    "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
 
 
 def _camera_aberta(c, url: str | None, u) -> None:
@@ -924,106 +934,106 @@ def _restaurar(*chaves: str) -> None:
 
 
 def _form_registro(c, u) -> None:
-    st.subheader("Registrar ocorrência")
-    if st.session_state.get("aviso_registro"):
-        st.success(st.session_state.pop("aviso_registro"))
-    con = conexao()
-    rg.migrar(con)
-    chave = f"registro_{_chave(c.id)}"
-    rid = st.session_state.get(chave)
-    if rid is None:
-        st.caption("Viu algo nesta câmera? Descreva o que aconteceu, anexe quadros do vídeo e acione quem precisa ir.")
-        if st.button("Começar registro", type="primary", key="reg_comecar", icon=":material/edit_note:"):
-            try:
-                st.session_state[chave] = rg.iniciar(con, usuario=u, camera=c.id, local=c.local,
-                                                     cluster_id=c.cluster_id,
-                                                     video_id=f"veo3_{c.clipe.nome}" if c.clipe else None)
-                st.rerun()
-            except SemPermissao as erro:
-                st.error(str(erro))
-        return
-    r = rg.obter(con, rid)
-    html(f'<p class="bw-nota">Relatório Nº {rid} · registrado por {es.esc(_nome_de(r["registrado_por"]))} em '
-         f'{_hora(r["registrado_em"])}</p>')
-    _restaurar(f"reg_sit_{rid}", f"reg_desc_{rid}", f"reg_seg_{rid}", *(f"reg_ac_{a}_{rid}" for a in rg.ACIONAMENTOS))
-    situacao = st.selectbox("O que aconteceu", list(rg.SITUACOES), format_func=rg.SITUACOES.get, index=None,
-                            placeholder="Escolha o tipo de situação", key=f"reg_sit_{rid}", on_change=_guardar,
-                            args=(f"reg_sit_{rid}",))
-    descricao = st.text_area("Descreva o que você viu", key=f"reg_desc_{rid}", height=110,
-                             placeholder="Ex.: motociclista caiu na faixa, está consciente e sentado na calçada.",
-                             on_change=_guardar, args=(f"reg_desc_{rid}",))
-    html("<b>Acionar</b> <span class='bw-nota'>(simulado: nenhum chamado real é feito)</span>")
-    acion = [a for a, nome in rg.ACIONAMENTOS.items()
-             if st.checkbox(nome, key=f"reg_ac_{a}_{rid}", on_change=_guardar, args=(f"reg_ac_{a}_{rid}",))]
-    html("<b>Quadros do vídeo</b>")
-    video = c.clipe.video if c.clipe is not None else None
-    if video is None or not Path(video).exists():
-        st.caption("Sem vídeo para capturar.")
-    else:
-        dur = rg.duracao_s(Path(video))
-        seg = st.slider("Momento do vídeo (s)", 0.0, max(dur - 0.1, 0.1), 0.0, 0.1, key=f"reg_seg_{rid}",
-                        on_change=_guardar, args=(f"reg_seg_{rid}",))
-        img = rg.quadro_do_video(Path(video), seg)
-        if img is not None:
-            st.image(img[:, :, ::-1], caption=f"Prévia do momento {seg:.1f} s".replace(".", ","), width=360)
-        if st.button("Capturar este quadro", icon=":material/photo_camera:", key=f"reg_cap_{rid}"):
-            try:
-                q = rg.capturar(con, rid, usuario=u, video=Path(video), segundo=seg)
-                st.toast(f"Quadro anexado às {_hora(q.capturado_em)[-8:]}")
-            except (ValueError, SemPermissao) as erro:
-                st.error(str(erro))
-    anexos = rg.quadros(con, rid)
-    if anexos:
-        cols = st.columns(3)
-        for i, q in enumerate(anexos):
-            with cols[i % 3]:
-                if q.arquivo.exists():
-                    st.image(str(q.arquivo), width="stretch", caption=(
-                        f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)[-8:]}").replace(".", ",", 1))
-                if st.button("Remover", key=f"reg_rm_{q.id}", icon=":material/delete:"):
-                    rg.remover_quadro(con, q.id)
+    with cartao("registrar_ocorrencia", "editar", "Registrar ocorrência"):
+        if st.session_state.get("aviso_registro"):
+            st.success(st.session_state.pop("aviso_registro"))
+        con = conexao()
+        rg.migrar(con)
+        chave = f"registro_{_chave(c.id)}"
+        rid = st.session_state.get(chave)
+        if rid is None:
+            st.caption("Viu algo nesta câmera? Descreva o que aconteceu, anexe quadros do vídeo e acione quem precisa ir.")
+            if st.button("Começar registro", type="primary", key="reg_comecar", icon=":material/edit_note:"):
+                try:
+                    st.session_state[chave] = rg.iniciar(con, usuario=u, camera=c.id, local=c.local,
+                                                         cluster_id=c.cluster_id,
+                                                         video_id=f"veo3_{c.clipe.nome}" if c.clipe else None)
                     st.rerun()
-    st.write("")
-    if st.button("Enviar relatório", type="primary", key=f"reg_enviar_{rid}", icon=":material/send:",
-                 width="stretch"):
-        try:
-            n = rg.enviar(con, rid, usuario=u, situacao=situacao or "", descricao=descricao, acionamentos=acion)
-            st.session_state.pop(chave, None)
-            st.session_state["aviso_registro"] = (
-                f"Relatório Nº {rid} enviado." + (f" A Saúde recebeu a ocorrência Nº {n} em Atendimentos." if n else ""))
-            st.rerun()
-        except (ValueError, SemPermissao) as erro:
-            st.error(str(erro).capitalize())
+                except SemPermissao as erro:
+                    st.error(str(erro))
+            return
+        r = rg.obter(con, rid)
+        html(f'<p class="bw-nota">Relatório Nº {rid} · registrado por {es.esc(_nome_de(r["registrado_por"]))} em '
+             f'{_hora(r["registrado_em"])}</p>')
+        _restaurar(f"reg_sit_{rid}", f"reg_desc_{rid}", f"reg_seg_{rid}", *(f"reg_ac_{a}_{rid}" for a in rg.ACIONAMENTOS))
+        situacao = st.selectbox("O que aconteceu", list(rg.SITUACOES), format_func=rg.SITUACOES.get, index=None,
+                                placeholder="Escolha o tipo de situação", key=f"reg_sit_{rid}", on_change=_guardar,
+                                args=(f"reg_sit_{rid}",))
+        descricao = st.text_area("Descreva o que você viu", key=f"reg_desc_{rid}", height=110,
+                                 placeholder="Ex.: motociclista caiu na faixa, está consciente e sentado na calçada.",
+                                 on_change=_guardar, args=(f"reg_desc_{rid}",))
+        html("<b>Acionar</b> <span class='bw-nota'>(simulado: nenhum chamado real é feito)</span>")
+        acion = [a for a, nome in rg.ACIONAMENTOS.items()
+                 if st.checkbox(nome, key=f"reg_ac_{a}_{rid}", on_change=_guardar, args=(f"reg_ac_{a}_{rid}",))]
+        html("<b>Quadros do vídeo</b>")
+        video = c.clipe.video if c.clipe is not None else None
+        if video is None or not Path(video).exists():
+            st.caption("Sem vídeo para capturar.")
+        else:
+            dur = rg.duracao_s(Path(video))
+            seg = st.slider("Momento do vídeo (s)", 0.0, max(dur - 0.1, 0.1), 0.0, 0.1, key=f"reg_seg_{rid}",
+                            on_change=_guardar, args=(f"reg_seg_{rid}",))
+            img = rg.quadro_do_video(Path(video), seg)
+            if img is not None:
+                st.image(img[:, :, ::-1], caption=f"Prévia do momento {seg:.1f} s".replace(".", ","), width=360)
+            if st.button("Capturar este quadro", icon=":material/photo_camera:", key=f"reg_cap_{rid}"):
+                try:
+                    q = rg.capturar(con, rid, usuario=u, video=Path(video), segundo=seg)
+                    st.toast(f"Quadro anexado às {_hora(q.capturado_em)[-8:]}")
+                except (ValueError, SemPermissao) as erro:
+                    st.error(str(erro))
+        anexos = rg.quadros(con, rid)
+        if anexos:
+            cols = st.columns(3)
+            for i, q in enumerate(anexos):
+                with cols[i % 3]:
+                    if q.arquivo.exists():
+                        st.image(str(q.arquivo), width="stretch", caption=(
+                            f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)[-8:]}").replace(".", ",", 1))
+                    if st.button("Remover", key=f"reg_rm_{q.id}", icon=":material/delete:"):
+                        rg.remover_quadro(con, q.id)
+                        st.rerun()
+        st.write("")
+        if st.button("Enviar relatório", type="primary", key=f"reg_enviar_{rid}", icon=":material/send:",
+                     width="stretch"):
+            try:
+                n = rg.enviar(con, rid, usuario=u, situacao=situacao or "", descricao=descricao, acionamentos=acion)
+                st.session_state.pop(chave, None)
+                st.session_state["aviso_registro"] = (
+                    f"Relatório Nº {rid} enviado." + (f" A Saúde recebeu a ocorrência Nº {n} em Atendimentos." if n else ""))
+                st.rerun()
+            except (ValueError, SemPermissao) as erro:
+                st.error(str(erro).capitalize())
 
 
 def _relatorios_enviados() -> None:
     con = conexao()
     rg.migrar(con)
     lista = rg.enviados(con)
-    st.subheader("Relatórios enviados")
-    if not lista:
-        st.caption("Nenhum relatório enviado ainda. Abra uma câmera para registrar.")
-        return
-    for r in lista:
-        acion = [rg.ACIONAMENTOS[a] for a in (r["acionamentos"] or "").split(",") if a in rg.ACIONAMENTOS]
-        saude = f" · ocorrência Nº {r['ocorrencia_id']} na Saúde" if r["ocorrencia_id"] else ""
-        with st.expander(f"Nº {r['id']} · {r['camera']} · {r['local']} · {rg.SITUACOES.get(r['situacao'], '')} · "
-                         f"{_hora(r['enviado_em'])[:-3]}"):
-            html(f'<div class="bw-tempo">'
-                 f'<div><span class="h">Registro</span><span>{es.esc(_nome_de(r["registrado_por"]))}, '
-                 f'{_hora(r["registrado_em"])}</span></div>'
-                 f'<div><span class="h">Envio</span><span>{es.esc(_nome_de(r["enviado_por"]))}, '
-                 f'{_hora(r["enviado_em"])}</span></div>'
-                 f'<div><span class="h">Acionou</span><span>{es.esc(", ".join(acion) or "ninguém")}{saude}'
-                 f'</span></div></div>')
-            html(f'<p style="margin:12px 0">{es.esc(r["descricao"])}</p>')
-            anexos = [q for q in rg.quadros(con, r["id"]) if q.arquivo.exists()]
-            if anexos:
-                cols = st.columns(4)
-                for i, q in enumerate(anexos):
-                    cols[i % 4].image(str(q.arquivo), width="stretch", caption=(
-                        f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)} por "
-                        f"{q.capturado_por}").replace(".", ",", 1))
+    with cartao("relatorios_enviados", "dados", "Relatórios enviados"):
+        if not lista:
+            st.caption("Nenhum relatório enviado ainda. Abra uma câmera para registrar.")
+            return
+        for r in lista:
+            acion = [rg.ACIONAMENTOS[a] for a in (r["acionamentos"] or "").split(",") if a in rg.ACIONAMENTOS]
+            saude = f" · ocorrência Nº {r['ocorrencia_id']} na Saúde" if r["ocorrencia_id"] else ""
+            with st.expander(f"Nº {r['id']} · {r['camera']} · {r['local']} · {rg.SITUACOES.get(r['situacao'], '')} · "
+                             f"{_hora(r['enviado_em'])[:-3]}"):
+                html(f'<div class="bw-tempo">'
+                     f'<div><span class="h">Registro</span><span>{es.esc(_nome_de(r["registrado_por"]))}, '
+                     f'{_hora(r["registrado_em"])}</span></div>'
+                     f'<div><span class="h">Envio</span><span>{es.esc(_nome_de(r["enviado_por"]))}, '
+                     f'{_hora(r["enviado_em"])}</span></div>'
+                     f'<div><span class="h">Acionou</span><span>{es.esc(", ".join(acion) or "ninguém")}{saude}'
+                     f'</span></div></div>')
+                html(f'<p style="margin:12px 0">{es.esc(r["descricao"])}</p>')
+                anexos = [q for q in rg.quadros(con, r["id"]) if q.arquivo.exists()]
+                if anexos:
+                    cols = st.columns(4)
+                    for i, q in enumerate(anexos):
+                        cols[i % 4].image(str(q.arquivo), width="stretch", caption=(
+                            f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)} por "
+                            f"{q.capturado_por}").replace(".", ",", 1))
 
 
 # ---------------------------------------------------------------- Trânsito e Saúde
@@ -1078,28 +1088,28 @@ def pagina_camera() -> None:
                     oc.abrir(conexao(), origem="visao", tipo="suspeita_acidente", video_id=f"veo3_{clipe.nome}",
                              segundo=float(e["segundo"]))
     with c2:
-        st.subheader("Para validar")
-        pend = oc.listar(conexao(), ["pendente"])
-        if not pend:
-            st.caption("Nenhuma suspeita esperando validação.")
-        for o in pend:
-            _cartao_oc(o)
-            a, b = st.columns(2)
-            if a.button("Confirmar", key=f"conf{o['id']}", type="primary", width="stretch"):
-                _executar("confirmar", o["id"])
-            with b.popover("Descartar", width="stretch"):
-                motivo = st.text_input("Por que é falso alarme?", key=f"mot{o['id']}")
-                if st.button("Descartar ocorrência", key=f"desc{o['id']}"):
-                    _executar("descartar", o["id"], motivo)
-        st.divider()
-        if st.button("Reportar ocorrência", width="stretch"):
-            try:
-                exigir(u.perfil, "reportar")
-                i = oc.abrir(conexao(), origem="operador", tipo="ocorrencia_reportada", usuario=u)
-                st.toast(f"Ocorrência Nº {i} aberta")
-                st.rerun()
-            except SemPermissao as erro:
-                st.error(str(erro))
+        with cartao("para_validar", "escudo", "Para validar"):
+            pend = oc.listar(conexao(), ["pendente"])
+            if not pend:
+                st.caption("Nenhuma suspeita esperando validação.")
+            for o in pend:
+                _cartao_oc(o)
+                a, b = st.columns(2)
+                if a.button("Confirmar", key=f"conf{o['id']}", type="primary", width="stretch"):
+                    _executar("confirmar", o["id"])
+                with b.popover("Descartar", width="stretch"):
+                    motivo = st.text_input("Por que é falso alarme?", key=f"mot{o['id']}")
+                    if st.button("Descartar ocorrência", key=f"desc{o['id']}"):
+                        _executar("descartar", o["id"], motivo)
+            st.divider()
+            if st.button("Reportar ocorrência", width="stretch"):
+                try:
+                    exigir(u.perfil, "reportar")
+                    i = oc.abrir(conexao(), origem="operador", tipo="ocorrencia_reportada", usuario=u)
+                    st.toast(f"Ocorrência Nº {i} aberta")
+                    st.rerun()
+                except SemPermissao as erro:
+                    st.error(str(erro))
 
 
 def pagina_confirmadas() -> None:
@@ -1148,61 +1158,61 @@ def pagina_perfil() -> None:
     st.caption("Área, cargo, órgão e matrícula são definidos pela Gestão. Os outros dados você mesmo atualiza.")
     c1, c2 = st.columns(2, gap="large")
     with c1:
-        st.subheader("Seus dados")
-        with st.form("meus_dados"):
-            nome = st.text_input("Nome completo", pf.nome)
-            trat = st.text_input("Como quer ser chamado(a) na plataforma", pf.nome_tratamento or "")
-            tel = st.text_input("Telefone de contato (opcional)", pf.telefone or "")
-            turno = st.selectbox("Turno", ["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"],
-                                 index=(["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"].index(pf.turno)
-                                        if pf.turno in ("Manhã", "Tarde", "Noite", "Plantão 12 × 36") else 0))
-            salvar = st.form_submit_button("Salvar dados", type="primary")
-        if salvar:
-            try:
-                au.atualizar_perfil(con, u.usuario, por=u.usuario, nome=nome, nome_tratamento=trat, telefone=tel,
-                                    turno=turno)
-                st.session_state["usuario"] = au.Usuario(u.usuario, nome.strip() or u.nome, u.perfil)
-                st.toast("Dados salvos")
-                st.rerun()
-            except (PermissionError, ValueError) as erro:
-                st.error(str(erro).capitalize() + ".")
-        st.subheader("Foto")
-        foto = st.file_uploader("Escolha uma foto (JPG ou PNG, até 5 MB)", type=["jpg", "jpeg", "png"])
-        if foto is not None and st.button("Usar esta foto", type="primary"):
-            try:
-                au.salvar_foto(con, u.usuario, foto.getvalue(), por=u.usuario)
-                st.toast("Foto atualizada")
-                st.rerun()
-            except (PermissionError, ValueError) as erro:
-                st.error(str(erro).capitalize() + ".")
-        st.caption("A foto é cortada em quadrado e reduzida. Ela aparece só para a sua equipe, dentro da plataforma.")
-    with c2:
-        st.subheader("Segurança")
-        html(f'<p class="bw-nota">Entrada com senha e código do aplicativo: '
-             f'<b>{"ligada" if pf.tem_codigo else "só senha (peça um novo convite à Gestão)"}</b>.</p>')
-        with st.form("senha", clear_on_submit=True):
-            atual = st.text_input("Senha atual", type="password")
-            nova = st.text_input("Senha nova (mínimo de 8 caracteres)", type="password")
-            nova2 = st.text_input("Repita a senha nova", type="password")
-            trocar = st.form_submit_button("Trocar senha")
-        if trocar:
-            if nova != nova2:
-                st.error("As senhas novas não conferem.")
-            else:
+        with cartao("seus_dados", "perfil", "Seus dados"):
+            with st.form("meus_dados"):
+                nome = st.text_input("Nome completo", pf.nome)
+                trat = st.text_input("Como quer ser chamado(a) na plataforma", pf.nome_tratamento or "")
+                tel = st.text_input("Telefone de contato (opcional)", pf.telefone or "")
+                turno = st.selectbox("Turno", ["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"], placeholder="Escolha o turno",
+                                     index=(["", "Manhã", "Tarde", "Noite", "Plantão 12 × 36"].index(pf.turno)
+                                            if pf.turno in ("Manhã", "Tarde", "Noite", "Plantão 12 × 36") else 0))
+                salvar = st.form_submit_button("Salvar dados", type="primary")
+            if salvar:
                 try:
-                    au.trocar_senha(con, u.usuario, atual, nova)
-                    st.success("Senha trocada.")
-                except ValueError as erro:
+                    au.atualizar_perfil(con, u.usuario, por=u.usuario, nome=nome, nome_tratamento=trat, telefone=tel,
+                                        turno=turno)
+                    st.session_state["usuario"] = au.Usuario(u.usuario, nome.strip() or u.nome, u.perfil)
+                    st.toast("Dados salvos")
+                    st.rerun()
+                except (PermissionError, ValueError) as erro:
                     st.error(str(erro).capitalize() + ".")
-        st.subheader("Seus últimos acessos")
-        nomes = {"entrada": "Entrou", "saida": "Saiu", "falha": "Senha errada", "codigo_errado": "Código errado",
-                 "bloqueio": "Bloqueado por tentativas", "expirou": "Sessão expirou", "convite": "Convite criado",
-                 "convite_aceito": "Ativou o acesso"}
-        itens = "".join(f'<div><span class="h">{datetime.fromisoformat(a["timestamp"]):%d/%m %H:%M}</span>'
-                        f'<span>{es.esc(nomes.get(a["evento"], a["evento"]))}</span></div>'
-                        for a in au.meus_acessos(con, u.usuario))
-        html(f'<div class="bw-tempo">{itens}</div>')
-        st.caption("Se aparecer um acesso que você não fez, troque a senha e avise a Gestão.")
+        with cartao("foto", "camera", "Foto"):
+            foto = st.file_uploader("Escolha uma foto (JPG ou PNG, até 5 MB)", type=["jpg", "jpeg", "png"])
+            if foto is not None and st.button("Usar esta foto", type="primary"):
+                try:
+                    au.salvar_foto(con, u.usuario, foto.getvalue(), por=u.usuario)
+                    st.toast("Foto atualizada")
+                    st.rerun()
+                except (PermissionError, ValueError) as erro:
+                    st.error(str(erro).capitalize() + ".")
+            st.caption("A foto é cortada em quadrado e reduzida. Ela aparece só para a sua equipe, dentro da plataforma.")
+    with c2:
+        with cartao("seguranca", "cadeado", "Segurança"):
+            html(f'<p class="bw-nota">Entrada com senha e código do aplicativo: '
+                 f'<b>{"ligada" if pf.tem_codigo else "só senha (peça um novo convite à Gestão)"}</b>.</p>')
+            with st.form("senha", clear_on_submit=True):
+                atual = st.text_input("Senha atual", type="password")
+                nova = st.text_input("Senha nova (mínimo de 8 caracteres)", type="password")
+                nova2 = st.text_input("Repita a senha nova", type="password")
+                trocar = st.form_submit_button("Trocar senha")
+            if trocar:
+                if nova != nova2:
+                    st.error("As senhas novas não conferem.")
+                else:
+                    try:
+                        au.trocar_senha(con, u.usuario, atual, nova)
+                        st.success("Senha trocada.")
+                    except ValueError as erro:
+                        st.error(str(erro).capitalize() + ".")
+        with cartao("seus_ultimos_acessos", "relogio", "Seus últimos acessos"):
+            nomes = {"entrada": "Entrou", "saida": "Saiu", "falha": "Senha errada", "codigo_errado": "Código errado",
+                     "bloqueio": "Bloqueado por tentativas", "expirou": "Sessão expirou", "convite": "Convite criado",
+                     "convite_aceito": "Ativou o acesso"}
+            itens = "".join(f'<div><span class="h">{datetime.fromisoformat(a["timestamp"]):%d/%m %H:%M}</span>'
+                            f'<span>{es.esc(nomes.get(a["evento"], a["evento"]))}</span></div>'
+                            for a in au.meus_acessos(con, u.usuario))
+            html(f'<div class="bw-tempo">{itens}</div>')
+            st.caption("Se aparecer um acesso que você não fez, troque a senha e avise a Gestão.")
 
 
 def pagina_equipe() -> None:
@@ -1236,30 +1246,30 @@ def pagina_equipe() -> None:
         st.success(f"Convite criado para {email}. Ele vale por {au.CONVITE_H} horas e só pode ser usado uma vez.")
         st.code(link, language=None)
         st.caption("Nesta versão, copie o link e envie à pessoa. Na versão final, ele sai por e-mail automaticamente.")
-    st.subheader("Quem tem acesso")
-    for pf in au.equipe(con):
-        if not pf.ativo:
-            sit, cor = "Desativado", es.MUTED
-        elif pf.convite_pendente:
-            sit, cor = "Convite enviado", es.AMBAR
-        elif pf.tem_codigo:
-            sit, cor = "Ativo, com código do aplicativo", es.VERDE
-        else:
-            sit, cor = "Ativo só com senha (conta antiga)", es.AMBAR
-        html(_linha_pessoa(pf, f'<span style="color:{cor};font-size:14px;font-weight:600">{sit}</span>'))
-        if pf.ativo and pf.usuario != u.usuario:
-            with st.popover(f"Gerenciar {pf.primeiro_nome}"):
-                with st.form(f"g_{pf.usuario}"):
-                    nova_area = st.selectbox("Área", list(PERFIS), index=list(PERFIS).index(pf.area),
-                                             format_func=PERFIS.get, key=f"ga_{pf.usuario}")
-                    novo_cargo = st.text_input("Cargo ou função", pf.cargo or "", key=f"gc_{pf.usuario}")
-                    ok = st.form_submit_button("Salvar")
-                if ok:
-                    au.atualizar_perfil(con, pf.usuario, por=u.usuario, area=nova_area, cargo=novo_cargo)
-                    st.rerun()
-                if st.button("Desativar acesso", key=f"gd_{pf.usuario}"):
-                    au.desativar(con, pf.usuario, por=u.usuario)
-                    st.rerun()
+    with cartao("quem_tem_acesso", "perfil", "Quem tem acesso"):
+        for pf in au.equipe(con):
+            if not pf.ativo:
+                sit, cor = "Desativado", es.MUTED
+            elif pf.convite_pendente:
+                sit, cor = "Convite enviado", es.AMBAR
+            elif pf.tem_codigo:
+                sit, cor = "Ativo, com código do aplicativo", es.VERDE
+            else:
+                sit, cor = "Ativo só com senha (conta antiga)", es.AMBAR
+            html(_linha_pessoa(pf, f'<span style="color:{cor};font-size:14px;font-weight:600">{sit}</span>'))
+            if pf.ativo and pf.usuario != u.usuario:
+                with st.popover(f"Gerenciar {pf.primeiro_nome}"):
+                    with st.form(f"g_{pf.usuario}"):
+                        nova_area = st.selectbox("Área", list(PERFIS), index=list(PERFIS).index(pf.area),
+                                                 format_func=PERFIS.get, key=f"ga_{pf.usuario}")
+                        novo_cargo = st.text_input("Cargo ou função", pf.cargo or "", key=f"gc_{pf.usuario}")
+                        ok = st.form_submit_button("Salvar")
+                    if ok:
+                        au.atualizar_perfil(con, pf.usuario, por=u.usuario, area=nova_area, cargo=novo_cargo)
+                        st.rerun()
+                    if st.button("Desativar acesso", key=f"gd_{pf.usuario}"):
+                        au.desativar(con, pf.usuario, por=u.usuario)
+                        st.rerun()
 
 
 # ---------------------------------------------------------------- navegação
