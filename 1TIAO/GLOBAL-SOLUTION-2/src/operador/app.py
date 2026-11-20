@@ -41,6 +41,7 @@ import padrao as pdr  # noqa: E402
 import registros as rg  # noqa: E402
 import sinais as sn  # noqa: E402
 import cartoes as ct  # noqa: E402
+import armazenamento  # noqa: E402
 import leitor  # noqa: E402
 import visao_geral as vg  # noqa: E402
 from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
@@ -1166,8 +1167,9 @@ def _form_registro(c, u) -> None:
             cols = st.columns(3)
             for i, q in enumerate(anexos):
                 with cols[i % 3]:
-                    if q.arquivo.exists():
-                        st.image(str(q.arquivo), width="stretch", caption=(
+                    imagem = armazenamento.ler_print(q.arquivo)
+                    if imagem:
+                        st.image(imagem, width="stretch", caption=(
                             f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)[-8:]}").replace(".", ",", 1))
                     if st.button("Remover", key=f"reg_rm_{q.id}"):
                         rg.remover_quadro(con, q.id)
@@ -1206,11 +1208,11 @@ def _relatorios_enviados() -> None:
                      f'<div><span class="h">Acionou</span><span>{es.esc(", ".join(acion) or "ninguém")}{saude}'
                      f'</span></div></div>')
                 html(f'<p style="margin:12px 0">{es.esc(r["descricao"])}</p>')
-                anexos = [q for q in rg.quadros(con, r["id"]) if q.arquivo.exists()]
+                anexos = [(q, img) for q in rg.quadros(con, r["id"]) if (img := armazenamento.ler_print(q.arquivo))]
                 if anexos:
                     cols = st.columns(4)
-                    for i, q in enumerate(anexos):
-                        cols[i % 4].image(str(q.arquivo), width="stretch", caption=(
+                    for i, (q, imagem) in enumerate(anexos):
+                        cols[i % 4].image(imagem, width="stretch", caption=(
                             f"{q.segundo:.1f} s do vídeo · capturado às {_hora(q.capturado_em)} por "
                             f"{q.capturado_por}").replace(".", ",", 1))
 

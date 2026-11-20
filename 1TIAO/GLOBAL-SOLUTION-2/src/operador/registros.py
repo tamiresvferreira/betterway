@@ -119,6 +119,8 @@ def capturar(con, registro_id: int, *, usuario, video: Path, segundo: float, pas
     pasta.mkdir(parents=True, exist_ok=True)
     arq = pasta / f"registro_{registro_id:04d}_{ts[:19].replace(':', '').replace('-', '')}_{segundo:06.2f}s.png"
     cv2.imwrite(str(arq), img)
+    import armazenamento
+    armazenamento.copiar_para_nuvem(arq)          # cópia no S3 quando a plataforma roda na AWS
     with con:
         cur = con.execute("INSERT INTO registros_quadros (registro_id, segundo, capturado_em, capturado_por, arquivo) "
                           "VALUES (?, ?, ?, ?, ?)", (registro_id, float(segundo), ts, usuario.usuario, str(arq)))
@@ -132,7 +134,8 @@ def remover_quadro(con, quadro_id: int) -> None:
         if linha is None or linha[1]:
             return
         con.execute("DELETE FROM registros_quadros WHERE id = ?", (quadro_id,))
-    Path(linha[0]).unlink(missing_ok=True)
+    import armazenamento
+    armazenamento.apagar_print(Path(linha[0]))
 
 
 def quadros(con, registro_id: int) -> list[Quadro]:
