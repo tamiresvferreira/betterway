@@ -16,7 +16,9 @@
 
 ## 👩‍🎓 Integrante
 
-- <a href="https://br.linkedin.com/in/tamiresvferreiras">Tamires Vitória Ferreira dos Santos</a> (entrega individual)
+- <a href="https://br.linkedin.com/in/tamiresvferreiras">Tamires Vitória Ferreira dos Santos</a> RM 571256 (Entrega individual)
+
+
 
 ## 👩‍🏫 Professores
 
