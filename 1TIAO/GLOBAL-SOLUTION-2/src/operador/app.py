@@ -52,7 +52,7 @@ MARCA = RAIZ / "assets" / "marca"
 PILOTO, LAT, LON = 139, -23.54183, -46.61613          # Largo da Concórdia (Brás)
 VIDEO_DEMO = "cdmx_pexels_25775484"
 # lema da BetterWay (login e Visão geral); a segunda metade sai em verde
-LEMA = "To live, to move, <span>to drive, to be free.</span>"
+LEMA = "To live, to move, <span>to be free.</span>"
 CLIPE_PILOTO = "cadeirante_03"          # CAM 01 (Largo da Concórdia): cadeira de rodas na faixa
 # vídeos da rede de câmeras (os de 19/11, com a faixa de cada um); a ambulância entra quando o vídeo dela estiver pronto
 CLIPES_REDE = ("cadeirante_03", "andador_01", "ambulancia_01", "infracao_01", "normal_02")
@@ -1497,7 +1497,7 @@ def main() -> None:
     fundo_claro = tema() == "light"
     st.logo(str(MARCA / f"betterway-logo-horizontal-{'fundo-claro' if fundo_claro else 'escuro'}.png"), size="large")
     pf = au.perfil(conexao(), u.usuario)
-    PAGINAS["perfil"] = st.Page(pagina_perfil, title=pf.primeiro_nome if pf else "Meu perfil", url_path="perfil")
+    PAGINAS["perfil"] = st.Page(pagina_perfil, title="Perfil", url_path="perfil")
     nav = st.navigation([PAGINAS[k] for k in POR_PERFIL[u.perfil]], position="top")
     alvo = st.session_state.pop("ir_para", None)          # atalho interno (e para os testes)
     if alvo in POR_PERFIL[u.perfil]:

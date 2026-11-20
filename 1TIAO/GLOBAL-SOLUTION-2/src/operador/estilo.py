@@ -72,7 +72,7 @@ CSS = f"""
 /* ---------- base: escala da skill (16 px), estilos de texto com nome ---------- */
 html {{ font-size: 16px; -webkit-font-smoothing: antialiased; }}
 .stApp, [data-testid="stAppViewContainer"] {{ background: var(--bw-fundo) !important; color: var(--bw-texto); }}
-.block-container {{ max-width: 100% !important; padding: 96px 48px 64px !important; }}
+.block-container {{ max-width: 100% !important; padding: 84px 48px 64px !important; }}
 @media (max-width: 760px) {{ .block-container {{ padding: 80px 16px 96px !important; }} }}
 .stApp h1, .stApp h2, .stApp h3, .stApp h4 {{ text-wrap: balance; letter-spacing: -0.01em; color: var(--bw-texto); }}
 .stApp p, .stApp li {{ text-wrap: pretty; }}
@@ -197,8 +197,9 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 [class*="st-key-camcard_"] .bw-cam {{ transition: border-color 300ms {CURVA}, transform 500ms {CURVA}; }}
 [class*="st-key-camcard_"]:hover .bw-cam {{ border-color: {VERDE}; transform: translateY(-2px); }}
 [class*="st-key-camcard_"] [class*="st-key-abrir_"] {{ position: absolute; inset: 0; z-index: 3; margin: 0; }}
-[class*="st-key-camcard_"] [class*="st-key-abrir_"] div, [class*="st-key-camcard_"] [class*="st-key-abrir_"] button
-  {{ width: 100%; height: 100%; }}
+[class*="st-key-camcard_"] [class*="st-key-abrir_"], [class*="st-key-camcard_"] [class*="st-key-abrir_"] div,
+[class*="st-key-camcard_"] [class*="st-key-abrir_"] button {{ width: 100% !important; max-width: none !important;
+  height: 100% !important; }}
 [class*="st-key-camcard_"] [class*="st-key-abrir_"] button {{ opacity: 0; cursor: pointer; border-radius: 16px; }}
 [class*="st-key-camcard_"] [class*="st-key-abrir_"] button:focus-visible {{ opacity: 1; background: transparent;
   box-shadow: inset 0 0 0 2px {VERDE}; }}

@@ -94,10 +94,23 @@ def faixa_do_clipe(nome: str, largura: int, altura: int) -> tuple[vs.Faixa, list
     return faixa, pista
 
 
+def ambulancia_por_track(df):
+    """Um veículo reconhecido como ambulância em algum quadro é ambulância do começo ao fim (no início ela entra
+    pela borda e só o teto aparece, e a regra de cor ainda não a reconhece)."""
+    if df.empty or "track_id" not in df:
+        return df
+    yw = (df.fonte == "yolo_world") & df.track_id.notna()
+    ambs = set(df.loc[yw & (df.classe == "ambulance"), "track_id"])
+    veiculo = df.classe.isin(["car", "bus", "truck", "ambulance"])
+    df = df.copy()
+    df.loc[yw & veiculo & df.track_id.isin(ambs), "classe"] = "ambulance"
+    return df
+
+
 def _detectar(video: Path, cache: Path, max_quadros: int | None = None):
     import pandas as pd
     if cache.exists():
-        return pd.read_parquet(cache)
+        return ambulancia_por_track(pd.read_parquet(cache))
     from ultralytics import YOLO
     import detector
     ft, pose = YOLO(str(MODELS / "pcd_yolo11s.pt")), YOLO(str(MODELS / "yolo11n-pose.pt"))
@@ -122,7 +135,7 @@ def _detectar(video: Path, cache: Path, max_quadros: int | None = None):
     df = pd.DataFrame(linhas, columns=["quadro", "fonte", "classe", "x1", "y1", "x2", "y2", "conf", "track_id"])
     cache.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(cache, index=False)
-    return df
+    return ambulancia_por_track(df)
 
 
 def _preparar(df):
