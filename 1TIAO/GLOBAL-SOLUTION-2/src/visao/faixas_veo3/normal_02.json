@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/normal_02.mp4",
+ "descricao": "avenida com trânsito; faixa ao fundo, poucos pedestres (polígono estimado a olho na grade do 1º segundo)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   410,
+   384
+  ],
+  [
+   930,
+   384
+  ],
+  [
+   940,
+   428
+  ],
+  [
+   400,
+   428
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 14.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}

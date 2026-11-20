@@ -18,7 +18,7 @@ def con():
     c.close()
 
 
-def _ev(seq=1, tipo="botao_recusado_ambulancia"):
+def _ev(seq=1, tipo="pedido_recusado_ambulancia"):
     return json.dumps({"v": 1, "tipo": tipo, "seq": seq, "boot": "b9", "detalhe": {"eta_s": 20}}).encode()
 
 
@@ -26,7 +26,7 @@ def test_grava_evento_com_origem_cluster_chave(con):
     assert g.processar(con, _ev()) == "gravado"
     origem, cluster, tipo, payload, chave, ts = con.execute(
         "SELECT origem, cluster_id, tipo, payload_json, chave, timestamp FROM eventos").fetchone()
-    assert (origem, cluster, tipo) == ("esp32", 139, "botao_recusado_ambulancia")
+    assert (origem, cluster, tipo) == ("esp32", 139, "pedido_recusado_ambulancia")
     assert chave == "esp32:largo-concordia:b9:1" and ts.endswith("-03:00")
     p = json.loads(payload)
     assert p["demonstracao"] is True and p["detalhe"]["eta_s"] == 20

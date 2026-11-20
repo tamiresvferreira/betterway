@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/cadeirante_03.mp4",
+ "descricao": "rua de 3 faixas; pessoa de cadeira de rodas entra pela esquerda (polígono estimado a olho na grade do 1º segundo)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   330,
+   376
+  ],
+  [
+   1150,
+   376
+  ],
+  [
+   1210,
+   520
+  ],
+  [
+   290,
+   520
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 12.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}

@@ -38,9 +38,19 @@ def test_validar_comando_cru():
 
 
 def test_validar_evento():
-    ok = {"v": 1, "tipo": "botao_pressionado", "seq": 3, "boot": "a1", "detalhe": {}}
+    ok = {"v": 1, "tipo": "cartao_lido", "seq": 3, "boot": "a1", "detalhe": {}}
     assert m.validar_evento(ok) == []
     assert m.validar_evento({**ok, "tipo": "x"})
     assert m.validar_evento({k: v for k, v in ok.items() if k != "seq"})
     assert m.validar_evento({**ok, "seq": -1}) and m.validar_evento({**ok, "v": 2})
     assert m.validar_evento({**ok, "boot": ""}) and m.validar_evento("texto")
+
+
+
+def test_camera_pede_tempo_so_no_modo_pedestre():
+    import mensagens as mm
+    assert mm.validar_comando(mm.comando("pedestre", faixa_ocupada=True, estendida=True)) == []
+    with pytest.raises(mm.ComandoInvalido):
+        mm.comando("normal", estendida=True)
+    with pytest.raises(mm.ComandoInvalido):
+        mm.comando("pedestre", estendida="sim")

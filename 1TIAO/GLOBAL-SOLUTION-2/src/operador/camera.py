@@ -138,7 +138,7 @@ LOCAL_PILOTO = "Largo da Concórdia"
 def nome_de_via(via: str | None) -> str:
     """'AVENIDA DO IMPERADOR' → 'Avenida do Imperador'."""
     palavras = (via or "").lower().split()
-    return " ".join(p if (i and p in _MINUSCULAS) else p.capitalize() for i, p in enumerate(palavras)) or "—"
+    return " ".join(p if (i and p in _MINUSCULAS) else p.capitalize() for i, p in enumerate(palavras)) or "Via sem nome"
 
 
 @dataclass(frozen=True)
@@ -151,17 +151,25 @@ class CameraRede:
     clipe: Clipe | None
 
 
-def rede_de_cameras(pontos: list[dict], clipes: list[Clipe], piloto: int = 139, n: int = 6) -> list[CameraRede]:
+def rede_de_cameras(pontos: list[dict], clipes: list[Clipe], piloto: int = 139, n: int = 6,
+                    clipe_piloto: str | None = None) -> list[CameraRede]:
     """Câmera do piloto primeiro (instalada) e, depois, as dos pontos mais críticos do ranking urbano (simuladas),
-    cada uma tocando um vídeo de referência em rodízio."""
+    cada uma tocando um vídeo de referência em rodízio. `clipe_piloto` escolhe o vídeo da câmera instalada."""
     pil = [p for p in pontos if p["cluster_id"] == piloto]
     outros = sorted((p for p in pontos if p["cluster_id"] != piloto), key=lambda p: p.get("rank_urbano") or 9999)
-    rede = []
+    preferido = next((c for c in clipes if c.nome == clipe_piloto), None)
+    resto = [c for c in clipes if c is not preferido] or clipes
+    rede, k = [], 0
     for i, p in enumerate((pil + outros)[:n]):
         eh_piloto = p["cluster_id"] == piloto
+        if eh_piloto and preferido is not None:
+            clipe = preferido
+        elif resto:
+            clipe, k = resto[k % len(resto)], k + 1
+        else:
+            clipe = None
         rede.append(CameraRede(f"CAM {i + 1:02d}", LOCAL_PILOTO if eh_piloto else nome_de_via(p.get("via_principal")),
-                               p["cluster_id"], p.get("rank_urbano"), eh_piloto,
-                               clipes[i % len(clipes)] if clipes else None))
+                               p["cluster_id"], p.get("rank_urbano"), eh_piloto, clipe))
     return rede
 
 
@@ -176,18 +184,19 @@ def url_estatica(clipe: Clipe | None) -> str | None:
     return f"app/static/cameras/{destino.name}"
 
 
+def html_cartao(c: CameraRede, url: str | None) -> str:
+    """Cartão de uma câmera do mosaico (vídeo servido como arquivo, sem embutir)."""
+    video = (f'<video src="{html.escape(url)}" autoplay muted loop playsinline preload="metadata"></video>'
+             if url else '<div class="sem">sem vídeo</div>')
+    selo = ('<span class="vivo">● Ao vivo</span>' if c.instalada else '<span class="sim">Simulada</span>')
+    rank = f" · {c.rank_urbano}º do ranking" if c.rank_urbano else ""
+    return (f'<figure class="bw-cam">{video}<figcaption><b>{html.escape(c.id)}</b> {selo}'
+            f'<span class="onde">{html.escape(c.local)}{rank}</span></figcaption></figure>')
+
+
 def html_mosaico(rede: list[CameraRede], urls: dict[str, str | None]) -> str:
     """Mosaico das câmeras (vídeos servidos como arquivo, sem embutir)."""
-    blocos = []
-    for c in rede:
-        url = urls.get(c.id)
-        video = (f'<video src="{html.escape(url)}" autoplay muted loop playsinline preload="metadata"></video>'
-                 if url else '<div class="sem">sem vídeo</div>')
-        selo = ('<span class="vivo">● Ao vivo</span>' if c.instalada else '<span class="sim">Simulada</span>')
-        rank = f" · {c.rank_urbano}º do ranking" if c.rank_urbano else ""
-        blocos.append(f'<figure class="bw-cam">{video}<figcaption><b>{html.escape(c.id)}</b> {selo}'
-                      f'<span class="onde">{html.escape(c.local)}{rank}</span></figcaption></figure>')
-    return '<div class="bw-mosaico">' + "".join(blocos) + "</div>"
+    return '<div class="bw-mosaico">' + "".join(html_cartao(c, urls.get(c.id)) for c in rede) + "</div>"
 
 
 # ---------------------------------------------------------------- quem assistiu (LGPD)

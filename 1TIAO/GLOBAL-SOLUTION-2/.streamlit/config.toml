@@ -1,11 +1,6 @@
 # Marca BetterWay (kit v2): peças principais escuras — fundo grafite, texto fundo-claro, destaques em verde
 [theme]
-base = "dark"
 primaryColor = "#00C27A"
-backgroundColor = "#1A1D21"
-secondaryBackgroundColor = "#2A2E33"
-textColor = "#F4F4EF"
-borderColor = "#3A4047"
 linkColor = "#00C27A"
 font = "Montserrat:https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
 headingFontWeights = [700, 600, 600, 600, 600, 600]
@@ -13,8 +8,26 @@ headingFontSizes = ["2.25rem", "1.5rem", "1.25rem"]
 baseRadius = "16px"
 buttonRadius = "full"
 
+[theme.dark]
+base = "dark"
+primaryColor = "#00C27A"
+backgroundColor = "#1A1D21"
+secondaryBackgroundColor = "#2A2E33"
+textColor = "#F4F4EF"
+borderColor = "#3A4047"
+linkColor = "#00C27A"
+
+[theme.light]
+base = "light"
+primaryColor = "#00C27A"
+backgroundColor = "#ECEEEA"
+secondaryBackgroundColor = "#FAFAF8"
+textColor = "#1A1D21"
+borderColor = "#DCDFD9"
+linkColor = "#00804F"
+
 [client]
-toolbarMode = "minimal"
+toolbarMode = "viewer"
 
 [server]
 enableStaticServing = true

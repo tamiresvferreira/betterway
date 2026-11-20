@@ -11,13 +11,14 @@ Spec: [docs/specs/2026-11-17-interface-operador-design.md](../../docs/specs/2026
 
 Todos os comandos são rodados de `1TIAO/GLOBAL-SOLUTION-2/`, com o `.venv` da raiz.
 
-1. Crie os usuários. A senha é pedida sem eco, tem no mínimo 8 caracteres, fica só em hash scrypt e nunca vai para o Git:
+1. Convide a primeira pessoa da Gestão pelo terminal. O comando imprime um link de uso único, que vale 24 h:
    ```
-   python src/operador/autenticacao.py criar transito1 transito "Operador(a) Trânsito 1"
-   python src/operador/autenticacao.py criar saude1 saude "Operador(a) Saúde 1"
-   python src/operador/autenticacao.py criar gestao1 gestao "Gestão 1"
-   python src/operador/autenticacao.py listar
+   python src/operador/autenticacao.py convidar seu.nome@prefeitura.exemplo.org gestao "Seu Nome Completo" --cargo "Coordenação"
    ```
+   Abra o link, crie a senha (mínimo de 8 caracteres), leia o QR Code com um aplicativo autenticador (Google ou
+   Microsoft Authenticator) e confirme com o primeiro código. Depois, a Gestão convida o resto da equipe pela tela
+   **Equipe**. Cada pessoa entra com o próprio e-mail e cuida do seu perfil (foto, nome, telefone, turno, senha) na
+   página com o nome dela na barra.
 2. (Opcional) Processe os clipes sintéticos em `data/raw/video/veo3/`. Sem clipes, a câmera usa os vídeos reais
    (Pexels) já anotados:
    ```
@@ -29,14 +30,18 @@ Todos os comandos são rodados de `1TIAO/GLOBAL-SOLUTION-2/`, com o `.venv` da r
 
 | Perfil | Telas | Pode |
 |---|---|---|
-| Trânsito | Câmera e ocorrências, Sala de controle | confirmar ou descartar (com motivo), reportar ocorrência, mandar cenário ao nó |
-| Saúde | Ocorrências confirmadas, Sala de controle | despachar a ambulância (SIMULADA), encerrar |
-| Gestão | Painel, Ocorrências (tempo de cada etapa), Estudo A, Clipes sintéticos, Sala de controle | só lê |
+| Trânsito | Visão geral, Validar ocorrências, Câmeras, Sala de controle, Sobre | confirmar ou descartar (com motivo), reportar ocorrência, mudar o modo do nó |
+| Saúde | Visão geral, Atendimentos, Câmeras, Sala de controle, Sobre | despachar a ambulância (SIMULADA), encerrar |
+| Gestão | Visão geral, Painel, Câmeras, Ocorrências, Sala de controle, Equipe, Sobre | lê tudo e convida a equipe |
 
 ## Segurança
 
+- Conta só por convite da Gestão: link de uso único, vale 24 h e fica guardado apenas como hash (SHA-256). A senha
+  nunca é enviada por e-mail; a própria pessoa a cria.
+- Dois fatores: senha + código de 6 dígitos de um aplicativo autenticador (TOTP, RFC 6238, implementado em
+  `totp.py` com a biblioteca padrão; o QR Code usa `segno`).
 - A senha é guardada em hash scrypt, com sal de 16 bytes por usuário, e comparada em tempo constante.
-- Depois de **5 erros**, o usuário fica **bloqueado por 5 min**. A mensagem é a mesma para usuário inexistente e para senha errada.
+- Depois de **5 erros** (de senha ou de código), o usuário fica **bloqueado por 5 min**. A mensagem é a mesma para usuário inexistente e para senha errada.
 - A sessão expira com **30 min sem uso**.
 - Toda ação confere o perfil no servidor (`perfis.exigir`), não só na tela.
 - Entradas, saídas, falhas e bloqueios vão para a tabela `acessos`, sem a senha.

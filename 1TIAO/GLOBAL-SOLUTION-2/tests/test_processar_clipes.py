@@ -62,3 +62,14 @@ def test_processar_um_clipe_curto_gera_video_borrado_e_eventos(tmp_path, monkeyp
     assert json.loads((tmp_path / "saida" / "cadeirante_01_eventos.json").read_text(encoding="utf-8")) is not None
     assert av["clipe"] == "cadeirante_01" and av["categoria"] == "cadeirante"
     assert con.execute("SELECT count(*) FROM eventos").fetchone()[0] == len(eventos)
+
+
+def test_ambulancia_vale_para_o_track_inteiro():
+    import pandas as pd
+    import processar_clipes as pc
+    df = pd.DataFrame([dict(quadro=0, fonte="yolo_world", classe="car", track_id=7.0),
+                       dict(quadro=5, fonte="yolo_world", classe="ambulance", track_id=7.0),
+                       dict(quadro=0, fonte="yolo_world", classe="car", track_id=8.0),
+                       dict(quadro=0, fonte="yolo_world", classe="person", track_id=7.0)])
+    out = pc.ambulancia_por_track(df)
+    assert out.classe.tolist() == ["ambulance", "ambulance", "car", "person"]

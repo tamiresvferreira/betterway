@@ -1,6 +1,6 @@
 // Máquina de estados do nó da faixa. Ver logica.h e a spec (§5).
 //
-// Prioridade: ambulância > pedestre já na faixa > travessia estendida (botão) > chuva > escola > pedestre detectado
+// Prioridade: ambulância > pedestre já na faixa > travessia estendida (cartão ou câmera) > chuva > escola > pedestre detectado
 // > normal. "Pedestre já na faixa" = fases PedestreVerde/PedestrePisca, que NUNCA são interrompidas (nem pela
 // ambulância) e o vermelho dos carros estendido enquanto a visão disser que a faixa segue ocupada.
 #include "logica.h"
@@ -85,6 +85,8 @@ void No::comando(const Comando& c, uint32_t agora) {
   faixaOcupada_ = c.faixaOcupada;
   alagamento_ = c.alagamento;
   mudarModo(c.modo, agora);
+  // a câmera viu quem precisa de mais tempo: mesmo efeito do cartão, para quem esqueceu o cartão
+  if (c.modo == Modo::Pedestre && c.estendida) pedirTempo(agora, false);
 }
 
 void No::comandoInvalido(uint32_t /*agora*/) { emitir("comando_invalido", 0); }
@@ -116,18 +118,24 @@ void No::irPara(Fase f, uint32_t agora) {
   }
 }
 
-void No::botao(uint32_t agora) {
-  // uma pressão por segundo no máximo (quem aperta várias vezes seguidas gera um único pedido)
-  if (botaoJaApertado_ && agora - ultimoBotao_ < INTERVALO_BOTAO) return;
-  botaoJaApertado_ = true;
-  ultimoBotao_ = agora;
-  emitir("botao_pressionado", 0);
+void No::cartao(uint32_t agora) {
+  // uma leitura por segundo no máximo (encostar o cartão várias vezes seguidas gera um único pedido)
+  if (cartaoJaLido_ && agora - ultimoCartao_ < INTERVALO_CARTAO) return;
+  cartaoJaLido_ = true;
+  ultimoCartao_ = agora;
+  pedirTempo(agora, true);
+}
+
+void No::pedirTempo(uint32_t agora, bool doCartao) {
+  if (!doCartao && (pedidoEstendido_ || pedidoGuardado_ || (fase_ == Fase::PedestreVerde && faseEstendida_)))
+    return;  // a câmera repete o aviso a cada comando: um pedido já atendido não gera outro
+  emitir(doCartao ? "cartao_lido" : "camera_pediu_tempo", 0);
   if (ambulanciaPerto(agora)) {  // prioridade da ambulância: recusa agora, atende depois
     float eta = etaRestante(agora);
     pedidoGuardado_ = true;
     recusaDesde_ = agora;
     recusaAtiva_ = true;
-    emitir("botao_recusado_ambulancia", static_cast<int32_t>(eta < 0 ? 0 : eta));
+    emitir("pedido_recusado_ambulancia", static_cast<int32_t>(eta < 0 ? 0 : eta));
     return;
   }
   if (fase_ == Fase::PedestreVerde && !faseEstendida_) {  // já atravessando: estende a fase em curso
@@ -151,7 +159,7 @@ const char* No::texto(uint32_t agora) const {
     case Modo::Chuva: return alagamento_ ? "ALAGAMENTO A FRENTE" : "CHUVA - REDUZA";
     case Modo::Escola: return "ESCOLA - DEVAGAR 30 KM/H";
     case Modo::Pedestre: return "PEDESTRE NA VIA - REDUZA";
-    default: return "VIA SEGURA";
+    default: return "BETTERWAY";
   }
 }
 

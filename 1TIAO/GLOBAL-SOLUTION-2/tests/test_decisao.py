@@ -70,3 +70,9 @@ def test_falta_de_dado_nao_vira_fato():
     """Revisão: sem a chuva (API fora), o motivo não pode dizer 'sem chuva'."""
     assert "sem dado" in d.decidir(E(chuva_mm_h=None)).motivo
     assert "sem dado" not in d.decidir(E(chuva_mm_h=0.0)).motivo
+
+
+def test_camera_ve_andador_e_pede_tempo_extra():
+    r = d.decidir(E(pessoas_na_faixa=3, pcd_na_faixa=2))
+    assert r.modo == "pedestre" and r.campos == {"faixa_ocupada": True, "estendida": True}
+    assert "auxílio de mobilidade" in r.motivo

@@ -1,4 +1,4 @@
-"""Visão computacional na faixa de pedestres (Estudo B, Via Segura SP).
+"""Visão computacional na faixa de pedestres (Estudo B, BetterWay).
 
 Funções puras e testáveis: geometria da faixa, travessias, conflitos, PCD, borrão (LGPD), eventos no banco e leitura
 de vídeo. O detector (YOLO-World + ByteTrack) fica isolado em detector.py; tudo aqui recebe listas de Deteccao, o que
@@ -34,7 +34,7 @@ DIST_PCD_REL = 0.6          # distância entre centros ≤ 0,6 × altura da pess
 FRACAO_CABECA = 0.25        # quarto superior da caixa da pessoa = cabeça (borrão)
 LIMIAR_BORRAO = 0.25        # desvio-padrão da região borrada ≤ 25% do original
 
-VEICULOS_CONFLITO = {"car", "motorcycle", "bus", "truck"}
+VEICULOS_CONFLITO = {"car", "motorcycle", "bus", "truck", "ambulance"}
 VEICULOS_MONTADOS = {"motorcycle", "bicycle"}     # quem está em cima é condutor, não pedestre
 SOBREPOSICAO_CONDUTOR = 0.5                        # fração da caixa da pessoa dentro da caixa da moto/bicicleta
 # suspeita de acidente (protótipo, spec 2026-11-17 §4; avaliada só em clipes sintéticos)
@@ -765,7 +765,8 @@ def ler_video(caminho):
 
 
 # ------------------------------------------------------------------------------------------ anotação visual
-ROTULOS_VEICULO = {"car": "Carro", "motorcycle": "Moto", "bus": "Ônibus", "truck": "Caminhão", "bicycle": "Bicicleta"}
+ROTULOS_VEICULO = {"car": "Carro", "motorcycle": "Moto", "bus": "Ônibus", "truck": "Caminhão", "bicycle": "Bicicleta",
+                   "ambulance": "Ambulância"}
 ROTULOS_AUXILIO = {"wheelchair": "cadeira de rodas", "walker": "andador", "crutch": "muleta", "cane": "bengala"}
 COR_PEDESTRE = (52, 104, 235)      # laranja forte (BGR) — mesma família de cor dos gráficos
 COR_CONFLITO = (40, 40, 220)       # vermelho

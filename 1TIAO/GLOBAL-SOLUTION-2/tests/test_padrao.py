@@ -38,7 +38,7 @@ def test_poucos_casos_nao_viram_padrao():
 def test_chuva_agora_conta_quantos_foram_com_chuva():
     p = pd_.padrao_agora(HIST, TER_7H, chuva_mm_h=4.0)
     assert p.casos_com_chuva == 2 and "2 com chuva" in p.texto
-    assert "chuva" not in pd_.padrao_agora(HIST, TER_7H, chuva_mm_h=0.0).texto.split("—")[-1]
+    assert "com chuva" not in pd_.padrao_agora(HIST, TER_7H, chuva_mm_h=0.0).texto
 
 
 def test_historico_vazio():

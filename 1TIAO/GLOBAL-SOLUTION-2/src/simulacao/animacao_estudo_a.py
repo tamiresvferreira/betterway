@@ -70,6 +70,9 @@ def _demanda_cena(cena: str, inicio_pessoas: list[tuple[float, str, str, str]], 
     return gerar
 
 
+# fluxo de pedestres da cena do conflito: uma pessoa a cada 9 s, alternando os lados; 1 em 5 com mobilidade reduzida
+PESSOAS_CONFLITO = [(20 + 9 * i, f"p{i}", "pedestre_reduzida" if i % 5 == 2 else "pedestre", "NC" if i % 2 else "SC")
+                    for i in range(40)]
 JANELA_TRANSITO = (242, 298)   # o trecho com a maior diferença de fila (busca em 20–400 s)
 
 CENAS = {
@@ -86,6 +89,10 @@ CENAS = {
     "transito": dict(comparacao="completo", janela=JANELA_TRANSITO,
                      pessoas=[(40, "p1", "pedestre", "NC"), (130, "p2", "pedestre", "SC")], ambulancia=None,
                      titulo="Trânsito na avenida: o semáforo libera quando a rua de lado está vazia"),
+    # o acidente evitado: uma pessoa começa a atravessar no fim do verde; hoje a avenida recebe verde com ela ainda na
+    # faixa (72 s a 78 s); com a BetterWay ("pedestre já na faixa"), a avenida só abre com a faixa vazia
+    "conflito": dict(comparacao="completo", janela=(54, 110), pessoas=PESSOAS_CONFLITO, ambulancia=None,
+                     titulo="Uma pessoa começa a atravessar no fim do verde"),
     "ambulancia": dict(comparacao="ambulancia", janela=(36, 92),
                        pessoas=[(27, "p1", "pedestre", "NC"), (33, "p2", "pedestre", "SC")], ambulancia=41.0,
                        titulo="Ambulância chegando com o semáforo fechado para ela e uma pessoa na faixa"),
@@ -231,6 +238,14 @@ def _aviso(q, com_sistema, cena, inicio_verde):
     lenta_na_faixa = any(t == "pedestre_reduzida" and f for _, _, t, f in q["pessoas"])
     alguem_na_faixa = any(f for *_, f in q["pessoas"])
     amb = [c for c in q["carros"] if c[3] == "ambulancia"]
+    if cena == "conflito":
+        alguem = any(f for *_, f in q["pessoas"])
+        if alguem and q["verde_avenida"]:
+            return "Carros com verde e uma pessoa ainda na faixa", ALERTA
+        if alguem and not q["verde_ped"]:
+            return "A avenida espera a faixa esvaziar" if com_sistema else "Sinal do pedestre fechou com gente na faixa", (
+                VERDE if com_sistema else AMBAR)
+        return None, None
     if cena == "transito":
         parados = carros_parados_na_avenida(q)
         if parados >= 3:
@@ -361,7 +376,8 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ea.EVID.mkdir(parents=True, exist_ok=True)
     if "--json" in sys.argv:
-        for cena in CENAS:
+        pedidas = [c for c in sys.argv[2:] if c in CENAS] or list(CENAS)
+        for cena in pedidas:
             print(exportar_json(cena, ea.EVID / f"cena_{cena}.json"))
         return
     for cena in CENAS:

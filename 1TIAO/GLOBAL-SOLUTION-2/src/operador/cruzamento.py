@@ -13,7 +13,8 @@ import pandas as pd
 
 RAIZ = Path(__file__).resolve().parents[2]
 EVID_A = RAIZ / "docs" / "evidencias" / "estudo_a"
-CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância", "transito": "Trânsito"}
+CENAS = {"pedestre": "Pessoa com mobilidade reduzida", "ambulancia": "Ambulância", "transito": "Trânsito",
+         "conflito": "Acidente evitado"}
 
 
 def parados_na_avenida(quadros: list) -> float:
@@ -29,6 +30,15 @@ def _num(v: float, casas: int = 1) -> str:
 
 def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict:
     """Texto das pílulas de cada lado e a nota de custo, a partir do resumo do estudo (e da cena, no trânsito)."""
+    if cena == "conflito":
+        c = resumo[resumo.comparacao == "completo"].set_index("sistema")
+        sem, com = c.loc["sem"], c.loc["com"]
+        rs = sem.na_faixa_carros_verde_reduzida + sem.na_faixa_carros_verde_comum
+        rc = com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum
+        return {"rotulo": "Pessoas na faixa com os carros da avenida em verde, por rodada de 30 minutos",
+                "sem": _num(rs), "com": _num(rc, 0),
+                "nota": "Quem começa a atravessar no fim do verde ainda está na faixa quando os carros recebem o "
+                        "verde. A BetterWay vê a pessoa pela câmera e só libera a avenida com a faixa vazia."}
     if cena == "transito":
         c = resumo[resumo.comparacao == "completo"].set_index("sistema")
         so = resumo[resumo.comparacao == "semaforo"].set_index("sistema").loc["com"]
@@ -42,7 +52,8 @@ def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict
                         f"para {_num(com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum, 0)} por rodada. "
                         f"Um semáforo que só reage aos carros chegaria a {_num(so.atraso_medio_carro_s)} s, mas soltaria os "
                         f"carros com gente atravessando ({_num(so.na_faixa_carros_verde_reduzida + so.na_faixa_carros_verde_comum)} "
-                        f"pessoas por rodada); a BetterWay só dá verde à avenida com a faixa vazia."}
+                        f"pessoas por rodada); a BetterWay só troca o verde depois de 4 s sem carro chegando, com amarelo "
+                        f"e vermelho total, e só dá verde à avenida com a faixa vazia."}
     r = resumo[resumo.comparacao == cena].set_index("sistema")
     sem, com = r.loc["sem"], r.loc["com"]
     if cena == "pedestre":
@@ -51,9 +62,10 @@ def metricas(cena: str, resumo: pd.DataFrame, dados: dict | None = None) -> dict
                 "sem": f"{_num(sem.surpreendidos_reduzida_pct, 0)}%", "com": f"{_num(com.surpreendidos_reduzida_pct, 0)}%",
                 "nota": "Nesta cena, a transição (amarelo e vermelho geral) ainda a protege; nas rodadas de 30 minutos, "
                         f"porém, {_num(sem.na_faixa_carros_verde_reduzida)} pessoa(s) com mobilidade reduzida por rodada "
-                        "ficaram na faixa com os carros da avenida já em verde — com a extensão, nenhuma. Sozinha, a "
+                        "ficaram na faixa com os carros da avenida já em verde. Com a extensão, nenhuma. Sozinha, a "
                         f"extensão custa aos carros {_num(sem.atraso_medio_carro_s)} s → {_num(com.atraso_medio_carro_s)} s "
-                        "de atraso; junto com o semáforo que libera a via vazia, o custo some (veja a cena do trânsito)."}
+                        "de atraso. Com tudo ligado junto, o atraso fica perto disso, pouco mais de 1 s por carro: o preço "
+                        "de nunca soltar os carros com gente na faixa (veja a cena do trânsito)."}
     return {"rotulo": "Tempo médio da ambulância para passar o cruzamento",
             "sem": f"{_num(sem.tempo_ambulancia_s)} s", "com": f"{_num(com.tempo_ambulancia_s)} s",
             "nota": f"Pior caso: {_num(sem.tempo_ambulancia_max_s_max, 0)} s para {_num(com.tempo_ambulancia_max_s_max, 0)} s. "
@@ -83,9 +95,15 @@ def icones() -> dict[str, str]:
     return saida
 
 
-def html_cruzamento(dados: dict, met: dict) -> str:
+def html_cruzamento(dados: dict, met: dict, compacto: bool = False) -> str:
+    """`compacto`: versão mais baixa, sem rodapé, para a coluna da direita da Visão geral."""
     payload = json.dumps({"dados": dados, "met": met, "ic": icones()}, ensure_ascii=False, separators=(",", ":"))
-    return _MODELO.replace("__PAYLOAD__", payload)
+    h = _MODELO.replace("__PAYLOAD__", payload)
+    if not compacto:
+        return h
+    # mais perto do cruzamento: carros, faixas e pessoas ficam cerca de 50% maiores no espaço da Visão geral
+    h = h.replace('viewBox="-30 -21 60 42"', 'viewBox="-20 -14 40 28"')
+    return h.replace('<div class="tudo">', '<div class="tudo compacto">', 1)
 
 
 _MODELO = r"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -99,10 +117,11 @@ body{margin:0;font-family:Montserrat,system-ui,sans-serif;color:var(--fundo);bac
 .barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .barra button{font:600 14px Montserrat,sans-serif;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;
 background:var(--verde);color:var(--grafite)}
-.barra button.sec{background:#343A41;color:var(--fundo)}
+.barra button.sec{background:#1F1F1F;color:var(--fundo)}
 .barra button:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
 .barra input[type=range]{flex:1;min-width:140px;accent-color:var(--verde)}
-.relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right}
+.relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right;
+background:#343A41;color:var(--fundo);border-radius:999px;padding:7px 12px}
 .lados{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:760px){.lados{grid-template-columns:1fr}}
 .lado{background:var(--cartao);border-radius:20px;overflow:hidden;border:1px solid #3A4047}
@@ -122,17 +141,34 @@ color:var(--fundo);border-radius:999px;padding:5px 12px 5px 8px;font-size:12px;f
 color:var(--grafite);text-align:center;transition:opacity .25s,background-color .25s;opacity:0}
 .pilula{margin:14px 16px 16px;border-radius:14px;padding:12px 16px;background:#23272C;color:var(--fundo);
 display:flex;align-items:baseline;gap:12px}
-.lado.com .pilula{background:rgba(0,194,122,.16)}
+.lado.sem .pilula{background:#FFB000}.lado.sem .pilula b,.lado.sem .pilula span{color:#1A1D21 !important}
+.lado.com .pilula{background:#00C27A}.lado.com .pilula b,.lado.com .pilula span{color:#1A1D21 !important}
 .pilula b{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lado.sem .pilula b{color:#FF6B74}
 .lado.com .pilula b{color:var(--verde)}
 .pilula span{font-size:13px;color:var(--muted);line-height:1.35}
 .pe{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}
+.sms{position:absolute;top:10px;right:10px;max-width:260px;background:rgba(26,29,33,.9);backdrop-filter:blur(6px);
+border:1px solid var(--ambar);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.4;display:none}
+.sms b{color:var(--ambar);display:block;font-size:14px;margin-bottom:2px}
+.sms .msg{margin-top:6px;padding:8px;border-radius:10px;background:#343A41;color:var(--fundo)}
+.sms .rot{color:var(--muted);font-size:12px;margin-top:6px}
 .giro{animation:giro .5s steps(1) infinite}
 @keyframes giro{50%{fill:#2F6BFF}}
 .pulso{animation:pulso 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes pulso{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
 @media (prefers-reduced-motion:reduce){.giro,.pulso{animation:none}}
+.compacto{max-width:820px}
+.compacto .lados{grid-template-columns:1fr 1fr}
+.compacto .pe,.compacto .sub{display:none}
+.compacto .barra{margin-bottom:8px}.compacto .barra button{padding:7px 14px;font-size:13px}
+.compacto .lados{gap:10px}
+.compacto .topo{padding:9px 12px;font-size:14px}
+.compacto .aviso{margin:8px 10px 0;min-height:34px;padding:7px 10px;font-size:12px}
+.compacto .pilula{margin:8px 10px 10px;padding:8px 10px;gap:8px}
+.compacto .pilula b{font-size:22px}.compacto .pilula span{font-size:12px}
+.compacto .sinal{font-size:11px;padding:3px 9px 3px 6px}
+.compacto .sms{max-width:190px;font-size:11px;padding:7px 9px}
 </style></head><body><div class="tudo">
 <div class="barra">
   <button id="play">Pausar</button><button id="reset" class="sec">Recomeçar</button>
@@ -147,7 +183,7 @@ display:flex;align-items:baseline;gap:12px}
     <div class="pilula"><b id="met-sem"></b><span id="rot-sem"></span></div></section>
   <section class="lado com"><div class="topo"><span class="selo">✓</span>Com a BetterWay<span class="sub">semáforo que reage</span></div>
     <div class="mapa"><svg id="svg-com" viewBox="-30 -21 60 42" role="img" aria-label="Cruzamento com a BetterWay"></svg>
-      <div class="sinais" id="sinais-com"></div></div><div class="aviso" id="aviso-com" aria-live="polite"></div>
+      <div class="sinais" id="sinais-com"></div><div class="sms" id="sms-com" aria-live="polite"></div></div><div class="aviso" id="aviso-com" aria-live="polite"></div>
     <div class="pilula"><b id="met-com"></b><span id="rot-com"></span></div></section>
 </div>
 <div class="pe" id="pe"></div></div>
@@ -250,7 +286,8 @@ function desenhar(lado, ctx, f){
   ctx.luzes.forEach(l => { l.setAttribute("fill", verdeAv ? COR.verde : COR.alerta); });
   const prox = new Map(qb.carros.map(c => [c[0], c])), proxP = new Map(qb.pessoas.map(p => [p[0], p]));
   const vistos = new Set();
-  let amb = null;
+  let amb = null, ambW = null;
+  const veic = [];
   for (const c of qa.carros) {
     const [id, x0, y0, a0, tipo, comp, vel] = c, n = prox.get(id) || c;
     const x = lerp(x0, n[1], t), y = lerp(y0, n[2], t), a = lerpAng(a0, n[3], t);
@@ -259,7 +296,8 @@ function desenhar(lado, ctx, f){
       if (tipo === "ambulancia") { o.rotulo = el("text", {"font-size":1.5, "font-weight":700, fill:"#F4F4EF", "text-anchor":"middle",
         "paint-order":"stroke", stroke:"#1A1D21", "stroke-width":.45, "font-family":"Montserrat"}, ctx.camada); o.rotulo.textContent = "Ambulância"; } }
     o.setAttribute("transform", `translate(${x},${-y}) rotate(${a})`);
-    if (o.rotulo) { o.rotulo.setAttribute("x", x); o.rotulo.setAttribute("y", -y - 2.6); amb = [x, -y]; }
+    if (o.rotulo) { o.rotulo.setAttribute("x", x); o.rotulo.setAttribute("y", -y - 2.6); amb = [x, -y]; ambW = {x, y, a}; }
+    veic.push({o, x, y, a, tipo});
     vistos.add(id);
   }
   for (const p of qa.pessoas) {
@@ -282,6 +320,28 @@ function desenhar(lado, ctx, f){
     vistos.add(id);
   }
   for (const [id, o] of ctx.objs) if (!vistos.has(id)) { o.remove(); if (o.rotulo) o.rotulo.remove(); ctx.objs.delete(id); }
+  if (lado === "com" && D.cena === "ambulancia") {
+    let n = 0;
+    const rad = ambW ? ambW.a * Math.PI / 180 : 0, hx = Math.sin(rad), hy = Math.cos(rad);
+    for (const v of veic) {
+      let aviso = false;
+      if (ambW && v.tipo !== "ambulancia") {
+        const rx = v.x - ambW.x, ry = v.y - ambW.y, frente = rx * hx + ry * hy, lado_ = Math.abs(rx * hy - ry * hx);
+        const dif = Math.abs(((v.a - ambW.a + 540) % 360) - 180);
+        aviso = frente > 2 && lado_ < 10 && dif < 45;
+      }
+      if (aviso && !v.o.anel) v.o.anel = el("circle", {r: 2.6, fill: "none", stroke: "#FFB000", "stroke-width": .35, cy: 2.4}, v.o);
+      if (v.o.anel) v.o.anel.style.display = aviso ? "" : "none";
+      if (aviso) n++;
+    }
+    const sms = document.getElementById("sms-com");
+    if (ambW) {
+      sms.style.display = "block";
+      sms.innerHTML = `<b>Alerta aos motoristas no caminho</b>${n} ${n === 1 ? "motorista à frente avisado" : "motoristas à frente avisados"} nesta cena` +
+        `<div class="msg">Ambulância chegando pela avenida. Abra caminho com segurança.</div>` +
+        `<div class="rot">Simulado. Na rua, o aviso iria para quem está até 1 km à frente da ambulância, por alerta de celular da região, sem identificar ninguém.</div>`;
+    } else sms.style.display = "none";
+  }
   // rastro de prioridade da ambulância (só com a BetterWay, com o verde aberto para ela)
   if (lado === "com" && amb && verdeAv) { ctx.trilha.push(amb); if (ctx.trilha.length > 40) ctx.trilha.shift(); }
   else if (!amb) ctx.trilha = [];

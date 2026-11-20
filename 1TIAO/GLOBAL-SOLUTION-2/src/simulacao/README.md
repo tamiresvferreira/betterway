@@ -34,3 +34,11 @@ Alagamento: fora, por tempo (combinado); já coberto pela central e pelo nó.
 | `estudo_a.py` | Gera a rede (netconvert), a demanda e roda as comparações pelo TraCI |
 | `resumo_estudo_a.py` | Média (mín–máx) por comparação e o gráfico |
 | `rede/cruzamento_*.net.xml` | Redes geradas (tempo fixo e atuado) |
+
+## Intervalo seguro (19/11/2026)
+
+Nos dois lados da comparação, toda troca de verde passa por amarelo de 3 s e vermelho total de 2 s. No semáforo que
+reage, o verde só troca depois de **4 s sem nenhum carro chegando** (se um carro chega nesse meio-tempo, a preferência
+continua com a via dele) e dura pelo menos 6 s. Com tudo ligado junto: ninguém na faixa com os carros da avenida em
+verde (5,6 → 0 por rodada), ambulância 49,3 → 40,8 s, e atraso médio dos carros 15,2 → 16,4 s (cerca de 1,2 s a mais
+por carro, o custo de nunca soltar os carros com gente na faixa).

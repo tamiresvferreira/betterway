@@ -48,6 +48,7 @@ ESPERADO = {
     "escola": dict(auxilio=None, suspeita=False, conflito=None),
     "ambulancia": dict(auxilio=None, suspeita=False, conflito=None),
     "suspeita_acidente": dict(auxilio=None, suspeita=True, conflito=None),
+    "infracao": dict(auxilio=None, suspeita=False, conflito=None),
     "suspeita_bike": dict(auxilio=None, suspeita=True, conflito=None),
     "armadilha": dict(auxilio=None, suspeita=False, conflito=None),
 }
@@ -88,13 +89,28 @@ def faixa_do_clipe(nome: str, largura: int, altura: int) -> tuple[vs.Faixa, list
     faixa = vs.Faixa.de_dict(d)
     sx, sy = largura / faixa.resolucao[0], altura / faixa.resolucao[1]
     pista = [(x * sx, y * sy) for x, y in d["pista"]] if d.get("pista") else None
-    return faixa.para_resolucao(largura, altura), pista
+    faixa = faixa.para_resolucao(largura, altura)
+    object.__setattr__(faixa, "desenhar", d.get("desenhar_faixa", True))   # sem faixa no quadro: não desenha
+    return faixa, pista
+
+
+def ambulancia_por_track(df):
+    """Um veículo reconhecido como ambulância em algum quadro é ambulância do começo ao fim (no início ela entra
+    pela borda e só o teto aparece, e a regra de cor ainda não a reconhece)."""
+    if df.empty or "track_id" not in df:
+        return df
+    yw = (df.fonte == "yolo_world") & df.track_id.notna()
+    ambs = set(df.loc[yw & (df.classe == "ambulance"), "track_id"])
+    veiculo = df.classe.isin(["car", "bus", "truck", "ambulance"])
+    df = df.copy()
+    df.loc[yw & veiculo & df.track_id.isin(ambs), "classe"] = "ambulance"
+    return df
 
 
 def _detectar(video: Path, cache: Path, max_quadros: int | None = None):
     import pandas as pd
     if cache.exists():
-        return pd.read_parquet(cache)
+        return ambulancia_por_track(pd.read_parquet(cache))
     from ultralytics import YOLO
     import detector
     ft, pose = YOLO(str(MODELS / "pcd_yolo11s.pt")), YOLO(str(MODELS / "yolo11n-pose.pt"))
@@ -119,7 +135,7 @@ def _detectar(video: Path, cache: Path, max_quadros: int | None = None):
     df = pd.DataFrame(linhas, columns=["quadro", "fonte", "classe", "x1", "y1", "x2", "y2", "conf", "track_id"])
     cache.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(cache, index=False)
-    return df
+    return ambulancia_por_track(df)
 
 
 def _preparar(df):
@@ -181,7 +197,8 @@ def processar(video: Path, con=None, max_quadros: int | None = None, saida_dir: 
     for i, img in enumerate(quadros):
         if max_quadros is not None and i >= max_quadros:
             break
-        a = vs.anotar(img, por_q.get(i, []), faixa, auxilios, kmh, privadas_extra=ext_q.get(i, []))
+        a = vs.anotar(img, por_q.get(i, []), faixa if getattr(faixa, "desenhar", True) else None, auxilios, kmh,
+                      privadas_extra=ext_q.get(i, []))
         if escritor is None:
             escritor = cv2.VideoWriter(str(tmp), cv2.VideoWriter_fourcc(*"mp4v"), fps, (a.shape[1], a.shape[0]))
         escritor.write(a)

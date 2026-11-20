@@ -38,7 +38,7 @@ def padrao_agora(historico: pd.DataFrame, quando: datetime, chuva_mm_h: float | 
     horas = {(quando.hour + d) % 24 for d in (-1, 0, 1)}
     ini, fim = (quando.hour - 1) % 24, (quando.hour + 1) % 24
     if total == 0:
-        return Padrao(0, 0, None, 0.0, False, "Sem atropelamentos registrados neste local no Infosiga-SP (2022–2025).")
+        return Padrao(0, 0, None, 0.0, False, "Sem atropelamentos registrados neste local no Infosiga-SP (2022 a 2025).")
     dias = pd.to_datetime(historico["data_sinistro"]).dt.day_of_week
     mesmo_dia = (dias < 5) if util else (dias >= 5)
     janela = historico[mesmo_dia.to_numpy() & historico["hora"].isin(horas).to_numpy()]
@@ -52,9 +52,9 @@ def padrao_agora(historico: pd.DataFrame, quando: datetime, chuva_mm_h: float | 
     if chovendo:
         base += f", {com_chuva or 'nenhum'} com chuva"
     if se_repete:
-        texto = f"{base} — {_n(vezes)} vezes o esperado para uma janela de 3 horas."
+        texto = f"{base}. São {_n(vezes)} vezes o esperado para uma janela de 3 horas."
     elif n:
-        texto = f"{base} — não chega a ser um padrão."
+        texto = f"{base}. Ainda não é um padrão."
     else:
         texto = f"Nenhum atropelamento registrado aqui em {tipo} entre {ini}h e {fim}h."
     return Padrao(total, n, com_chuva, round(vezes, 2), se_repete, texto)

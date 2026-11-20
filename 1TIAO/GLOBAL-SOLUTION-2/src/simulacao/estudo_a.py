@@ -40,6 +40,13 @@ LARGURA_FAIXA_M = 2.7                    # 3 faixas × 2,7 m ≈ 16 m de travess
 VERDE_PEDESTRE_S = 19                    # o verde da faixa do piloto (programa estimado pelo netconvert)
 VERDE_AVENIDA_S = 40
 FOLGA_S = 2.0
+# intervalo seguro nas trocas (nos dois lados da comparação): amarelo e vermelho total antes de qualquer verde
+AMARELO_S = 3
+VERMELHO_TOTAL_S = 2
+# semáforo que reage: verde mínimo para quem acabou de ganhar o verde e quanto tempo a via precisa ficar sem carro
+# chegando antes de o sistema decidir trocar (se um carro chega nesse meio-tempo, a preferência continua com ela)
+VERDE_MINIMO_S = 6
+RUA_VAZIA_S = 4.0
 DURACAO_S = 1800                         # 30 min por rodada
 BRACO_M = 300
 # fluxos ESTIMADOS (veículos/h): avenida nos dois sentidos, rua transversal nos dois sentidos
@@ -53,7 +60,7 @@ AMBULANCIAS = [(f"amb{k}", 300 + 67 * k) for k in range(6)]
 def gerar_rede(tipo: str = "static") -> Path:
     """Cruzamento em cruz: avenida O–L (3 faixas por sentido) × rua N–S (1 faixa); calçadas e faixas de pedestre."""
     PASTA.mkdir(exist_ok=True)
-    rede = PASTA / f"cruzamento_{tipo}.net.xml"
+    rede = PASTA / f"cruzamento_{tipo}_seguro.net.xml"
     if rede.exists():
         return rede
     with tempfile.TemporaryDirectory() as tmp:
@@ -72,9 +79,16 @@ def gerar_rede(tipo: str = "static") -> Path:
         ET.ElementTree(arestas).write(tmp / "e.edg.xml")
         subprocess.run([str(SUMO_PKG / "bin" / "netconvert.exe"), "-n", str(tmp / "n.nod.xml"), "-e",
                         str(tmp / "e.edg.xml"), "-o", str(rede), "--sidewalks.guess", "--crossings.guess",
-                        "--tls.default-type", tipo, "--no-turnarounds", "--no-warnings"], check=True,
+                        "--tls.default-type", tipo, "--tls.yellow.time", str(AMARELO_S),
+                        "--tls.allred.time", str(VERMELHO_TOTAL_S), "--tls.min-dur", str(VERDE_MINIMO_S),
+                        "--no-turnarounds", "--no-warnings"], check=True,
                        capture_output=True)
     return rede
+
+
+def configurar_atuado() -> None:
+    """Só troca o verde depois de RUA_VAZIA_S sem nenhum carro chegando ao detector."""
+    traci.trafficlight.setParameter(TLS, "max-gap", str(RUA_VAZIA_S))
 
 
 def _travessias() -> list[tuple[int, str]]:
@@ -165,6 +179,8 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
         try:
             if tipo_rede == "static":
                 _programa_fixo()
+            else:
+                configurar_atuado()
             trav = _travessias()
             faixas = {f for _, f in trav}
             verde_antes = False
@@ -200,7 +216,12 @@ def rodar(comparacao: str, com_sistema: bool, semente: int = 1, duracao: int = D
                     faltam = traci.trafficlight.getNextSwitch(TLS) - traci.simulation.getTime()
                     fase = traci.trafficlight.getPhase(TLS)
                     logica = traci.trafficlight.getAllProgramLogics(TLS)[0]
-                    seguinte = logica.phases[(fase + 1) % len(logica.phases)].state
+                    # a próxima fase com verde (pula o vermelho total): se for a da avenida e ainda houver gente
+                    # na faixa, a fase atual (amarelo ou vermelho total) se prolonga
+                    n_fases, k = len(logica.phases), (fase + 1) % len(logica.phases)
+                    while not any(ch in "Gg" for ch in logica.phases[k].state) and k != fase:
+                        k = (k + 1) % n_fases
+                    seguinte = logica.phases[k].state
                     if faltam <= passo_s and _avenida_em_verde(seguinte) and not _avenida_em_verde(estado):
                         traci.trafficlight.setPhaseDuration(TLS, passo_s * 2)
                 if na_faixa and _avenida_em_verde(estado):

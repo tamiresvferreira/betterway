@@ -1,4 +1,4 @@
-// Nó ESP32 da faixa (Via Segura SP) — casca de hardware e MQTT. NÃO decide nada: lê o botão, repassa comandos à
+// Nó ESP32 da faixa (BetterWay) — casca de hardware e MQTT. NÃO decide nada: lê o botão, repassa comandos à
 // lógica (logica.cpp) e aplica a Saida em LEDs, buzzer e matriz. Spec: docs/specs/2026-11-13-no-esp32-design.md
 //
 // Wokwi (navegador): Wi-Fi "Wokwi-GUEST"; broker público test.mosquitto.org:1883 (sem senha: só demonstração).
@@ -13,7 +13,7 @@
 
 // ---------------------------------------------------------------- pinos (diagram.json)
 const int PIN_CARRO_VM = 25, PIN_CARRO_AM = 26, PIN_CARRO_VD = 27, PIN_PED_VM = 32, PIN_PED_VD = 33;
-const int PIN_BOTAO = 14, PIN_BUZZER = 13, PIN_MATRIZ_CS = 5;  // matriz: DIN 23 (MOSI), CLK 18 (SCK)
+const int PIN_CARTAO = 14, PIN_BUZZER = 13, PIN_MATRIZ_CS = 5;  // matriz: DIN 23 (MOSI), CLK 18 (SCK)
 
 // ---------------------------------------------------------------- rede e contrato (src/central/mensagens.py)
 const char* WIFI_SSID = "Wokwi-GUEST";
@@ -60,6 +60,9 @@ bool validar(JsonDocument& doc, Comando& c) {
     if (!strcmp(k, "faixa_ocupada")) {
       if (c.modo != Modo::Pedestre || !kv.value().is<bool>()) return false;
       c.faixaOcupada = kv.value().as<bool>();
+    } else if (!strcmp(k, "estendida")) {
+      if (c.modo != Modo::Pedestre || !kv.value().is<bool>()) return false;
+      c.estendida = kv.value().as<bool>();
     } else if (!strcmp(k, "alagamento")) {
       if (c.modo != Modo::Chuva || !kv.value().is<bool>()) return false;
       c.alagamento = kv.value().as<bool>();
@@ -187,11 +190,12 @@ void lerSerial() {
   }
 }
 
-// ---------------------------------------------------------------- botão (repique elétrico de 50 ms)
-bool botaoApertado(uint32_t agora) {
+// ---------------------------------------------------------------- leitor de cartão (simulado no Wokwi por um
+// botão: encostar o cartão = uma pressão; repique elétrico de 50 ms)
+bool cartaoLido(uint32_t agora) {
   static int estavel = HIGH, ultimoLido = HIGH;
   static uint32_t mudouEm = 0;
-  int lido = digitalRead(PIN_BOTAO);
+  int lido = digitalRead(PIN_CARTAO);
   if (lido != ultimoLido) {
     ultimoLido = lido;
     mudouEm = agora;
@@ -206,7 +210,7 @@ bool botaoApertado(uint32_t agora) {
 void setup() {
   Serial.begin(115200);
   for (int p : {PIN_CARRO_VM, PIN_CARRO_AM, PIN_CARRO_VD, PIN_PED_VM, PIN_PED_VD}) pinMode(p, OUTPUT);
-  pinMode(PIN_BOTAO, INPUT_PULLUP);
+  pinMode(PIN_CARTAO, INPUT_PULLUP);
   pinMode(PIN_BUZZER, OUTPUT);
   snprintf(boot, sizeof(boot), "%06lx", (unsigned long)(esp_random() & 0xFFFFFF));
   matriz.begin();
@@ -218,14 +222,14 @@ void setup() {
   // keepalive de 60 s (padrão 15 s): no Wokwi a simulação roda abaixo do tempo real e o broker derrubava a
   // conexão a cada ~15 s simulados (visto na aceitação: reconexões em 130, 144, 149 s)
   mqtt.setKeepAlive(60);
-  Serial.printf("Via Segura SP - no da faixa (boot %s)\n", boot);
+  Serial.printf("BetterWay - no da faixa (boot %s)\n", boot);
 }
 
 void loop() {
   uint32_t agora = millis();
-  if (botaoApertado(agora)) {
-    Serial.printf("[%lu] BOTAO\n", agora);
-    no.botao(agora);
+  if (cartaoLido(agora)) {
+    Serial.printf("[%lu] CARTAO\n", agora);
+    no.cartao(agora);
   }
   lerSerial();
   conectarSePreciso(agora);

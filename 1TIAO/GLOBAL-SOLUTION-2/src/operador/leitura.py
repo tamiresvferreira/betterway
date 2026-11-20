@@ -66,7 +66,7 @@ def ler(padrao: Padrao, camera: Camera | None, chuva_mm_h: float | None, risco_v
         clima = Evidencia("Chuva agora", "Previsão de chuva indisponível no momento.", "Open-Meteo", "sem_dado")
     else:
         forte = chuva_mm_h >= CHUVA_FORTE_MM_H
-        clima = Evidencia("Chuva agora", f"{_n(chuva_mm_h)} mm/h" + (" — chuva moderada ou forte" if forte else ""),
+        clima = Evidencia("Chuva agora", f"{_n(chuva_mm_h)} mm/h" + (", chuva moderada ou forte" if forte else ""),
                           "Open-Meteo", "pesa" if forte else "nao_pesa")
     if camera is None:
         cam = Evidencia("Câmera", "Sem leitura da câmera.", "Visão computacional", "sem_dado")

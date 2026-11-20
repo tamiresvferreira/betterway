@@ -1,9 +1,15 @@
 # Nó ESP32 da faixa (Wokwi)
 
-Nó instalado na faixa de pedestres (no piloto, o Largo da Concórdia): semáforo de carros e de pedestre, botão de
+Nó instalado na faixa de pedestres (no piloto, o Largo da Concórdia): semáforo de carros e de pedestre, leitor de cartão para
 **travessia estendida**, buzzer (sinal sonoro) e **matriz de LED** como placa inteligente. Recebe o modo por MQTT
-(normal, pedestre, escola, chuva, ambulância) e decide sozinho o ciclo, as prioridades e o botão. Spec:
+(normal, pedestre, escola, chuva, ambulância) e decide sozinho o ciclo, as prioridades e os pedidos de tempo extra. Spec:
 `docs/specs/2026-11-13-no-esp32-design.md`.
+
+**Tempo extra sem botão (19/11/2026):** o botão da faixa saiu, para evitar fraude e trânsito travado à toa. O
+tempo extra vem do **cartão** (Bilhete Único Idoso ou Especial, como o Green Man+ de Singapura; no Wokwi, o botão azul
+faz o papel do leitor) ou da **câmera**, que manda `"estendida": true` no modo pedestre quando vê andador, muleta,
+bengala ou cadeira de rodas (para quem esqueceu o cartão). Eventos: `cartao_lido`, `camera_pediu_tempo`,
+`travessia_estendida`, `pedido_recusado_ambulancia`, `pedido_atendido_apos_ambulancia`.
 
 **Estado (13/11/2026):** funcionando no Wokwi, com aceitação ponta a ponta (MQTT real + banco) registrada em
 `docs/evidencias/esp32/aceitacao.md`.
@@ -13,7 +19,7 @@ Nó instalado na faixa de pedestres (no piloto, o Largo da Concórdia): semáfor
 1. Abra o projeto no Wokwi: **https://wokwi.com/projects/480902516851985409** (ou crie um projeto ESP32 em wokwi.com e envie os 5 arquivos desta pasta:
    `sketch.ino`, `logica.h`, `logica.cpp`, `diagram.json`, `libraries.txt`).
 2. **Entre na sua conta do Wokwi** antes de iniciar: sem login, o ESP32 simulado não tem internet (o gateway recusa
-   usuário anônimo) e o MQTT não conecta. O nó funciona do mesmo jeito sem rede (botão e ciclo).
+   usuário anônimo) e o MQTT não conecta. O nó funciona do mesmo jeito sem rede (cartão e ciclo).
 3. Inicie a simulação e, no computador, em `1TIAO/GLOBAL-SOLUTION-2`:
 
 ```bash
@@ -29,12 +35,12 @@ exemplo `{"v":1,"id":"a1","ts":"2026-11-15T18:00:00-03:00","modo":"ambulancia","
 
 | Arquivo | O que faz |
 |---|---|
-| `logica.h`, `logica.cpp` | Cérebro do nó, sem hardware: modos, prioridade, ciclo e tempos, texto da matriz, buzzer, botão (inclusive o bloqueio por ambulância) |
-| `sketch.ino` | Casca: Wi-Fi, MQTT, leitura do botão, LEDs, buzzer e matriz; valida o JSON do comando (igual a `src/central/mensagens.py`) |
+| `logica.h`, `logica.cpp` | Cérebro do nó, sem hardware: modos, prioridade, ciclo e tempos, texto da matriz, buzzer, pedidos de tempo extra por cartão ou câmera (inclusive o adiamento pela ambulância) |
+| `sketch.ino` | Casca: Wi-Fi, MQTT, leitura do leitor de cartão (simulado por um botão no Wokwi), LEDs, buzzer e matriz; valida o JSON do comando (igual a `src/central/mensagens.py`) |
 | `diagram.json`, `libraries.txt` | Circuito e bibliotecas (PubSubClient, ArduinoJson, MD_Parola, MD_MAX72XX) |
 
 **Ligações:** LEDs dos carros vermelho/amarelo/verde nos GPIO 25/26/27 e do pedestre vermelho/verde nos GPIO 32/33
-(resistores de 220 Ω); botão no GPIO 14 (pull-up interno); buzzer no GPIO 13; matriz MAX7219 (4 módulos) com DIN 23,
+(resistores de 220 Ω); leitor de cartão simulado (botão) no GPIO 14 (pull-up interno); buzzer no GPIO 13; matriz MAX7219 (4 módulos) com DIN 23,
 CLK 18 e CS 5.
 
 ## Modos
@@ -43,12 +49,12 @@ Faixa de 10 m (configurável); verde do pedestre = 10 ÷ 1,2 ≈ 8 s (normal) ou
 
 | Modo | Matriz | O que muda |
 |---|---|---|
-| Normal | VIA SEGURA | Carros 20 s verde, 3 s amarelo, 2 s vermelho total; pedestre 8 s + 4 s piscando |
-| Botão | TRAVESSIA ESTENDIDA | Encurta o verde dos carros (mínimo 8 s), pedestre 12,5 s, bipe lento (sinal sonoro) |
+| Normal | BETTERWAY | Carros 20 s verde, 3 s amarelo, 2 s vermelho total; pedestre 8 s + 4 s piscando |
+| Cartão ou câmera | TRAVESSIA ESTENDIDA | Encurta o verde dos carros (mínimo 8 s), pedestre 12,5 s, bipe lento (sinal sonoro) |
 | Pedestre (visão) | PEDESTRE NA VIA - REDUZA | Com a faixa ainda ocupada, o vermelho dos carros estende-se até +10 s |
 | Escola | ESCOLA - DEVAGAR 30 KM/H | Toda travessia é estendida, com sinal sonoro |
 | Chuva | CHUVA - REDUZA / ALAGAMENTO A FRENTE | Amarelo 4 s, vermelho total 3 s |
-| Ambulância | AMBULANCIA - ABRA CAMINHO | Com chegada em ≤ 30 s: verde dos carros até ela passar; o botão é **recusado** ("PRIORIDADE AMBULANCIA") e o pedido é **atendido depois**; quem já atravessa nunca é cortado |
+| Ambulância | AMBULANCIA - ABRA CAMINHO | Com chegada em ≤ 30 s: verde dos carros até ela passar; o pedido de tempo é **adiado** ("PRIORIDADE AMBULANCIA") e o pedido é **atendido depois**; quem já atravessa nunca é cortado |
 
 Prioridade: ambulância > pedestre já na faixa > travessia estendida > chuva > escola > pedestre detectado > normal.
 Sem comando por 120 s, volta ao normal; a ambulância sem "fim" termina sozinha em chegada + 15 s.

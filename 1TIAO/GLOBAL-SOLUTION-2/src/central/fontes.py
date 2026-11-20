@@ -30,10 +30,12 @@ def chuva_prevista_mm_h(lat: float, lon: float, quando: datetime, obter=_obter_j
     return None
 
 
-def pessoas_na_faixa(con, desde: datetime | None = None, video_id: str | None = None) -> int:
-    """Quantos registros `pedestre_na_faixa` a visão gravou (a partir de `desde` e/ou de um vídeo)."""
-    sql = "SELECT COUNT(*) FROM eventos WHERE origem = 'yolo' AND tipo = 'pedestre_na_faixa'"
-    args = []
+def pessoas_na_faixa(con, desde: datetime | None = None, video_id: str | None = None,
+                     tipo: str = "pedestre_na_faixa") -> int:
+    """Quantos registros `tipo` a visão gravou (a partir de `desde` e/ou de um vídeo); `pcd_na_faixa` conta quem
+    tem auxílio de mobilidade."""
+    sql = "SELECT COUNT(*) FROM eventos WHERE origem = 'yolo' AND tipo = ?"
+    args = [tipo]
     if desde is not None:
         sql += " AND timestamp >= ?"
         args.append(desde.isoformat(timespec="seconds"))

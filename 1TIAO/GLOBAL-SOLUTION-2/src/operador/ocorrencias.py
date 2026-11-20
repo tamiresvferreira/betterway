@@ -20,7 +20,8 @@ TRANSICOES = {               # ação → (de, para)
     "encerrar": ("despachada", "encerrada"),
 }
 ESTADOS = ("pendente", "confirmada", "descartada", "despachada", "encerrada")
-TIPOS = {"suspeita_acidente": "Suspeita de acidente", "ocorrencia_reportada": "Ocorrência reportada"}
+TIPOS = {"suspeita_acidente": "Suspeita de acidente", "ocorrencia_reportada": "Ocorrência reportada",
+         "registro_camera": "Registro pela câmera"}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS ocorrencias (
