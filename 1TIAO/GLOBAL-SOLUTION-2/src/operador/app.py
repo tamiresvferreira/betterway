@@ -55,7 +55,7 @@ VIDEO_DEMO = "cdmx_pexels_25775484"
 LEMA = "To live, to move, <span>to drive, to be free.</span>"
 CLIPE_PILOTO = "cadeirante_03"          # CAM 01 (Largo da Concórdia): cadeira de rodas na faixa
 # vídeos da rede de câmeras (os de 19/11, com a faixa de cada um); a ambulância entra quando o vídeo dela estiver pronto
-CLIPES_REDE = ("cadeirante_03", "andador_01", "bengala_01", "normal_02")
+CLIPES_REDE = ("cadeirante_03", "andador_01", "ambulancia_01", "infracao_01", "normal_02")
 ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "camera_tempo": "Câmera pede mais tempo",
                    "escola": "Escola", "chuva": "Chuva", "alagamento": "Alagamento", "ambulancia": "Ambulância"}
 DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
@@ -348,7 +348,7 @@ def _ir_cenario(i: int) -> None:
 
 def _video_cenario(c: vg.Cenario) -> str:
     """O take do cenário (vídeo do Veo 3) ou, enquanto ele não existe, um espaço reservado."""
-    f = vg.video_do_cenario(c, vg.PASTA_VIDEOS)
+    f = vg.video_do_cenario(c, vg.PASTA_VIDEOS, vg.PASTA_ANOTADOS)
     if f is None:
         return (f'<div class="bw-vg-video vazio"><div>{es.icone("camera", es.MUTED, 30)}'
                 f'<b>Vídeo do cenário em breve</b><span>{es.esc(c.arquivo_video)}</span></div></div>')
@@ -980,7 +980,9 @@ def pagina_cameras() -> None:
     u = st.session_state["usuario"]
     pontos = consultar("SELECT cluster_id, rank_urbano, via_principal FROM clusters WHERE rank_urbano IS NOT NULL "
                        "AND (rank_urbano <= 12 OR cluster_id = ?) ORDER BY rank_urbano", (PILOTO,)).to_dict("records")
-    rede = cam.rede_de_cameras(pontos, clipes_da_rede(), piloto=PILOTO, n=6, clipe_piloto=CLIPE_PILOTO)
+    clipes_rede = clipes_da_rede()
+    rede = cam.rede_de_cameras(pontos, clipes_rede, piloto=PILOTO, n=min(6, len(clipes_rede)) or 6,
+                               clipe_piloto=CLIPE_PILOTO)
     urls = {c.id: cam.url_estatica(c.clipe) for c in rede}
     aberta = next((c for c in rede if c.id == st.session_state.get("cam_aberta")), None)
     if aberta is not None:

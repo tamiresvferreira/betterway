@@ -43,3 +43,12 @@ def test_video_presente_devolve_o_caminho(tmp_path):
 @pytest.mark.parametrize("i, esperado", [(0, 4), (1, 0), (4, 3)])
 def test_seta_de_voltar_vai_ao_anterior_e_do_primeiro_ao_ultimo(i, esperado):
     assert vg.anterior(i) == esperado
+
+
+def test_prefere_o_video_anotado_pela_visao(tmp_path):
+    (tmp_path / "orig").mkdir(); (tmp_path / "anot").mkdir()
+    (tmp_path / "orig" / "visao_geral_andador.mp4").write_bytes(b"\x00")
+    c = [x for x in vg.CENARIOS if x.id == "andador"][0]
+    assert vg.video_do_cenario(c, tmp_path / "orig", tmp_path / "anot").name == "visao_geral_andador.mp4"
+    (tmp_path / "anot" / "andador_01_anotado.mp4").write_bytes(b"\x00")
+    assert vg.video_do_cenario(c, tmp_path / "orig", tmp_path / "anot").name == "andador_01_anotado.mp4"

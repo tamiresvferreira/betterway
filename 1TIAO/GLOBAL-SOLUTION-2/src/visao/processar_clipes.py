@@ -48,6 +48,7 @@ ESPERADO = {
     "escola": dict(auxilio=None, suspeita=False, conflito=None),
     "ambulancia": dict(auxilio=None, suspeita=False, conflito=None),
     "suspeita_acidente": dict(auxilio=None, suspeita=True, conflito=None),
+    "infracao": dict(auxilio=None, suspeita=False, conflito=None),
     "suspeita_bike": dict(auxilio=None, suspeita=True, conflito=None),
     "armadilha": dict(auxilio=None, suspeita=False, conflito=None),
 }
@@ -88,7 +89,9 @@ def faixa_do_clipe(nome: str, largura: int, altura: int) -> tuple[vs.Faixa, list
     faixa = vs.Faixa.de_dict(d)
     sx, sy = largura / faixa.resolucao[0], altura / faixa.resolucao[1]
     pista = [(x * sx, y * sy) for x, y in d["pista"]] if d.get("pista") else None
-    return faixa.para_resolucao(largura, altura), pista
+    faixa = faixa.para_resolucao(largura, altura)
+    object.__setattr__(faixa, "desenhar", d.get("desenhar_faixa", True))   # sem faixa no quadro: não desenha
+    return faixa, pista
 
 
 def _detectar(video: Path, cache: Path, max_quadros: int | None = None):
@@ -181,7 +184,8 @@ def processar(video: Path, con=None, max_quadros: int | None = None, saida_dir: 
     for i, img in enumerate(quadros):
         if max_quadros is not None and i >= max_quadros:
             break
-        a = vs.anotar(img, por_q.get(i, []), faixa, auxilios, kmh, privadas_extra=ext_q.get(i, []))
+        a = vs.anotar(img, por_q.get(i, []), faixa if getattr(faixa, "desenhar", True) else None, auxilios, kmh,
+                      privadas_extra=ext_q.get(i, []))
         if escritor is None:
             escritor = cv2.VideoWriter(str(tmp), cv2.VideoWriter_fourcc(*"mp4v"), fps, (a.shape[1], a.shape[0]))
         escritor.write(a)

@@ -79,6 +79,7 @@ def test_gestao_abre_na_visao_geral_e_o_painel_le_a_situacao(banco):
 def test_visao_geral_um_cenario_por_vez_e_a_seta_avanca(banco, tmp_path, monkeypatch):
     import visao_geral as vg
     monkeypatch.setattr(vg, "PASTA_VIDEOS", tmp_path)          # sem vídeos: espaço reservado
+    monkeypatch.setattr(vg, "PASTA_ANOTADOS", tmp_path)
     at = _entrar("gestao1")
     assert not at.exception, at.exception
     txt = _texto(at)

@@ -795,3 +795,26 @@ def test_sinonimos_do_andador_e_da_bengala_viram_o_nome_canonico():
     assert dt.nome_canonico("zimmer frame") == "walker" and dt.nome_canonico("walking cane") == "cane"
     assert dt.nome_canonico("wheelchair") == "wheelchair"
     assert set(dt.SINONIMOS) <= set(dt.CLASSES_PADRAO)
+
+
+def test_regra_de_cor_da_ambulancia():
+    import numpy as np
+    import detector as dt
+    branco = np.full((40, 40, 3), 245, np.uint8)
+    ambulancia = branco.copy()
+    ambulancia[10:16, :] = (30, 30, 220)                        # faixa vermelha (BGR) em 15% da área
+    assert dt.parece_ambulancia(ambulancia)
+    assert not dt.parece_ambulancia(branco)                     # van branca, sem vermelho
+    assert not dt.parece_ambulancia(np.full((40, 40, 3), (30, 30, 220), np.uint8))   # tudo vermelho, sem branco
+
+
+def test_caixas_duplicadas_sobre_a_ambulancia_saem():
+    import detector as dt
+    from visao import Deteccao
+    amb1 = Deteccao(0, "ambulance", (100, 100, 200, 220), 0.6, 1)
+    amb2 = Deteccao(0, "ambulance", (102, 98, 198, 222), 0.4, 2)
+    carro_em_cima = Deteccao(0, "car", (105, 105, 200, 215), 0.5, 3)
+    carro_longe = Deteccao(0, "car", (400, 100, 480, 160), 0.7, 4)
+    pessoa = Deteccao(0, "person", (110, 110, 130, 160), 0.8, 5)
+    saida = dt.sem_duplicatas_da_ambulancia([amb1, amb2, carro_em_cima, carro_longe, pessoa])
+    assert sorted(d.track_id for d in saida) == [1, 4, 5]

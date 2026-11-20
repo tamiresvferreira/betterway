@@ -9,6 +9,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 PASTA_VIDEOS = Path(__file__).resolve().parents[2] / "assets" / "cameras"
+PASTA_ANOTADOS = Path(__file__).resolve().parents[2] / "data" / "processed" / "veo3"
+CLIPE_DO_CENARIO = {"conflito": "bengala_01", "transito": "normal_02", "ambulancia": "ambulancia_01",
+                    "pedestre": "cadeirante_03", "andador": "andador_01"}
 
 
 @dataclass(frozen=True)
@@ -23,6 +26,11 @@ class Cenario:
     @property
     def arquivo_video(self) -> str:
         return f"visao_geral_{self.id}.mp4"
+
+    @property
+    def clipe_anotado(self) -> str:
+        """O mesmo vídeo depois da visão computacional (caixas, rótulos e borrões), como nas câmeras."""
+        return CLIPE_DO_CENARIO.get(self.id, "")
 
 
 CENARIOS: tuple[Cenario, ...] = (
@@ -53,6 +61,11 @@ def anterior(i: int) -> int:
     return (i - 1) % len(CENARIOS)
 
 
-def video_do_cenario(c: Cenario, pasta: Path = PASTA_VIDEOS) -> Path | None:
+def video_do_cenario(c: Cenario, pasta: Path = PASTA_VIDEOS, anotados: Path | None = None) -> Path | None:
+    """Prefere o vídeo anotado pela visão (mostra o reconhecimento); sem ele, o vídeo original do cenário."""
+    if anotados is not None and c.clipe_anotado:
+        a = Path(anotados) / f"{c.clipe_anotado}_anotado.mp4"
+        if a.is_file():
+            return a
     f = Path(pasta) / c.arquivo_video
     return f if f.is_file() else None
