@@ -139,15 +139,6 @@ Sala de controle tem um plano B que simula os sinais do nó.
 
 * **Vídeo de entrega (YouTube, não listado):** a incluir.
 
-### 📢 Observações Gerais
-
-* **Participação na Competição:** [x] Sim, aceito participar / [ ] Não vou participar.
-* Simulação, câmeras da rede (exceto a do piloto), ambulância despachada, cartão e alerta no celular são
-  demonstrações e estão marcados como simulados na plataforma. Os vídeos das câmeras são clipes de referência
-  gerados por IA (Veo 3) e vídeos públicos do Pexels.
-* Limites conhecidos: a visão ainda não reconhece bengala nem muleta (quem usa tem o cartão); o nó roda no Wokwi,
-  não em hardware; o broker MQTT é público, só para a demonstração.
-
 ---
 
 ## 📋 Licença
