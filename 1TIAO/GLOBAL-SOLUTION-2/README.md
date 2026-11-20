@@ -46,6 +46,7 @@ ODS relacionados: 3, 9, 10, 11 e 13.
 * **`data/processed/`** bases tratadas e o banco SQLite do projeto.
 * **`docs/`** documentação, diagramas e `evidencias/` (prints, métricas e vídeos dos testes).
 * **`notebooks/`** análise exploratória, agrupamento e modelos.
+* **`src/estudo_b_risco_vida/`** notebooks do Estudo B: limpeza do Infosiga, modelo de letalidade e DBSCAN dos pontos críticos.
 * **`src/dados/`** carga e limpeza das bases.
 * **`src/risco/`** DBSCAN, índice de concentração e classificador de gravidade.
 * **`src/visao/`** detecção de pedestres e veículos com YOLO.

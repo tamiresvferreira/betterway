@@ -1,0 +1,36 @@
+{
+ "video": "data/raw/video/veo3/muleta_01.mp4",
+ "descricao": "avenida de 3 faixas até o canteiro; travessia da calçada (esquerda) ao canteiro (estimada a olho no quadro do meio)",
+ "resolucao": [
+  1280,
+  720
+ ],
+ "poligono": [
+  [
+   307,
+   424
+  ],
+  [
+   727,
+   333
+  ],
+  [
+   940,
+   447
+  ],
+  [
+   400,
+   589
+  ]
+ ],
+ "lado_a": [
+  3,
+  0
+ ],
+ "lado_b": [
+  1,
+  2
+ ],
+ "comprimento_m": 10.0,
+ "comprimento_metodo": "estimativa pelo número de faixas de rolamento (~3 m cada)"
+}

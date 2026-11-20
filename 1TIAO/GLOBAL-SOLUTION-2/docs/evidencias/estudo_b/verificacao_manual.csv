@@ -1,0 +1,12 @@
+﻿cluster_id;rank;via_principal;lat;lon;link_street_view;tem_semaforo_pedestre;tem_contagem_regressiva;data_imagem
+48;1;AVENIDA DO IMPERADOR;-23.513499;-46.443804;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.513499,-46.443804;;;
+267;2;AVENIDA BRAZ LEME;-23.503738;-46.636482;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.503738,-46.636482;;;
+225;3;AVENIDA DO ESTADO;-23.56277;-46.612324;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.562770,-46.612324;;;
+212;4;ESTRADA DO M'BOI MIRIM;-23.722031;-46.785142;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.722031,-46.785142;;;
+163;5;AVENIDA DONA BELMIRA MARIN;-23.746691;-46.688109;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.746691,-46.688109;;;
+32;6;ACESSO ESTRADA DO M BOI MIRIM;-23.672476;-46.743043;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.672476,-46.743043;;;
+87;7;AVENIDA JACUPESSEGO;-23.531941;-46.456018;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.531941,-46.456018;;;
+284;8;AVENIDA LUIZ GUSHIKEN;-23.667987;-46.737702;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.667987,-46.737702;;;
+120;9;AVENIDA JOSE PINHEIRO BORGES;-23.539252;-46.469763;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.539252,-46.469763;;;
+56;10;RUA DEMAS ZITTO;-23.744618;-46.670437;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.744618,-46.670437;;;
+139;26;AVENIDA RANGEL PESTANA;-23.541828;-46.616133;https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-23.541828,-46.616133;;;

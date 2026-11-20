@@ -1,0 +1,49 @@
+Árvore de decisão (fatal × não fatal), parâmetros {'class_weight': None, 'max_depth': 5, 'min_samples_leaf': 50}
+Treino 2022–2023; em cada folha, 'weights: [não fatais, fatais]' no treino.
+
+|--- rodovia_local <= 0.500
+|   |--- hora_cos <= 0.129
+|   |   |--- peso_grupo <= 2.000
+|   |   |   |--- dia_semana <= 5.500
+|   |   |   |   |--- let_local <= 0.072
+|   |   |   |   |   |--- weights: [3635.000, 172.000] class: 0
+|   |   |   |   |--- let_local >  0.072
+|   |   |   |   |   |--- weights: [892.000, 25.000] class: 0
+|   |   |   |--- dia_semana >  5.500
+|   |   |   |   |--- hora_sin <= 0.604
+|   |   |   |   |   |--- weights: [331.000, 21.000] class: 0
+|   |   |   |   |--- hora_sin >  0.604
+|   |   |   |   |   |--- weights: [77.000, 12.000] class: 0
+|   |   |--- peso_grupo >  2.000
+|   |   |   |--- n_hist_local <= 5.500
+|   |   |   |   |--- weights: [59.000, 23.000] class: 0
+|   |   |   |--- n_hist_local >  5.500
+|   |   |   |   |--- indice_cet_grupo <= 23.008
+|   |   |   |   |   |--- weights: [276.000, 7.000] class: 0
+|   |   |   |   |--- indice_cet_grupo >  23.008
+|   |   |   |   |   |--- weights: [44.000, 6.000] class: 0
+|   |--- hora_cos >  0.129
+|   |   |--- hora_sin <= 0.129
+|   |   |   |--- let_local <= 0.064
+|   |   |   |   |--- hora_cos <= 0.787
+|   |   |   |   |   |--- weights: [914.000, 52.000] class: 0
+|   |   |   |   |--- hora_cos >  0.787
+|   |   |   |   |   |--- weights: [366.000, 39.000] class: 0
+|   |   |   |--- let_local >  0.064
+|   |   |   |   |--- n_hist_local <= 7.500
+|   |   |   |   |   |--- weights: [465.000, 70.000] class: 0
+|   |   |   |   |--- n_hist_local >  7.500
+|   |   |   |   |   |--- weights: [163.000, 9.000] class: 0
+|   |   |--- hora_sin >  0.129
+|   |   |   |--- let_local <= 0.052
+|   |   |   |   |--- hora_cos <= 0.604
+|   |   |   |   |   |--- weights: [54.000, 6.000] class: 0
+|   |   |   |   |--- hora_cos >  0.604
+|   |   |   |   |   |--- weights: [52.000, 0.000] class: 0
+|   |   |   |--- let_local >  0.052
+|   |   |   |   |--- mes_sin <= 0.250
+|   |   |   |   |   |--- weights: [136.000, 50.000] class: 0
+|   |   |   |   |--- mes_sin >  0.250
+|   |   |   |   |   |--- weights: [124.000, 18.000] class: 0
+|--- rodovia_local >  0.500
+|   |--- weights: [54.000, 34.000] class: 0

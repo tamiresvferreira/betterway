@@ -1,0 +1,780 @@
+"""Plataforma BetterWay: visão geral, painel de risco, ocorrências, sala de controle e estudos, por perfil.
+
+    streamlit run src/operador/app.py          (de 1TIAO/GLOBAL-SOLUTION-2)
+
+Antes, crie os usuários (senhas fora do Git):
+    python src/operador/autenticacao.py criar gestao1 gestao "Gestão 1"
+
+Specs: docs/specs/2026-11-17-interface-operador-design.md. Marca: kit BetterWay v2 (tema escuro, Montserrat).
+O banco pode ser trocado por VIA_SEGURA_DB; BETTERWAY_SEM_MQTT=1 roda sem broker e BETTERWAY_SEM_CLIPES=1 sem
+vídeos (testes).
+"""
+from __future__ import annotations
+
+import os
+import sqlite3
+import sys
+from datetime import datetime, time, timedelta
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+
+AQUI = Path(__file__).resolve().parent
+RAIZ = AQUI.parents[1]
+for p in (AQUI, RAIZ / "src" / "central", RAIZ / "src" / "estudo_b_risco_vida"):
+    if str(p) not in sys.path:
+        sys.path.insert(0, str(p))
+
+import autenticacao as au  # noqa: E402
+import componentes as cp  # noqa: E402
+import camera as cam  # noqa: E402
+import estilo as es  # noqa: E402
+import leitura as lt  # noqa: E402
+import mensagens as m  # noqa: E402
+import ocorrencias as oc  # noqa: E402
+import padrao as pdr  # noqa: E402
+from no_ao_vivo import CENARIOS, NoAoVivo, comando_cenario  # noqa: E402
+from perfis import PERFIS, SemPermissao, exigir, pode  # noqa: E402
+
+DB = Path(os.environ.get("VIA_SEGURA_DB", RAIZ / "data" / "processed" / "seguranca_viaria.db"))
+EVID = RAIZ / "docs" / "evidencias"
+MARCA = RAIZ / "assets" / "marca"
+PILOTO, LAT, LON = 139, -23.54183, -46.61613          # Largo da Concórdia (Brás)
+VIDEO_DEMO = "cdmx_pexels_25775484"
+ROTULOS_CENARIO = {"normal": "Normal", "pedestre": "Pedestre", "escola": "Escola", "chuva": "Chuva",
+                   "alagamento": "Alagamento", "ambulancia": "Ambulância"}
+DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+
+
+# ---------------------------------------------------------------- dados
+def conexao() -> sqlite3.Connection:
+    con = sqlite3.connect(DB, check_same_thread=False, timeout=10)
+    au.migrar(con)
+    oc.migrar(con)
+    lt.migrar(con)
+    return con
+
+
+def consultar(sql: str, params=()) -> pd.DataFrame:
+    try:
+        return pd.read_sql_query(sql, conexao(), params=params)
+    except (sqlite3.Error, pd.errors.DatabaseError):
+        return pd.DataFrame()
+
+
+@st.cache_resource
+def no_ao_vivo() -> NoAoVivo:
+    if os.environ.get("BETTERWAY_SEM_MQTT"):
+        return NoAoVivo()
+    return NoAoVivo.conectar(banco=str(DB))
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def risco_em(quando_iso: str, chuva: float) -> dict | None:
+    try:
+        from risco import risco
+        return risco(LAT, LON, datetime.fromisoformat(quando_iso), chuva)
+    except Exception:
+        return None
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def risco_medio_do_ponto(util: bool) -> float | None:
+    """Média do risco relativo do piloto ao longo de um dia (útil ou fim de semana), sem chuva."""
+    dia = datetime(2026, 11, 17) if util else datetime(2026, 11, 22)
+    vals = [r["risco_relativo"] for h in range(24) if (r := risco_em(dia.replace(hour=h, minute=30).isoformat(), 0.0))]
+    return sum(vals) / len(vals) if vals else None
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def chuva_agora() -> float | None:
+    try:
+        import fontes
+        return fontes.chuva_prevista_mm_h(LAT, LON, datetime.now(m.FUSO))
+    except Exception:
+        return None
+
+
+@st.cache_data(show_spinner=False)
+def clipes() -> list[cam.Clipe]:
+    if os.environ.get("BETTERWAY_SEM_CLIPES"):
+        return []
+    return cam.clipes_disponiveis()
+
+
+def camera_agora(agora: datetime) -> lt.Camera | None:
+    """Últimos 10 min da visão; sem nada ao vivo, o vídeo de referência (demonstração)."""
+    desde = (agora - timedelta(minutes=10)).isoformat(timespec="seconds")
+    ev = consultar("SELECT tipo, payload_json FROM eventos WHERE origem = 'yolo' AND timestamp >= ?", (desde,))
+    fonte = "ao vivo"
+    if ev.empty:
+        ev = consultar("SELECT tipo, payload_json FROM eventos WHERE origem = 'yolo' AND payload_json LIKE ?",
+                       (f'%{VIDEO_DEMO}%',))
+        fonte = "demo"
+    if ev.empty:
+        return None
+    contar = lambda t: int((ev["tipo"] == t).sum())  # noqa: E731
+    return lt.Camera(contar("pedestre_na_faixa"), contar("conflito_veiculo_pedestre"), contar("pcd_na_faixa"), fonte)
+
+
+# ---------------------------------------------------------------- sessão
+def usuario() -> au.Usuario | None:
+    u, ultimo = st.session_state.get("usuario"), st.session_state.get("ultimo_uso")
+    if u is None:
+        return None
+    if not au.sessao_valida(ultimo):
+        au.registrar_acesso(conexao(), u.usuario, "expirou")
+        st.session_state.clear()
+        st.session_state["aviso_login"] = "Sua sessão expirou depois de 30 minutos sem uso. Entre de novo."
+        return None
+    st.session_state["ultimo_uso"] = datetime.now().replace(microsecond=0)
+    return u
+
+
+def _estatico(origem: Path) -> str:
+    """Copia um arquivo da marca para a pasta servida pelo Streamlit (fora do Git) e devolve a URL relativa."""
+    destino = AQUI / "static" / origem.name
+    if origem.exists() and (not destino.exists() or destino.stat().st_size != origem.stat().st_size):
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_bytes(origem.read_bytes())
+    return f"app/static/{origem.name}"
+
+
+CSS_LOGIN = """
+<style>
+[data-testid="stHeader"] {{ display: none; }}
+[data-testid="stAppViewContainer"] {{ background: #0B0F12 url("{grande}") right center / cover no-repeat; }}
+.block-container {{ padding-top: 0 !important; }}
+.bw-login-espaco {{ height: 22vh; }}
+.bw-login-titulo {{ font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; line-height: 1.15; margin: 18px 0 8px; }}
+.bw-login-titulo span {{ color: #00C27A; }}
+.bw-login-sub {{ color: #C9CBC6; font-size: 15px; margin: 0 0 22px; }}
+[data-testid="stForm"] {{ background: rgba(26, 29, 33, .78); backdrop-filter: blur(6px); }}
+@media (max-width: 760px) {{
+  [data-testid="stAppViewContainer"] {{
+    background: linear-gradient(to bottom, rgba(11,15,18,0) 0, rgba(11,15,18,.2) 30vh, #0B0F12 46vh),
+                #0B0F12 url("{celular}") center top / 100% auto no-repeat; }}
+  .bw-login-espaco {{ height: 30vh; }}
+}}
+</style>
+"""
+
+
+def tela_login() -> None:
+    html(CSS_LOGIN.format(grande=_estatico(MARCA / "login-faixa.jpg"),
+                          celular=_estatico(MARCA / "login-faixa-celular.jpg")))
+    esquerda, _ = st.columns([0.85, 1.5])
+    with esquerda:
+        html('<div class="bw-login-espaco"></div>')
+        logo = MARCA / "betterway-logo-horizontal-escuro.png"
+        if logo.exists():
+            st.image(str(logo), width=260)
+        html('<div class="bw-login-titulo">Mais seguro para quem atravessa, <span>mais rápido para quem dirige.'
+             '</span></div><p class="bw-login-sub">Entre com o usuário da sua equipe.</p>')
+        if st.session_state.get("aviso_login"):
+            st.info(st.session_state["aviso_login"])
+        with st.form("login"):
+            nome = st.text_input("Usuário")
+            senha = st.text_input("Senha", type="password")
+            entrar = st.form_submit_button("Entrar", type="primary", width="stretch")
+        if entrar:
+            r = au.autenticar(conexao(), nome, senha)
+            if r.ok:
+                st.session_state.clear()
+                st.session_state["usuario"] = r.usuario
+                st.session_state["ultimo_uso"] = datetime.now().replace(microsecond=0)
+                st.rerun()
+            else:
+                st.error(r.mensagem)
+
+
+def sair() -> None:
+    u = st.session_state.get("usuario")
+    if u is not None:
+        au.registrar_acesso(conexao(), u.usuario, "saida")
+    st.session_state.clear()
+    st.rerun()
+
+
+def html(conteudo: str) -> None:
+    st.markdown(conteudo, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------- visão geral (demonstração)
+def _calcular_leitura(quando: datetime, chuva: float | None, agora: datetime) -> lt.Leitura:
+    hist = consultar("SELECT data_sinistro, hora, chuva_mm FROM sinistros WHERE cluster_id = ?", (PILOTO,))
+    padrao = pdr.padrao_agora(hist, quando, chuva)
+    rk = risco_em(quando.replace(second=0, microsecond=0).isoformat(), chuva or 0.0)
+    media = risco_medio_do_ponto(quando.weekday() < 5)
+    vezes_local = rk["risco_relativo"] / media if rk and media else None
+    return lt.ler(padrao, camera_agora(agora), chuva, vezes_local, rk["risco_relativo"] if rk else None)
+
+
+def _bloco(verbo: str, icone: str, titulo: str, texto: str) -> None:
+    html(f'<div class="bw-demo-topo"><span class="icone">{es.icone(icone, es.VERDE, 26)}</span><div>'
+         f'<div class="verbo">{es.esc(verbo)}</div><div class="bw-secao" style="margin:2px 0 4px">{es.esc(titulo)}</div>'
+         f'<p class="bw-nota" style="font-size:16px;color:#D9DAD5;margin:0">{es.esc(texto)}</p></div></div>')
+
+
+def pagina_visao_geral() -> None:
+    html("""<div class="bw-hero"><div>
+      <div class="chamada">Mais seguro para quem atravessa, <span class="fim">mais rápido para quem dirige.</span></div>
+      <p>Veja a BetterWay funcionando no Largo da Concórdia, no Brás: o que ela percebe, o que ela decide e o que muda
+      no cruzamento.</p></div></div>""")
+    _bloco("to live", "vida", "Percebe quando a situação de um acidente se repete",
+           "A plataforma cruza o histórico de atropelamentos do local com a chuva, a câmera e o modelo de risco, e "
+           "explica a conclusão. Exemplo: uma terça às 17h40, com chuva.")
+    agora = datetime.now(m.FUSO).replace(tzinfo=None)
+    terca = (agora - timedelta(days=agora.weekday()) + timedelta(days=1)).replace(hour=17, minute=40, second=0,
+                                                                                   microsecond=0)
+    html(_cartao_leitura(_calcular_leitura(terca, 5.0, agora), terca, simulado=True))
+    _bloco("to be free", "pedestre", "Dá tempo a quem precisa atravessar",
+           "A câmera reconhece quem anda com cadeira de rodas, andador, muleta ou bengala, e o semáforo segura o verde "
+           "até a pessoa chegar do outro lado.")
+    _player("pedestre")
+    _bloco("to move", "ambulancia", "Faz o trânsito andar e abre caminho para a ambulância",
+           "Quando a rua de lado fica vazia, o verde volta para a avenida sem esperar o tempo fixo, mas nunca com "
+           "alguém na faixa. Quando uma ambulância se aproxima, ela ganha prioridade.")
+    cena = st.segmented_control("Situação", ["transito", "ambulancia"], default="transito", key="cena_mover",
+                                format_func={"transito": "Trânsito", "ambulancia": "Ambulância"}.get,
+                                label_visibility="collapsed") or "transito"
+    _player(cena)
+    _barras_sistema()
+    st.page_link(PAGINAS["sobre"], label="Como a BetterWay funciona, de onde vêm os dados e como protegemos a "
+                                         "privacidade", icon=":material/arrow_forward:")
+
+
+def _player(cena: str) -> None:
+    import cruzamento as cz
+    try:
+        dados, met = cz.carregar(cena)
+    except FileNotFoundError:
+        st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
+        return
+    components.html(cz.html_cruzamento(dados, met), height=800, scrolling=False)
+
+
+# ---------------------------------------------------------------- sobre
+def pagina_sobre() -> None:
+    cl = consultar("SELECT COUNT(*) AS n FROM clusters WHERE rank_urbano IS NOT NULL")
+    n_grupos = int(cl.n.iloc[0]) if not cl.empty else None
+    pil = consultar("SELECT COUNT(*) AS n, SUM(fatal) AS f FROM sinistros WHERE cluster_id = ?", (PILOTO,))
+    n_pil, f_pil = (int(pil.n.iloc[0]), int(pil.f.iloc[0] or 0)) if not pil.empty else (None, None)
+    st.title("Sobre a BetterWay")
+    html('<p class="bw-nota" style="font-size:17px;color:#D9DAD5;max-width:72ch">Uma plataforma de segurança viária '
+         'que junta dados reais de atropelamentos, uma câmera que entende a faixa de pedestres e um semáforo '
+         'conectado, para proteger quem atravessa e fazer o trânsito andar. Sem identificar ninguém.</p>')
+    html('<div class="bw-secao">Como funciona, do começo ao fim</div>')
+    html("""<div class="bw-passos">
+      <div class="bw-passo"><span class="n">1</span><b>A câmera vê a faixa</b><span>Conta quem atravessa, mede o
+        tempo e percebe conflitos com veículos. Rostos e placas saem borrados.</span></div>
+      <div class="bw-passo"><span class="n">2</span><b>A central decide</b><span>Junta câmera, chuva, horário e o
+        histórico do local, e escolhe o modo do semáforo.</span></div>
+      <div class="bw-passo"><span class="n">3</span><b>O nó na faixa age</b><span>O ESP32 estende o verde, avisa
+        os motoristas no painel de LED ou dá prioridade à ambulância.</span></div>
+      <div class="bw-passo"><span class="n">4</span><b>A equipe valida</b><span>Trânsito confirma cada suspeita de
+        acidente; Saúde recebe o alerta e despacha o atendimento.</span></div>
+    </div>""")
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        html('<div class="bw-secao">O piloto: Largo da Concórdia, no Brás</div>')
+        texto = (f"{n_pil} atropelamentos entre 2022 e 2025, {f_pil} com morte. " if n_pil else "") + \
+            "Uma avenida de seis faixas com 16 metros de travessia: mais do que muita gente consegue atravessar no " \
+            "tempo do verde." + (f" A plataforma ordena {n_grupos} pontos críticos urbanos da cidade." if n_grupos else "")
+        html(f'<p class="bw-nota" style="font-size:16px;color:#D9DAD5">{es.esc(texto)}</p>')
+        html('<div class="bw-secao">Privacidade</div>')
+        html('<p class="bw-nota" style="font-size:16px;color:#D9DAD5">Nenhum rosto é reconhecido. Rostos e placas '
+             'saem borrados antes de qualquer imagem ser mostrada, e o sistema guarda só números e horários. Cada vez '
+             'que alguém abre uma câmera, o acesso fica registrado com nome e horário.</p>')
+    with c2:
+        html('<div class="bw-secao">De onde vêm os dados</div>')
+        html("""<div class="bw-tempo">
+          <div><span class="h">Acidentes</span><span>Infosiga-SP, atropelamentos de 2022 a 2025</span></div>
+          <div><span class="h">Chuva</span><span>Open-Meteo, previsão hora a hora</span></div>
+          <div><span class="h">Cidade</span><span>OpenStreetMap e GeoSampa: semáforos e escolas</span></div>
+          <div><span class="h">Câmera</span><span>vídeos públicos (Pexels) e clipes gerados por IA para testes</span></div>
+          <div><span class="h">Trânsito</span><span>simulação no SUMO de um cruzamento com as medidas do piloto</span></div>
+        </div>""")
+        html('<div class="bw-secao" style="margin-top:20px">Limites</div>')
+        html('<p class="bw-nota" style="font-size:16px;color:#D9DAD5">Os ganhos no trânsito são resultados esperados '
+             'de simulação. Só o Largo da Concórdia tem câmera instalada; as outras câmeras da rede são simuladas. A '
+             'ambulância despachada é simulada e não há integração com a CET ou o SAMU.</p>')
+    _clipes_sinteticos()
+    html('<p class="bw-nota" style="margin-top:28px">Global Solution FIAP 2026.2 · Tamires Vitória Ferreira dos Santos, '
+         'turma 1TIAO.</p>')
+
+
+# ---------------------------------------------------------------- painel (gestão)
+def _cartao_leitura(l: lt.Leitura, quando: datetime, simulado: bool) -> str:
+    linhas = ""
+    for e in l.evidencias:
+        ic, cor = es.ICONE_EVIDENCIA[e.estado]
+        linhas += (f'<div class="bw-ev">{es.icone(ic, cor, 20)}<span class="nome">{es.esc(e.nome)}</span>'
+                   f'<span class="txt">{es.esc(e.texto)}</span><span class="fonte">{es.esc(e.fonte)}</span></div>')
+    quando_txt = f"{DIAS[quando.weekday()]}, {quando:%H:%M}" + (" · horário simulado" if simulado else "")
+    return (f'<div class="bw-leitura {l.nivel}"><div class="topo">{es.selo_nivel(l.nivel)}'
+            f'<span class="bw-nota">Leitura da situação · {es.esc(quando_txt)}</span></div>'
+            f'<div class="titulo" style="margin:10px 0 6px">{es.esc(l.titulo)}</div>{linhas}'
+            f'<div class="bw-conclusao"><b>O que fazer:</b> {es.esc(l.recomendacao)}</div></div>')
+
+
+def pagina_painel() -> None:
+    st.title("Painel do ponto crítico")
+    st.caption("Largo da Concórdia, Brás. A leitura junta histórico, chuva, câmera e modelo, e é refeita a cada minuto.")
+    with st.expander("Simular um horário (para apresentar a leitura)"):
+        sim = st.toggle("Usar horário simulado", key="sim_on")
+        a, b, c = st.columns(3)
+        dia = a.selectbox("Dia", DIAS, index=1, key="sim_dia")
+        hora = b.time_input("Hora", time(17, 40), key="sim_hora")
+        chuva_sim = c.number_input("Chuva (mm/h)", 0.0, 50.0, 5.0, 0.5, key="sim_chuva")
+    agora = datetime.now(m.FUSO).replace(tzinfo=None)
+    if sim:
+        base = agora - timedelta(days=agora.weekday()) + timedelta(days=DIAS.index(dia))
+        quando, chuva = base.replace(hour=hora.hour, minute=hora.minute, second=0, microsecond=0), chuva_sim
+    else:
+        quando, chuva = agora, chuva_agora()
+    leit = _calcular_leitura(quando, chuva, agora)
+    rk = risco_em(quando.replace(second=0, microsecond=0).isoformat(), chuva or 0.0)
+    lt.registrar(conexao(), leit, quando, simulado=sim)
+    html(_cartao_leitura(leit, quando, sim))
+
+    no = no_ao_vivo()
+    abertas = oc.listar(conexao(), ["pendente", "confirmada", "despachada"])
+    tempos = _tempos_ocorrencias()
+    conf = tempos["Até confirmar (s)"].dropna() if not tempos.empty else pd.Series(dtype=float)
+    k = st.columns(4)
+    with k[0]:
+        html(es.kpi("Modo do semáforo", cam.NOMES_MODO.get((no.estado or {}).get("modo"), "Sem sinal do nó"),
+                    "nó ESP32 na faixa"))
+    with k[1]:
+        html(es.kpi("Risco agora", f"{rk['risco_relativo']:.1f}×".replace(".", ",") if rk else "—",
+                    "a média da cidade"))
+    with k[2]:
+        html(es.kpi("Ocorrências em aberto", str(len(abertas)), "aguardando validação ou atendimento"))
+    with k[3]:
+        html(es.kpi("Tempo até confirmar", f"{conf.mean():.0f} s" if len(conf) else "—", "média das ocorrências"))
+    st.write("")
+    c1, c2 = st.columns([3, 2], gap="large")
+    with c1:
+        st.subheader("Risco ao longo do dia no Largo")
+        _curva_risco(quando)
+    with c2:
+        st.subheader("Linha do tempo das leituras")
+        hist_l = lt.historico(conexao(), 8)
+        if not hist_l:
+            st.caption("A primeira leitura aparece aqui.")
+        linhas = "".join(
+            f'<div><span class="h">{datetime.fromisoformat(r["timestamp"]):%H:%M}</span><span>'
+            f'{es.selo_nivel(r["nivel"])}{" <span class=bw-nota>simulada</span>" if r["simulado"] else ""}'
+            f'<br><span class="bw-nota">{es.esc(r["resumo"].split(" · ")[0])}</span></span></div>' for r in hist_l)
+        html(f'<div class="bw-tempo">{linhas}</div>')
+    c1, c2 = st.columns([3, 2], gap="large")
+    with c1:
+        st.subheader("Mapa de risco da cidade")
+        _mapa()
+    with c2:
+        st.subheader("Os pontos mais críticos")
+        top = consultar("SELECT cluster_id, rank_urbano, via_principal, n_fatais, n_nao_fatais FROM clusters "
+                        "WHERE rank_urbano IS NOT NULL AND (rank_urbano <= 9 OR cluster_id = ?) ORDER BY rank_urbano",
+                        (PILOTO,))
+        html(cp.ranking_pontos([{"rank_urbano": int(r.rank_urbano),
+                                 "via": "Largo da Concórdia" if r.cluster_id == PILOTO else cam.nome_de_via(r.via_principal),
+                                 "atropelamentos": int(r.n_fatais + r.n_nao_fatais), "piloto": r.cluster_id == PILOTO}
+                                for r in top.itertuples()]))
+        html('<p class="bw-nota">Número = atropelamentos no grupo (Infosiga-SP, 2022–2025). A ordem segue o índice de '
+             'prioridade da CET, que pesa as mortes.</p>')
+
+
+def _curva_risco(quando: datetime) -> None:
+    """Risco do piloto hora a hora (modelo do notebook 06), com o horário da leitura marcado."""
+    import altair as alt
+    dia = quando.replace(minute=30, second=0, microsecond=0)
+    pontos = [{"hora": h, "risco": r["risco_relativo"]} for h in range(24)
+              if (r := risco_em(dia.replace(hour=h).isoformat(), 0.0))]
+    if not pontos:
+        st.caption("Modelo de risco indisponível.")
+        return
+    df = pd.DataFrame(pontos)
+    df["rotulo"] = df["hora"].map(lambda h: f"{h:02d}h")
+    base = alt.Chart(df).encode(x=alt.X("hora:Q", title=None, scale=alt.Scale(domain=[0, 23]),
+                                        axis=alt.Axis(values=list(range(0, 24, 3)), labelExpr="datum.value + 'h'")))
+    area = base.mark_area(color=es.VERDE, opacity=0.14, interpolate="monotone").encode(y="risco:Q")
+    linha = base.mark_line(color=es.VERDE, strokeWidth=2, interpolate="monotone").encode(
+        y=alt.Y("risco:Q", title="vezes a média da cidade", axis=alt.Axis(tickCount=4)))
+    pontos_ = base.mark_circle(size=90, opacity=0).encode(
+        y="risco:Q", tooltip=[alt.Tooltip("rotulo:N", title="Hora"),
+                              alt.Tooltip("risco:Q", title="Risco (× cidade)", format=".1f")])
+    agora = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": ["agora"]})).mark_rule(
+        color=es.CLARO, strokeDash=[4, 4]).encode(x="hora:Q")
+    rotulo = alt.Chart(pd.DataFrame({"hora": [quando.hour + quando.minute / 60], "t": [f"{quando:%H:%M}"]})).mark_text(
+        color=es.CLARO, dy=-8, align="left", dx=6, fontSize=14, font="Montserrat").encode(x="hora:Q", y=alt.value(12),
+                                                                                         text="t:N")
+    graf = (area + linha + pontos_ + agora + rotulo).properties(height=260).configure(
+        background="transparent", font="Montserrat").configure_axis(
+        labelColor=es.MUTED, titleColor=es.MUTED, gridColor="#343A41", domainColor="#3A4047", labelFontSize=13,
+        titleFontSize=13, tickColor="#3A4047").configure_view(strokeWidth=0)
+    st.altair_chart(graf, width="stretch")
+    pico = df.loc[df.risco.idxmax()]
+    vezes = f"{pico.risco:.1f}".replace(".", ",")
+    html(f'<p class="bw-nota">Dia útil, sem chuva. O pico é por volta das {int(pico.hora)}h ({vezes}× a média da '
+         f'cidade). A linha tracejada marca o horário da leitura.</p>')
+
+
+def _mapa() -> None:
+    import pydeck as pdk
+    cl = consultar("SELECT * FROM clusters WHERE rank_urbano IS NOT NULL")
+    if cl.empty:
+        st.info("Sem pontos críticos no banco. Gere-os com os notebooks 03 e 04.")
+        return
+    cl = cl.assign(raio=(cl["peso"].clip(lower=1) ** 0.5) * 80, via=cl["via_principal"].fillna("—"))
+    corte = cl["rank_urbano"]
+    cl["cor"] = [[230, 57, 70, 220] if r <= 20 else [255, 176, 0, 200] if r <= 60 else [0, 194, 122, 150]
+                 for r in corte]
+    cl["faixa"] = ["entre os 20 mais críticos" if r <= 20 else "do 21º ao 60º" if r <= 60 else "demais pontos"
+                   for r in corte]
+    piloto = cl[cl.cluster_id == PILOTO]
+    st.pydeck_chart(pdk.Deck(
+        map_style="dark",
+        layers=[pdk.Layer("ScatterplotLayer", cl, get_position="[lon_centro, lat_centro]", get_radius="raio",
+                          get_fill_color="cor", pickable=True, radius_min_pixels=3),
+                pdk.Layer("ScatterplotLayer", piloto, get_position="[lon_centro, lat_centro]", get_radius=300,
+                          filled=False, stroked=True, get_line_color=[244, 244, 239], line_width_min_pixels=3)],
+        initial_view_state=pdk.ViewState(latitude=-23.56, longitude=-46.63, zoom=10.2),
+        tooltip={"text": "{via}\n{rank_urbano}º do ranking urbano\n{n_nao_fatais} atropelamentos sem morte, "
+                         "{n_fatais} com morte"}), height=420)
+    html('<p class="bw-nota">Cada ponto é um grupo de atropelamentos (Infosiga-SP, 2022–2025). Vermelho: entre os 20 '
+         'mais críticos; âmbar: do 21º ao 60º; verde: demais. O anel claro marca o piloto. Toque num ponto para ver '
+         'a via.</p>')
+
+
+# ---------------------------------------------------------------- ocorrências (gestão)
+NOMES_ESTADO = {"pendente": "Aguardando o Trânsito", "confirmada": "Confirmada, aguardando a Saúde",
+                "descartada": "Descartada", "despachada": "Atendimento a caminho", "encerrada": "Encerrada"}
+
+
+def _tempos_ocorrencias() -> pd.DataFrame:
+    linhas, con = [], conexao()
+    for o in oc.listar(con):
+        t = oc.tempos(con, o["id"])
+
+        def seg(a, b):
+            if a in t and b in t:
+                return (datetime.fromisoformat(t[b]["timestamp"]) - datetime.fromisoformat(t[a]["timestamp"])).total_seconds()
+            return None
+        linhas.append({"Nº": o["id"], "O que": oc.TIPOS.get(o["tipo"], o["tipo"]),
+                       "Quem abriu": "Câmera" if o["origem"] == "visao" else "Operador(a)",
+                       "Situação": NOMES_ESTADO.get(o["estado"], o["estado"]),
+                       "Aberta em": datetime.fromisoformat(o["aberta_em"]).strftime("%d/%m %H:%M"),
+                       "Até confirmar (s)": seg("pendente", "confirmada"),
+                       "Até despachar (s)": seg("confirmada", "despachada"),
+                       "Atendimento (s)": seg("despachada", "encerrada"),
+                       "Motivo do descarte": (t.get("descartada") or {}).get("motivo")})
+    return pd.DataFrame(linhas)
+
+
+def _linhas_quadro() -> list[dict]:
+    con, linhas = conexao(), []
+    for o in oc.listar(con):
+        t = oc.tempos(con, o["id"])
+
+        def seg(a, b):
+            if a in t and b in t:
+                return (datetime.fromisoformat(t[b]["timestamp"]) - datetime.fromisoformat(t[a]["timestamp"])).total_seconds()
+            return None
+        linhas.append({"id": o["id"], "tipo": oc.TIPOS.get(o["tipo"], o["tipo"]), "origem": o["origem"],
+                       "estado": o["estado"], "aberta": datetime.fromisoformat(o["aberta_em"]).strftime("%d/%m %H:%M"),
+                       "confirmar": seg("pendente", "confirmada"), "despachar": seg("confirmada", "despachada"),
+                       "atender": seg("despachada", "encerrada"), "motivo": (t.get("descartada") or {}).get("motivo")})
+    return linhas
+
+
+def pagina_ocorrencias_gestao() -> None:
+    st.title("Ocorrências")
+    st.caption("Cada suspeita de acidente passa pelo Trânsito, que confirma ou descarta, e pela Saúde, que despacha o "
+               "atendimento. Cada cartão mostra quanto tempo cada etapa levou.")
+    linhas = _linhas_quadro()
+    if not linhas:
+        st.info("Nenhuma ocorrência registrada ainda. Quando a câmera ou um operador abrir uma, ela aparece aqui.")
+        return
+    media = lambda k: [o[k] for o in linhas if o[k] is not None]  # noqa: E731
+    k = st.columns(4)
+    with k[0]:
+        html(es.kpi("Em aberto", str(sum(o["estado"] in ("pendente", "confirmada", "despachada") for o in linhas)),
+                    "aguardando alguém agir"))
+    with k[1]:
+        c = media("confirmar")
+        html(es.kpi("Até confirmar", f"{sum(c) / len(c):.0f} s" if c else "—", "média do Trânsito"))
+    with k[2]:
+        d = media("despachar")
+        html(es.kpi("Até despachar", f"{sum(d) / len(d):.0f} s" if d else "—", "média da Saúde"))
+    with k[3]:
+        html(es.kpi("Descartadas", str(sum(o["estado"] == "descartada" for o in linhas)), "falsos alarmes"))
+    st.write("")
+    html(cp.quadro_ocorrencias(linhas))
+
+
+# ---------------------------------------------------------------- resultados da simulação
+def _barras(rotulo: str, sem: float, com: float, unidade: str, menor_melhor: bool = True) -> str:
+    topo = max(sem, com) or 1
+    melhor = (com < sem) if menor_melhor else (com > sem)
+    var = (com - sem) / sem * 100 if sem else 0
+    cor_var = es.VERDE if melhor else es.ALERTA_INK
+    fmt = lambda v: f"{v:.1f}".replace(".", ",")  # noqa: E731
+    return (f'<div class="bw-card"><div class="r" style="color:{es.MUTED};font-size:13px;font-weight:500">'
+            f'{es.esc(rotulo)}</div>'
+            f'<div style="display:grid;grid-template-columns:86px 1fr 64px;gap:8px;align-items:center;margin-top:12px">'
+            f'<span class="bw-nota">Hoje</span><div style="height:12px;border-radius:6px;background:#4A5058;'
+            f'width:{sem / topo * 100:.0f}%"></div><b style="text-align:right">{fmt(sem)} {unidade}</b>'
+            f'<span class="bw-nota">BetterWay</span><div style="height:12px;border-radius:6px;background:{es.VERDE};'
+            f'width:{com / topo * 100:.0f}%"></div><b style="text-align:right">{fmt(com)} {unidade}</b></div>'
+            f'<div style="margin-top:10px;font-weight:700;color:{cor_var}">{"−" if var < 0 else "+"}'
+            f'{abs(var):.0f}%</div></div>')
+
+
+def _barras_sistema() -> None:
+    """Hoje × BetterWay com tudo ligado junto (rodadas de 30 min do Estudo A)."""
+    p = EVID / "estudo_a" / "estudo_a_resumo.csv"
+    if not p.exists():
+        return
+    r = pd.read_csv(p, sep=";", encoding="utf-8-sig").set_index(["comparacao", "sistema"])
+    s, c = r.loc[("completo", "sem")], r.loc[("completo", "com")]
+    so = r.loc[("semaforo", "com")]
+    risco_s = s.na_faixa_carros_verde_reduzida + s.na_faixa_carros_verde_comum
+    risco_c = c.na_faixa_carros_verde_reduzida + c.na_faixa_carros_verde_comum
+    html('<div class="bw-secao" style="margin-top:20px">Tudo ligado junto: hoje × BetterWay</div>')
+    html('<div class="bw-grid">' +
+         _barras("Pessoas na faixa com os carros em verde (por rodada)", risco_s, risco_c, "") +
+         _barras("Espera de quem atravessa", s.espera_media_pedestre_s, c.espera_media_pedestre_s, "s") +
+         _barras("Tempo da ambulância", s.tempo_ambulancia_s, c.tempo_ambulancia_s, "s") +
+         _barras("Atraso médio de cada carro", s.atraso_medio_carro_s, c.atraso_medio_carro_s, "s") +
+         '</div>')
+    html(f'<p class="bw-nota">Média de 5 rodadas de 30 minutos simulados no SUMO; resultado esperado de simulação. '
+         f'Dar mais tempo a quem atravessa não piora o trânsito quando o semáforo também libera a via vazia: o atraso '
+         f'dos carros fica praticamente igual (CO₂ {s.co2_medio_g_por_carro:.0f} → {c.co2_medio_g_por_carro:.0f} g por '
+         f'carro). Um semáforo que só reage aos carros andaria mais rápido ({so.atraso_medio_carro_s:.1f} s), mas '
+         f'soltaria os carros com gente na faixa.</p>'.replace(".", ",", 0))
+
+
+def _clipes_sinteticos() -> None:
+    html('<div class="bw-secao" style="margin-top:12px">Como testamos a câmera</div>')
+    st.caption("Clipes curtos gerados por IA (Veo 3), cada um com o resultado esperado. Mostram a regra funcionando; "
+               "não medem desempenho na rua, por isso ficam separados dos resultados com vídeo real.")
+    p = EVID / "operador" / "avaliacao_clipes.csv"
+    if not p.exists():
+        st.info("Os clipes ainda estão sendo gerados. Quando forem processados, o resultado de cada um aparece aqui.")
+        return
+    df = pd.read_csv(p, sep=";", encoding="utf-8-sig")
+    html(es.kpi("Clipes com o resultado esperado", f"{int(df.acerto.sum())} de {len(df)}", "avaliação sintética"))
+    st.write("")
+    html(cp.cartoes_clipes(df.to_dict("records")))
+
+
+# ---------------------------------------------------------------- sala de controle
+def pagina_sala() -> None:
+    u = st.session_state["usuario"]
+    st.title("Sala de controle")
+    st.caption("O nó da faixa do Largo da Concórdia ao vivo: o que o semáforo está fazendo agora e o que ele relatou.")
+    no = no_ao_vivo()
+
+    @st.fragment(run_every=3)
+    def estado():
+        e = no.estado or {}
+        c1, c2 = st.columns([3, 2], gap="large")
+        with c1:
+            html(cp.semaforo_svg(e.get("fase")))
+            st.write("")
+            k = st.columns(2)
+            with k[0]:
+                html(es.kpi("Modo", cam.NOMES_MODO.get(e.get("modo"), "Sem sinal"),
+                            f"atualizado às {no.estado_recebido_em:%H:%M:%S}" if no.estado_recebido_em else
+                            "o nó ainda não respondeu"))
+            with k[1]:
+                html(es.kpi("Conexão", "Conectada" if no.conectado else "Desconectada", "com a central"))
+        with c2:
+            html('<div class="bw-secao" style="font-size:18px">O que o nó relatou</div>')
+            html(cp.feed_eventos(list(no.eventos)))
+    estado()
+    st.write("")
+    if pode(u.perfil, "cenario"):
+        st.subheader("Mudar o modo do semáforo")
+        st.caption("Envia o comando direto ao nó. Não use ao mesmo tempo que a central automática.")
+        cols = st.columns(3)
+        for i, nome in enumerate(CENARIOS):
+            if cols[i % 3].button(ROTULOS_CENARIO[nome], key=f"cen_{nome}", width="stretch"):
+                try:
+                    exigir(u.perfil, "cenario")
+                    ok = no.publicar(comando_cenario(nome))
+                    st.toast(f"Modo {ROTULOS_CENARIO[nome]}: {'enviado' if ok else 'não enviado, sem conexão'}")
+                except SemPermissao as erro:
+                    st.error(str(erro))
+    else:
+        st.caption("Só a equipe de Trânsito muda o modo do semáforo.")
+
+
+# ---------------------------------------------------------------- câmeras
+@st.cache_data(show_spinner=False)
+def clipes_da_rede() -> list[cam.Clipe]:
+    if os.environ.get("BETTERWAY_SEM_CLIPES"):
+        return []
+    return cam.clipes_disponiveis(incluir_reais=True)
+
+
+def pagina_cameras() -> None:
+    u = st.session_state["usuario"]
+    st.title("Câmeras")
+    st.caption("Todas as câmeras da rede BetterWay, ao vivo. Abra uma para acompanhar de perto quando precisar.")
+    pontos = consultar("SELECT cluster_id, rank_urbano, via_principal FROM clusters WHERE rank_urbano IS NOT NULL "
+                       "AND (rank_urbano <= 12 OR cluster_id = ?) ORDER BY rank_urbano", (PILOTO,)).to_dict("records")
+    rede = cam.rede_de_cameras(pontos, clipes_da_rede(), piloto=PILOTO, n=6)
+    urls = {c.id: cam.url_estatica(c.clipe) for c in rede}
+    nomes = {f"{c.id} · {c.local}": c for c in rede}
+    rotulo = st.segmented_control("Abrir câmera", list(nomes), key="cam_aberta")
+    if rotulo:
+        c = nomes[rotulo]
+        escolha = c.id
+        if st.session_state.get("cam_registrada") != escolha:
+            con = conexao()
+            cam.migrar(con)
+            cam.registrar_visualizacao(con, u.usuario, escolha)
+            st.session_state["cam_registrada"] = escolha
+        if c.clipe is None:
+            st.info("Esta câmera está sem vídeo agora.")
+        else:
+            modo = (no_ao_vivo().estado or {}).get("modo") if c.instalada else None
+            components.html(cam.html_player(c.clipe, modo, video_url=urls[c.id], camera=rotulo), height=560)
+        origem = ("Câmera instalada com o nó da faixa." if c.instalada else
+                  "Câmera simulada: vídeo de referência num ponto crítico do ranking.")
+        html(f'<p class="bw-nota">{origem} Seu acesso a esta câmera foi registrado.</p>')
+    html(cam.html_mosaico(rede, urls))
+    if u.perfil == "gestao":
+        con = conexao()
+        cam.migrar(con)
+        ac = pd.read_sql_query("SELECT timestamp, usuario, camera FROM acessos_camera ORDER BY id DESC LIMIT 10", con)
+        st.subheader("Quem abriu as câmeras")
+        html(cp.lista_acessos([{"usuario": r.usuario, "camera": r.camera,
+                                "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
+
+
+# ---------------------------------------------------------------- Trânsito e Saúde
+def _cartao_oc(o: dict) -> None:
+    origem = "aberta pela câmera" if o["origem"] == "visao" else "reportada por operador(a)"
+    clipe = f" · no clipe {o['video_id'].removeprefix('veo3_')}, aos {o['segundo']:.1f} s" if o.get("video_id") else ""
+    classe = "padrao" if o["estado"] in ("pendente", "confirmada") else "atencao"
+    html(f'<div class="bw-leitura {classe}" style="padding:16px 18px;margin-bottom:10px">'
+         f'<div class="titulo" style="font-size:17px">Nº {o["id"]} · {es.esc(oc.TIPOS.get(o["tipo"], o["tipo"]))}</div>'
+         f'<div class="bw-nota">Largo da Concórdia · {origem}{es.esc(clipe)} · '
+         f'{datetime.fromisoformat(o["aberta_em"]):%H:%M} · {es.esc(NOMES_ESTADO.get(o["estado"], o["estado"]))}</div></div>')
+
+
+def _executar(acao: str, oc_id: int, motivo: str | None = None) -> None:
+    try:
+        novo = oc.aplicar(conexao(), oc_id, acao, st.session_state["usuario"], motivo=motivo)
+        st.toast(f"Ocorrência Nº {oc_id}: {NOMES_ESTADO.get(novo, novo)}")
+        st.rerun()
+    except (SemPermissao, oc.TransicaoInvalida, ValueError) as erro:
+        st.error(str(erro))
+
+
+def pagina_camera() -> None:
+    u = st.session_state["usuario"]
+    no = no_ao_vivo()
+    modo = (no.estado or {}).get("modo")
+    cs = clipes()
+    st.title("Câmera e ocorrências")
+    c1, c2 = st.columns([3, 2], gap="large")
+    with c1:
+        if not cs:
+            st.info("Nenhum vídeo processado ainda. Rode `python src/visao/processar_clipes.py`.")
+        else:
+            idx = st.session_state.setdefault("indice_clipe", 0)
+            nomes = [c.nome for c in cs]
+            escolha = st.selectbox("Vídeo", ["Segue o modo do semáforo"] + nomes, key="clipe_manual")
+            clipe = cs[nomes.index(escolha)] if escolha in nomes else cam.clipe_para_modo(modo, cs, idx)
+            components.html(cam.html_player(clipe, modo, video_url=cam.url_estatica(clipe)), height=560)
+            if st.button("Próximo vídeo"):
+                st.session_state["indice_clipe"] = idx + 1
+                st.rerun()
+            for e in clipe.eventos:
+                if e["tipo"] == "suspeita_acidente":
+                    oc.abrir(conexao(), origem="visao", tipo="suspeita_acidente", video_id=f"veo3_{clipe.nome}",
+                             segundo=float(e["segundo"]))
+    with c2:
+        st.subheader("Para validar")
+        pend = oc.listar(conexao(), ["pendente"])
+        if not pend:
+            st.caption("Nenhuma suspeita esperando validação.")
+        for o in pend:
+            _cartao_oc(o)
+            a, b = st.columns(2)
+            if a.button("Confirmar", key=f"conf{o['id']}", type="primary", width="stretch"):
+                _executar("confirmar", o["id"])
+            with b.popover("Descartar", width="stretch"):
+                motivo = st.text_input("Por que é falso alarme?", key=f"mot{o['id']}")
+                if st.button("Descartar ocorrência", key=f"desc{o['id']}"):
+                    _executar("descartar", o["id"], motivo)
+        st.divider()
+        if st.button("Reportar ocorrência", width="stretch"):
+            try:
+                exigir(u.perfil, "reportar")
+                i = oc.abrir(conexao(), origem="operador", tipo="ocorrencia_reportada", usuario=u)
+                st.toast(f"Ocorrência Nº {i} aberta")
+                st.rerun()
+            except SemPermissao as erro:
+                st.error(str(erro))
+
+
+def pagina_confirmadas() -> None:
+    st.title("Ocorrências confirmadas")
+    st.caption("Suspeitas que a equipe de Trânsito confirmou. Despache o atendimento e encerre quando terminar.")
+    lista = oc.listar(conexao(), ["confirmada", "despachada"])
+    if not lista:
+        st.info("Nenhuma ocorrência confirmada agora. Quando o Trânsito confirmar uma, ela aparece aqui.")
+    for o in lista:
+        _cartao_oc(o)
+        if o["estado"] == "confirmada":
+            if st.button("Despachar ambulância (SIMULADA)", key=f"desp{o['id']}", type="primary"):
+                _executar("despachar", o["id"])
+        elif st.button("Encerrar atendimento", key=f"enc{o['id']}"):
+            _executar("encerrar", o["id"])
+    st.caption("Ao despachar, o semáforo da faixa recebe a aproximação da ambulância e abre prioridade para ela. "
+               "A ambulância é simulada.")
+
+
+# ---------------------------------------------------------------- navegação
+PAGINAS = {
+    "visao": st.Page(pagina_visao_geral, title="Visão geral", icon=":material/home:", url_path="visao-geral",
+                     default=True),
+    "painel": st.Page(pagina_painel, title="Painel", icon=":material/monitoring:", url_path="painel"),
+    "cameras": st.Page(pagina_cameras, title="Câmeras", icon=":material/videocam:", url_path="cameras"),
+    "ocorrencias": st.Page(pagina_ocorrencias_gestao, title="Ocorrências", icon=":material/assignment:",
+                           url_path="ocorrencias"),
+    "sala": st.Page(pagina_sala, title="Sala de controle", icon=":material/traffic:", url_path="sala-de-controle"),
+    "camera": st.Page(pagina_camera, title="Validar ocorrências", icon=":material/fact_check:", url_path="validar"),
+    "confirmadas": st.Page(pagina_confirmadas, title="Atendimentos", icon=":material/emergency:",
+                           url_path="atendimentos"),
+    "sobre": st.Page(pagina_sobre, title="Sobre", icon=":material/info:", url_path="sobre"),
+    "sair": st.Page(sair, title="Sair", icon=":material/logout:", url_path="sair"),
+}
+POR_PERFIL = {"gestao": ["visao", "painel", "cameras", "ocorrencias", "sala", "sobre", "sair"],
+              "transito": ["visao", "camera", "cameras", "sala", "sobre", "sair"],
+              "saude": ["visao", "confirmadas", "cameras", "sala", "sobre", "sair"]}
+
+
+def main() -> None:
+    st.set_page_config(page_title="BetterWay", page_icon=str(MARCA / "betterway-simbolo.png"), layout="wide")
+    html(es.CSS + cp.CSS)
+    u = usuario()
+    if u is None:
+        st.navigation([st.Page(tela_login, title="Entrar", url_path="entrar", default=True)], position="hidden").run()
+        return
+    st.logo(str(MARCA / "betterway-logo-horizontal-escuro.png"), size="large")
+    nav = st.navigation([PAGINAS[k] for k in POR_PERFIL[u.perfil]], position="top")
+    alvo = st.session_state.pop("ir_para", None)          # atalho interno (e para os testes)
+    if alvo in POR_PERFIL[u.perfil]:
+        st.switch_page(PAGINAS[alvo])
+    nav.run()
+
+
+main()

@@ -1,0 +1,5 @@
+﻿clipe;categoria;auxilio_esperado;auxilio_obtido;suspeita_esperada;suspeita_obtida;conflito_obtido;pessoas_na_faixa;acerto
+cadeirante_01;cadeirante;wheelchair;nenhum;False;False;True;2;False
+cadeirante_02;cadeirante;wheelchair;wheelchair;False;False;True;5;True
+muleta_01;muleta;crutch;nenhum;False;False;False;1;False
+normal_01;normal;nenhum;nenhum;False;False;True;8;True

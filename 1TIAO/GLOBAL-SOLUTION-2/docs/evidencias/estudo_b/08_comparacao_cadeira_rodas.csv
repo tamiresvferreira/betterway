@@ -1,0 +1,13 @@
+﻿limiar;positivas;acertos;precisão;recall;falso alarme nas negativas;modelo;alarme em outros auxílios
+0.05;11;11;0.579;1.0;0.12;YOLO-World (sem treino);
+0.1;11;10;0.714;0.909;0.0;YOLO-World (sem treino);
+0.15;11;9;0.692;0.818;0.0;YOLO-World (sem treino);
+0.25;11;7;0.7;0.636;0.0;YOLO-World (sem treino);
+0.35;11;6;0.857;0.545;0.0;YOLO-World (sem treino);
+0.5;11;4;1.0;0.364;0.0;YOLO-World (sem treino);
+0.05;11;10;0.333;0.909;0.44;YOLO11s ajustado;0.409
+0.1;11;9;0.409;0.818;0.28;YOLO11s ajustado;0.273
+0.15;11;9;0.429;0.818;0.24;YOLO11s ajustado;0.273
+0.25;11;8;0.471;0.727;0.16;YOLO11s ajustado;0.227
+0.35;11;8;0.533;0.727;0.12;YOLO11s ajustado;0.182
+0.5;11;8;0.615;0.727;0.08;YOLO11s ajustado;0.136

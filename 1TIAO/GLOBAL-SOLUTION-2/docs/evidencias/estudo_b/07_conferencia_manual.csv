@@ -1,0 +1,13 @@
+﻿quadro;pessoas_na_faixa;acertos;falsos_alarmes;perdas;observacao
+197;0;0;0;0;motociclista sobre a faixa: rotulado como Moto, não como pedestre (correto)
+202;0;0;0;0;idem
+210;0;0;0;0;idem
+381;3;3;0;0;pessoa à direita com os pés logo fora do polígono (caixa cinza): limítrofe
+748;2;2;0;0;
+757;2;2;0;0;
+899;2;2;0;0;
+1098;1;1;0;0;pessoa ao lado de uma bicicleta, contada como pedestre
+1169;0;0;0;0;ciclista sobre a faixa: rotulado como Bicicleta (correto)
+1286;1;1;0;0;
+1424;0;0;0;0;faixa vazia
+1616;0;0;0;0;faixa vazia

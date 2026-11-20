@@ -8,6 +8,7 @@ __pycache__/
 # Dados brutos grandes (baixar conforme data/README.md)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/Infosiga_dicionario_dados.zip
 data/processed/*.db
 
 # Modelos e saídas pesadas
@@ -15,3 +16,17 @@ data/processed/*.db
 runs/
 src/simulacao/saidas/
 *.mp4
+
+# vídeo de demonstração: o arquivo fica fora do Git, a ficha de fonte e licença entra
+!data/raw/video/
+data/raw/video/*
+!data/raw/video/FONTE.md
+
+# imagens do conjunto de avaliação de PCD: só fontes e rótulos vão para o Git (LGPD)
+data/avaliacao_pcd/img/
+
+# SUMO: rede do mapa real (gerada a partir do OSM, descartada no Estudo A)
+src/simulacao/rede/largo_concordia*.net.xml
+
+# vídeos servidos pela interface (cópias de data/processed, fora do Git)
+src/operador/static/

@@ -1,0 +1,9 @@
+﻿comparacao;sistema;atraso_medio_carro_s;co2_medio_g_por_carro;espera_media_pedestre_s;surpreendidos_reduzida_pct;surpreendidos_comum;na_faixa_carros_verde_reduzida;na_faixa_carros_verde_comum;tempo_ambulancia_s;tempo_ambulancia_max_s;atraso_medio_carro_s_min;co2_medio_g_por_carro_min;espera_media_pedestre_s_min;surpreendidos_reduzida_pct_min;surpreendidos_comum_min;na_faixa_carros_verde_reduzida_min;na_faixa_carros_verde_comum_min;tempo_ambulancia_s_min;tempo_ambulancia_max_s_min;atraso_medio_carro_s_max;co2_medio_g_por_carro_max;espera_media_pedestre_s_max;surpreendidos_reduzida_pct_max;surpreendidos_comum_max;na_faixa_carros_verde_reduzida_max;na_faixa_carros_verde_comum_max;tempo_ambulancia_s_max;tempo_ambulancia_max_s_max
+ambulancia;com;13.6;117.8;20.5;100.0;11.8;2.4;4.2;40.7;50.8;13.2;117.2;18.6;100.0;6;0;2;37.3;44.0;14.0;118.5;23.4;100.0;15;5;6;44.0;57.0
+ambulancia;sem;13.7;118.2;19.3;100.0;13.8;1.6;4.4;46.9;60.0;13.5;117.7;17.3;100.0;12;0;2;45.7;58.0;13.9;118.7;21.3;100.0;17;3;8;48.7;67.0
+completo;com;13.4;119.6;15.0;2.0;52.6;0.0;0.0;39.8;47.2;13.0;119.0;13.1;0.0;47;0;0;38.7;43.0;14.1;120.5;17.3;10.0;58;0;0;41.0;50.0
+completo;sem;13.7;118.2;19.3;100.0;13.8;1.6;4.4;46.9;60.0;13.5;117.7;17.3;100.0;12;0;2;45.7;58.0;13.9;118.7;21.3;100.0;17;3;8;48.7;67.0
+pedestre;com;14.7;120.0;19.9;0.0;13.0;0.0;4.6;;;13.9;118.2;17.5;0.0;6;0;0;;;15.3;121.1;23.4;0.0;19;0;8;;
+pedestre;sem;13.7;118.1;19.3;100.0;13.8;1.6;4.4;;;13.5;117.6;17.3;100.0;12;0;2;;;13.9;118.5;21.3;100.0;17;3;8;;
+semaforo;com;10.3;113.8;13.8;100.0;67.2;11.2;48.4;;;9.9;113.2;11.9;100.0;57;10;42;;;10.8;114.5;15.7;100.0;78;13;60;;
+semaforo;sem;13.7;118.1;19.3;100.0;13.8;1.6;4.4;;;13.5;117.6;17.3;100.0;12;0;2;;;13.9;118.5;21.3;100.0;17;3;8;;
