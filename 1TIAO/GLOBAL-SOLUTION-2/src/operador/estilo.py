@@ -102,7 +102,10 @@ html {{ font-size: 16px; -webkit-font-smoothing: antialiased; }}
   font-size: 14px !important; font-weight: 500 !important; }}
 [data-testid="stHeader"] a {{ border-radius: 9999px !important; transition: background-color 300ms {CURVA}; }}
 [data-testid="stHeader"] a:hover {{ background: var(--bw-cartao-2) !important; }}
-[data-testid="stHeader"] a[aria-current="page"] {{ background: var(--bw-cartao-2) !important; }}
+[data-testid="stHeader"] a[aria-current="page"] {{ background: var(--bw-chip) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 194, 122, .35); }}
+[data-testid="stHeader"] a[aria-current="page"] span, [data-testid="stHeader"] a[aria-current="page"] p
+  {{ color: var(--bw-destaque) !important; font-weight: 600 !important; }}
 [data-testid="stHeaderLogo"], [data-testid="stLogo"] {{ height: 32px !important; max-height: 32px !important; }}
 /* ---------- campos, menus e botões do Streamlit seguindo o tema ---------- */
 [data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div,
@@ -294,6 +297,45 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .bw-cel .aviso .app {{ font-weight: 600; color: #C62834; }}
 .bw-cel .aviso p {{ margin: 4px 0 0; font-size: 14px; line-height: 20px; font-weight: 500; }}
 @media (prefers-reduced-motion: reduce) {{ .bw-cel .aviso, .bw-leitor.lido .nfc {{ animation: none; }} }}
+/* Visão geral (referência aprovada em 19/11): passo ativo, dois cartões, etiqueta do vídeo, indicadores */
+.bw-abertura {{ padding: 24px 32px; }}
+.bw-abertura .lema {{ font-size: 30px; line-height: 36px; letter-spacing: -0.02em; }}
+.bw-abertura p {{ font-size: 16px; line-height: 24px; color: var(--bw-texto-2); }}
+.bw-abertura li {{ padding: 6px 20px 6px 6px; font-size: 14px; background: var(--bw-cartao); box-shadow: var(--bw-sombra); }}
+.bw-abertura li.ativo {{ background: {VERDE}; color: {GRAFITE}; box-shadow: 0 6px 20px rgba(0, 194, 122, .32); }}
+.bw-abertura li.ativo .bw-chip {{ background: rgba(255,255,255,.35); }}
+[class*="st-key-vg_cena_"], .st-key-vg_sim {{ background: var(--bw-cartao); border-radius: 24px; padding: 16px;
+  box-shadow: var(--bw-sombra); border: 1px solid var(--bw-borda); height: 100%; }}
+.st-key-vg_sim {{ background: var(--bw-cartao); }}
+.bw-selo-ref {{ margin-left: 8px; vertical-align: middle; font-size: 12px; line-height: 16px; font-weight: 600;
+  color: {GRAFITE}; background: {VERDE}; border-radius: 9999px; padding: 2px 8px; }}
+.bw-vg-video {{ position: relative; border-radius: 16px; }}
+.bw-vg-etiqueta {{ position: absolute; left: 12px; bottom: 12px; display: inline-flex; gap: 8px; align-items: center;
+  font-size: 12px; line-height: 16px; font-weight: 600; color: #F5F5F2; background: rgba(20,20,20,.62);
+  backdrop-filter: blur(8px); border-radius: 9999px; padding: 4px 12px 4px 8px; }}
+.bw-indicadores {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 16px 0 8px; }}
+@media (max-width: 1100px) {{ .bw-indicadores {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }} }}
+@media (max-width: 640px) {{ .bw-indicadores {{ grid-template-columns: 1fr; }} }}
+.bw-ind {{ display: flex; gap: 16px; align-items: center; background: var(--bw-cartao); border: 1px solid var(--bw-borda);
+  border-radius: 24px; padding: 16px 20px; box-shadow: var(--bw-sombra);
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1); }}
+.bw-ind:hover {{ transform: translateY(-2px); }}
+.bw-ind .meio {{ flex: 1; min-width: 0; }}
+.bw-ind .v {{ font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.01em; color: var(--bw-texto);
+  font-variant-numeric: tabular-nums; }}
+.bw-ind .r {{ font-size: 14px; line-height: 20px; color: var(--bw-texto-2); }}
+.bw-ind .n {{ font-size: 12px; line-height: 16px; color: var(--bw-muted); margin-top: 4px; }}
+.bw-ind .var {{ color: {DESTAQUE}; font-weight: 600; margin-right: 8px; }}
+.bw-ind .bw-spark {{ width: 120px; height: 40px; flex: none; }}
+.bw-ind.status .t {{ font-size: 16px; line-height: 24px; font-weight: 600; color: var(--bw-texto); }}
+.bw-ind .bw-chip.forte {{ background: {VERDE}; }}
+.bw-ind.status.alerta .bw-chip.forte {{ background: {AMBAR}; }}
+/* microinterações: elevação no hover, afundar no clique, foco visível */
+.bw-sup, .bw-cam, [class*="st-key-sup_"] {{ transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }}
+[class*="st-key-camcard_"]:hover .bw-cam {{ transform: translateY(-2px); }}
+.stApp button:active {{ transform: scale(0.97); }}
+.stApp a:focus-visible, .stApp button:focus-visible {{ outline: 2px solid {VERDE}; outline-offset: 2px; }}
+@media (prefers-reduced-motion: reduce) {{ .bw-ind:hover, [class*="st-key-camcard_"]:hover .bw-cam {{ transform: none; }} }}
 .bw-login-espaco {{ height: 12vh; }}
 @media (max-width: 760px) {{ .bw-login-espaco {{ height: 4vh; }} }}
 @media (prefers-reduced-motion: reduce) {{ .stApp *, .stApp *::before {{ transition: none !important; }} }}
@@ -308,6 +350,34 @@ ICONE_EVIDENCIA = {"pesa": ("alerta", AMBAR), "nao_pesa": ("menos", MUTED), "sem
 def selo_nivel(nivel: str) -> str:
     classe, ic, texto = SELO_NIVEL[nivel]
     return f'<span class="bw-selo {classe}">{icone(ic, "currentColor", 16)}{texto}</span>'
+
+
+def sparkline(valores: list[float], largura: int = 120, altura: int = 40) -> str:
+    """Minigráfico de linha com área suave (valores reais; nada de série inventada)."""
+    if len(valores) < 2:
+        return ""
+    lo, hi = min(valores), max(valores)
+    amp = (hi - lo) or 1.0
+    pts = [(k * largura / (len(valores) - 1), altura - 4 - (v - lo) / amp * (altura - 8)) for k, v in enumerate(valores)]
+    linha = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    area = f"0,{altura} " + linha + f" {largura},{altura}"
+    return (f'<svg class="bw-spark" viewBox="0 0 {largura} {altura}" aria-hidden="true">'
+            f'<polygon points="{area}" fill="{VERDE}" opacity=".12"/>'
+            f'<polyline points="{linha}" fill="none" stroke="{VERDE}" stroke-width="2" stroke-linejoin="round"/></svg>')
+
+
+def indicador(icone_nome: str, valor: str, rotulo: str, nota: str = "", serie: list[float] | None = None,
+              variacao: str | None = None) -> str:
+    var = f'<span class="var">{esc(variacao)}</span>' if variacao else ""
+    return (f'<div class="bw-ind"><span class="bw-chip">{icone(icone_nome, DESTAQUE, 24)}</span><div class="meio">'
+            f'<div class="v">{esc(valor)}</div><div class="r">{esc(rotulo)}</div><div class="n">{var}{esc(nota)}</div>'
+            f'</div>{sparkline(serie) if serie else ""}</div>')
+
+
+def status(estado: str, titulo: str, nota: str) -> str:
+    ic = "ok" if estado == "ok" else "alerta"
+    return (f'<div class="bw-ind status {estado}"><span class="bw-chip forte">{icone(ic, "#1A1D21", 26)}</span>'
+            f'<div class="meio"><div class="t">{esc(titulo)}</div><div class="n">{esc(nota)}</div></div></div>')
 
 
 def kpi(rotulo: str, valor: str, sub: str = "", estado: str | None = None) -> str:

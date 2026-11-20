@@ -117,7 +117,7 @@ body{margin:0;font-family:Montserrat,system-ui,sans-serif;color:var(--fundo);bac
 .barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .barra button{font:600 14px Montserrat,sans-serif;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;
 background:var(--verde);color:var(--grafite)}
-.barra button.sec{background:#343A41;color:var(--fundo)}
+.barra button.sec{background:#1F1F1F;color:var(--fundo)}
 .barra button:focus-visible{outline:3px solid var(--verde);outline-offset:2px}
 .barra input[type=range]{flex:1;min-width:140px;accent-color:var(--verde)}
 .relogio{font:600 14px Montserrat,sans-serif;font-variant-numeric:tabular-nums;min-width:72px;text-align:right;
@@ -141,7 +141,8 @@ color:var(--fundo);border-radius:999px;padding:5px 12px 5px 8px;font-size:12px;f
 color:var(--grafite);text-align:center;transition:opacity .25s,background-color .25s;opacity:0}
 .pilula{margin:14px 16px 16px;border-radius:14px;padding:12px 16px;background:#23272C;color:var(--fundo);
 display:flex;align-items:baseline;gap:12px}
-.lado.com .pilula{background:rgba(0,194,122,.16)}
+.lado.sem .pilula{background:#FFB000}.lado.sem .pilula b,.lado.sem .pilula span{color:#1A1D21 !important}
+.lado.com .pilula{background:#00C27A}.lado.com .pilula b,.lado.com .pilula span{color:#1A1D21 !important}
 .pilula b{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .lado.sem .pilula b{color:#FF6B74}
 .lado.com .pilula b{color:var(--verde)}

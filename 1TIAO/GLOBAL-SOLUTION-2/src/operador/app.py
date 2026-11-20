@@ -347,31 +347,72 @@ def _ir_cenario(i: int) -> None:
 
 
 def _video_cenario(c: vg.Cenario) -> str:
-    """O take do cenário (vídeo do Veo 3) ou, enquanto ele não existe, um espaço reservado."""
+    """O vídeo do cenário, já com o reconhecimento da visão (ou, sem ele, um espaço reservado)."""
     f = vg.video_do_cenario(c, vg.PASTA_VIDEOS, vg.PASTA_ANOTADOS)
     if f is None:
         return (f'<div class="bw-vg-video vazio"><div>{es.icone("camera", es.MUTED, 30)}'
                 f'<b>Vídeo do cenário em breve</b><span>{es.esc(c.arquivo_video)}</span></div></div>')
+    etiqueta = ('<span class="bw-vg-etiqueta">' + es.icone("camera", "#F5F5F2", 16) +
+                ('Visão computacional · rostos e placas borrados' if f.name.endswith("_anotado.mp4")
+                 else 'Vídeo de referência') + '</span>')
     return (f'<div class="bw-vg-video"><video src="{_estatico(f)}" autoplay muted loop playsinline '
-            f'aria-label="{es.esc(c.titulo)}"></video></div>')
+            f'aria-label="{es.esc(c.titulo)}"></video>{etiqueta}</div>')
+
+
+def _serie_risco(dia: datetime) -> list[float]:
+    """Risco relativo à média da cidade, hora a hora, num dia como o de hoje (modelo do Estudo B)."""
+    return [r["risco_relativo"] for h in range(24)
+            if (r := risco_em(dia.replace(hour=h, minute=0, second=0, microsecond=0).isoformat(), 0.0))]
+
+
+def _indicadores_vg() -> None:
+    """Indicadores com números reais: o modelo de risco, o Estudo A (5 rodadas de 30 min no SUMO) e o nó da faixa."""
+    agora = datetime.now(m.FUSO).replace(tzinfo=None)
+    serie = _serie_risco(agora)
+    rk = risco_em(agora.replace(second=0, microsecond=0).isoformat(), 0.0)
+    cartoes = []
+    if rk and serie:
+        cartoes.append(es.indicador("grafico", f"{rk['risco_relativo']:.1f}×".replace(".", ","),
+                                    "risco agora no Largo × média da cidade", "modelo de risco, hoje", serie))
+    p = EVID / "estudo_a" / "estudo_a_resumo.csv"
+    if p.exists():
+        r = pd.read_csv(p, sep=";", encoding="utf-8-sig").set_index(["comparacao", "sistema"])
+        sem, com = r.loc[("completo", "sem")], r.loc[("completo", "com")]
+        faixa_s = sem.na_faixa_carros_verde_reduzida + sem.na_faixa_carros_verde_comum
+        faixa_c = com.na_faixa_carros_verde_reduzida + com.na_faixa_carros_verde_comum
+        cartoes.append(es.indicador("pedestre", f"{faixa_c:.0f}", "pessoas na faixa com carro em verde, por rodada",
+                                    f"hoje são {faixa_s:.1f}".replace(".", ","), None, "−100%"))
+        var = (com.tempo_ambulancia_s - sem.tempo_ambulancia_s) / sem.tempo_ambulancia_s * 100
+        cartoes.append(es.indicador("ambulancia", f"{com.tempo_ambulancia_s:.1f} s".replace(".", ","),
+                                    "para a ambulância passar o cruzamento",
+                                    f"hoje leva {sem.tempo_ambulancia_s:.1f} s".replace(".", ","), None,
+                                    f"{var:.0f}%".replace("-", "−")))
+    no = no_ao_vivo()
+    ok = no.conectado
+    cartoes.append(es.status("ok" if ok else "alerta", "Central conectada ao nó da faixa" if ok else
+                             "Central sem conexão com o nó", f"Modo do semáforo: "
+                             f"{cam.NOMES_MODO.get((no.estado or {}).get('modo'), 'aguardando o nó')}"))
+    html('<div class="bw-indicadores">' + "".join(cartoes) + "</div>")
 
 
 def pagina_visao_geral() -> None:
-    """Cinco cenários, um por vez. A câmera é a protagonista; a simulação mostra o que o sistema faz; o texto só
-    complementa. As setas ficam no topo do cenário, sem roubar largura da câmera."""
+    """Cinco cenários, um por vez. A câmera é a protagonista; a simulação mostra o que o semáforo faz; os
+    indicadores dão os números reais; o texto só complementa."""
     i = st.session_state.get("vg_cenario", 0) % len(vg.CENARIOS)
     c = vg.CENARIOS[i]
     passos = [("camera", "Vê a faixa"), ("decide", "Entende o momento"), ("semaforo", "Ajusta o sinal na hora")]
-    pilulas = "".join(f'<li><span class="bw-chip">{es.icone(ic, es.DESTAQUE, 20)}</span>{es.esc(t)}</li>'
-                      for ic, t in passos)
+    pilulas = "".join(f'<li class="{"ativo" if k == 0 else ""}"><span class="bw-chip">'
+                      f'{es.icone(ic, "#1A1D21" if k == 0 else es.DESTAQUE, 20)}</span>{es.esc(t)}</li>'
+                      for k, (ic, t) in enumerate(passos))
     html(f'<section class="bw-abertura"><div><div class="lema">{LEMA}</div><p>Os semáforos de hoje funcionam no '
          f'relógio: o tempo é o mesmo para todos, com ou sem gente na faixa. A BetterWay dá olhos ao semáforo.</p>'
          f'</div><ul>{pilulas}</ul></section>')
-    with st.container(key=f"vg_cena_{c.id}"):          # chave nova a cada cenário: a animação de entrada roda de novo
-        topo, nav = st.columns([5, 1], vertical_alignment="center")
+    col_cam, col_sim = st.columns([52, 48], gap="medium")
+    with col_cam, st.container(key=f"vg_cena_{c.id}"):   # chave nova a cada cenário: a animação de entrada roda de novo
+        topo, nav = st.columns([5, 2], vertical_alignment="center")
         with topo:
-            html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone(c.icone, es.DESTAQUE, 22)}</span><div>'
-                 f'<div class="titulo"><span class="verbo">{es.esc(c.verbo)}</span>{es.esc(c.titulo)}</div>'
+            html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone("camera", es.DESTAQUE, 22)}</span><div>'
+                 f'<div class="titulo">{es.esc(c.titulo)}<span class="bw-selo-ref">{es.esc(c.verbo)}</span></div>'
                  f'<p>{es.esc(c.texto)}</p></div></div>')
         with nav, st.container(horizontal=True, key="vg_setas", horizontal_alignment="right",
                                vertical_alignment="center", gap="small"):
@@ -380,12 +421,14 @@ def pagina_visao_geral() -> None:
                       on_click=_ir_cenario, args=(vg.anterior(i),))
             st.button("Próximo cenário", key="vg_proximo", help="Próximo cenário",
                       on_click=_ir_cenario, args=(vg.proximo(i),))
-        video, sim = st.columns([52, 48], gap="medium", vertical_alignment="top")
-        with video:
-            html(_video_cenario(c))
-        with sim:
-            _player(c.cena, compacto=True)
-        _pontos_cenario(i)
+        html(_video_cenario(c))
+    with col_sim, st.container(key="vg_sim"):
+        html(f'<div class="bw-vg-topo"><span class="bw-chip">{es.icone("semaforo", es.DESTAQUE, 22)}</span><div>'
+             f'<div class="titulo">O que o semáforo faz</div><p>Hoje × com a BetterWay, na simulação do Largo '
+             f'(SUMO)</p></div></div>')
+        _player(c.cena, compacto=True)
+    _indicadores_vg()
+    _pontos_cenario(i)
 
 
 def _pontos_cenario(i: int) -> None:
@@ -403,7 +446,7 @@ def _player(cena: str, compacto: bool = False) -> None:
     except FileNotFoundError:
         st.info("Cena ainda não exportada: rode `python src/simulacao/animacao_estudo_a.py --json`.")
         return
-    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=450 if compacto else 800,
+    components.html(cz.html_cruzamento(dados, met, compacto=compacto), height=510 if compacto else 800,
                     scrolling=False)
 
 
