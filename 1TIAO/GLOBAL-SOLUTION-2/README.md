@@ -21,7 +21,8 @@
 ## 👩‍🏫 Professores
 
 ### Tutor(a)
-- <a href="#">Nome do Tutor</a>
+- <a href="#" Nicolly Candida Rodrigues de Souza
+</a>
 
 ### Coordenador(a)
 - <a href="https://www.linkedin.com/in/andregodoichiovato/">André Godoi Chiovato</a>
