@@ -21,7 +21,7 @@
 ## 👩‍🏫 Professores
 
 ### Tutor(a)
-- <a href="#" Nicolly Candida Rodrigues de Souza
+- <a href="#"> Nicolly Candida Rodrigues de Souza
 </a>
 
 ### Coordenador(a)
