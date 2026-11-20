@@ -12,7 +12,7 @@ navegador; a plataforma escuta o que ele publica e manda os comandos de modo.
 1. Deixe a plataforma rodando (`streamlit run src/operador/app.py`) e entre como **transito1**.
 2. Em outra aba, abra **https://wokwi.com/projects/480902516851985409** já **logada na sua conta do Wokwi**
    (sem login o ESP32 simulado fica sem internet e não conecta ao MQTT).
-3. Clique em **Start** no Wokwi e espere a matriz mostrar **VIA SEGURA**.
+3. Clique em **Start** no Wokwi e espere a matriz mostrar **BETTERWAY**.
 4. Na plataforma, abra a **Sala de controle**: em poucos segundos o **Modo** deixa de ser "Sem sinal" e o semáforo
    desenhado passa a acompanhar o do Wokwi. Se não mudar em 30 s, use o plano B abaixo.
 

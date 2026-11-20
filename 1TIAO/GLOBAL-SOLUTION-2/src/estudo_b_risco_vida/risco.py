@@ -1,4 +1,4 @@
-"""Risco de um atropelamento ser fatal (Estudo B, Via Segura SP).
+"""Risco de um atropelamento ser fatal (Estudo B, BetterWay).
 
 Uso pela central (Python) e, via central, pelo nó ESP32:
 

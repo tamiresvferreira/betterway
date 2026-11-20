@@ -159,7 +159,7 @@ const char* No::texto(uint32_t agora) const {
     case Modo::Chuva: return alagamento_ ? "ALAGAMENTO A FRENTE" : "CHUVA - REDUZA";
     case Modo::Escola: return "ESCOLA - DEVAGAR 30 KM/H";
     case Modo::Pedestre: return "PEDESTRE NA VIA - REDUZA";
-    default: return "VIA SEGURA";
+    default: return "BETTERWAY";
   }
 }
 

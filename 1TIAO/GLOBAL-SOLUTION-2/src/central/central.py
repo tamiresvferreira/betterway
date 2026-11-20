@@ -1,4 +1,4 @@
-"""Central do Via Segura SP: decide o modo do nó e manda por MQTT; grava cada troca em `alertas`.
+"""Central do BetterWay: decide o modo do nó e manda por MQTT; grava cada troca em `alertas`.
 
     python src/central/central.py                 # demonstração (~5,5 min): uma "manhã" acelerada, todos os modos
     python src/central/central.py --ao-vivo       # relógio e chuva reais, visão do último minuto
@@ -136,7 +136,7 @@ def _publicador(broker: str, porta: int):
 
 def main(argv=None):
     sys.stdout.reconfigure(encoding="utf-8")
-    p = argparse.ArgumentParser(description="Central do Via Segura SP")
+    p = argparse.ArgumentParser(description="Central do BetterWay")
     p.add_argument("--ao-vivo", action="store_true", help="relógio e chuva reais (padrão: demonstração)")
     p.add_argument("--ambulancia", nargs=2, type=float, metavar=("DIST_M", "VEL_KMH"), help="ambulância SIMULADA")
     p.add_argument("--broker", default="test.mosquitto.org")

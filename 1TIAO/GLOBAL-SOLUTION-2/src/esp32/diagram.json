@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "author": "Via Segura SP - GS FIAP 2026.2",
+  "author": "BetterWay - GS FIAP 2026.2",
   "editor": "wokwi",
   "parts": [
     { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },

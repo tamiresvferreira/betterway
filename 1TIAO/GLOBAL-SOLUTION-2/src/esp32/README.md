@@ -49,7 +49,7 @@ Faixa de 10 m (configurável); verde do pedestre = 10 ÷ 1,2 ≈ 8 s (normal) ou
 
 | Modo | Matriz | O que muda |
 |---|---|---|
-| Normal | VIA SEGURA | Carros 20 s verde, 3 s amarelo, 2 s vermelho total; pedestre 8 s + 4 s piscando |
+| Normal | BETTERWAY | Carros 20 s verde, 3 s amarelo, 2 s vermelho total; pedestre 8 s + 4 s piscando |
 | Cartão ou câmera | TRAVESSIA ESTENDIDA | Encurta o verde dos carros (mínimo 8 s), pedestre 12,5 s, bipe lento (sinal sonoro) |
 | Pedestre (visão) | PEDESTRE NA VIA - REDUZA | Com a faixa ainda ocupada, o vermelho dos carros estende-se até +10 s |
 | Escola | ESCOLA - DEVAGAR 30 KM/H | Toda travessia é estendida, com sinal sonoro |

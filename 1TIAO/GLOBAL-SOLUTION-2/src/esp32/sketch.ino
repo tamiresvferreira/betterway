@@ -1,4 +1,4 @@
-// Nó ESP32 da faixa (Via Segura SP) — casca de hardware e MQTT. NÃO decide nada: lê o botão, repassa comandos à
+// Nó ESP32 da faixa (BetterWay) — casca de hardware e MQTT. NÃO decide nada: lê o botão, repassa comandos à
 // lógica (logica.cpp) e aplica a Saida em LEDs, buzzer e matriz. Spec: docs/specs/2026-11-13-no-esp32-design.md
 //
 // Wokwi (navegador): Wi-Fi "Wokwi-GUEST"; broker público test.mosquitto.org:1883 (sem senha: só demonstração).
@@ -222,7 +222,7 @@ void setup() {
   // keepalive de 60 s (padrão 15 s): no Wokwi a simulação roda abaixo do tempo real e o broker derrubava a
   // conexão a cada ~15 s simulados (visto na aceitação: reconexões em 130, 144, 149 s)
   mqtt.setKeepAlive(60);
-  Serial.printf("Via Segura SP - no da faixa (boot %s)\n", boot);
+  Serial.printf("BetterWay - no da faixa (boot %s)\n", boot);
 }
 
 void loop() {

@@ -1,4 +1,4 @@
-"""Visão computacional na faixa de pedestres (Estudo B, Via Segura SP).
+"""Visão computacional na faixa de pedestres (Estudo B, BetterWay).
 
 Funções puras e testáveis: geometria da faixa, travessias, conflitos, PCD, borrão (LGPD), eventos no banco e leitura
 de vídeo. O detector (YOLO-World + ByteTrack) fica isolado em detector.py; tudo aqui recebe listas de Deteccao, o que
