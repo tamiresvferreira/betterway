@@ -254,6 +254,13 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p {{ color: {GRAFITE}
 .stApp .st-key-vg_anterior button:hover {{ transform: translateX(-4px); }}
 .stApp .st-key-vg_proximo button:hover {{ transform: translateX(4px); }}
 .stApp .st-key-vg_proximo button p, .stApp .st-key-vg_anterior button p, .st-key-tema_btn button p {{ font-size: 0; }}
+.stApp .st-key-faixa_esq button, .stApp .st-key-faixa_dir button {{ width: 40px; height: 40px; min-height: 40px;
+  min-width: 40px; padding: 0; border-radius: 9999px; background-color: var(--bw-cartao-2) !important;
+  background-repeat: no-repeat !important; background-position: center !important; background-size: 20px !important; }}
+.stApp .st-key-faixa_esq button {{ background-image: {icone_url("seta_esq", "#5F666E")} !important; }}
+.stApp .st-key-faixa_dir button {{ background-image: {icone_url("seta_dir", "#5F666E")} !important; }}
+.stApp .st-key-faixa_esq button p, .stApp .st-key-faixa_dir button p {{ font-size: 0; }}
+.stApp .st-key-faixa_esq button:disabled, .stApp .st-key-faixa_dir button:disabled {{ opacity: .35; }}
 .st-key-vg_pontos {{ margin-top: 16px; }}
 .st-key-vg_pontos [class*="st-key-vg_ponto_"] button {{ width: 12px; height: 12px; min-height: 12px; padding: 0;
   border-radius: 9999px; background: var(--bw-trilho); border: 0; }}

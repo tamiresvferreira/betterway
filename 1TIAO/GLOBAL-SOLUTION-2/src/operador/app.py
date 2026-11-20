@@ -987,6 +987,7 @@ def pagina_cameras() -> None:
     aberta = next((c for c in rede if c.id == st.session_state.get("cam_aberta")), None)
     if aberta is not None:
         _camera_aberta(aberta, urls[aberta.id], u)
+        _faixa_cameras(rede, urls, aberta.id)
         return
     st.title("Câmeras")
     st.caption("Todas as câmeras da rede BetterWay, ao vivo. Clique numa câmera para acompanhar de perto e registrar "
@@ -1006,6 +1007,32 @@ def pagina_cameras() -> None:
         with cartao("quem_abriu_as_cameras", "camera", "Quem abriu as câmeras"):
             html(cp.lista_acessos([{"usuario": r.usuario, "camera": r.camera,
                                     "quando": pd.to_datetime(r.timestamp).strftime("%d/%m %H:%M")} for r in ac.itertuples()]))
+
+
+def _mover_faixa(passo: int, total: int) -> None:
+    st.session_state["cam_faixa_ini"] = max(0, min(total - 1, st.session_state.get("cam_faixa_ini", 0) + passo))
+
+
+def _faixa_cameras(rede, urls, atual: str, por_vez: int = 4) -> None:
+    """As outras câmeras em miniatura, embaixo da principal: troca de câmera sem voltar ao mosaico."""
+    outras = [c for c in rede if c.id != atual]
+    if not outras:
+        return
+    ini = min(st.session_state.get("cam_faixa_ini", 0), max(0, len(outras) - por_vez))
+    with cartao("outras_cameras", "camera", "Outras câmeras"):
+        esq, meio, dir_ = st.columns([1, 20, 1], vertical_alignment="center")
+        with esq:
+            st.button("Câmeras anteriores", key="faixa_esq", disabled=ini == 0, on_click=_mover_faixa,
+                      args=(-1, len(outras)))
+        with meio:
+            cols = st.columns(por_vez, gap="small")
+            for col, c in zip(cols, outras[ini:ini + por_vez]):
+                with col, st.container(key=f"camcard_mini_{_chave(c.id)}"):
+                    html(cam.html_cartao(c, urls.get(c.id)))
+                    st.button(f"Abrir {c.id}", key=f"abrir_mini_{_chave(c.id)}", on_click=_abrir_camera, args=(c.id,))
+        with dir_:
+            st.button("Próximas câmeras", key="faixa_dir", disabled=ini + por_vez >= len(outras), on_click=_mover_faixa,
+                      args=(1, len(outras)))
 
 
 def _camera_aberta(c, url: str | None, u) -> None:

@@ -306,3 +306,14 @@ def test_central_de_demonstracoes_cartao_e_celular(banco):
     assert linha == ("cartao", "idoso", 1)
     at.button(key="demo_sms_btn").click().run()
     assert "Alerta BetterWay: ambulância a 1 km" in _texto(at)
+
+
+def test_camera_aberta_tem_miniaturas_das_outras_e_troca_sem_voltar(banco):
+    _clusters(banco)
+    at = _ir(_entrar("saude1"), "cameras")
+    at.button(key="abrir_CAM_01").click().run()
+    assert not at.exception, at.exception
+    chaves = {b.key for b in at.button}
+    assert "abrir_mini_CAM_02" in chaves and "abrir_mini_CAM_01" not in chaves
+    at.button(key="abrir_mini_CAM_02").click().run()
+    assert "CAM 02 · Avenida do Imperador" in _texto(at)
