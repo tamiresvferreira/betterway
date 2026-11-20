@@ -79,11 +79,6 @@ flowchart LR
         BANCO --> APP[Visão geral · Painel · Câmeras<br/>Ocorrências · Sala de controle<br/>Demonstrações · Equipe]
         RK --> APP
         SIM[Estudo A: SUMO<br/>hoje × BetterWay] --> APP
-        APP -->|prints dos relatórios| S3[(AWS S3)]
-    end
-    subgraph AWS["AWS Academy"]
-        EC2[EC2 Ubuntu<br/>Streamlit como serviço] --- APP
-        S3
     end
 ```
 
@@ -99,7 +94,6 @@ flowchart LR
 | **Nó ESP32** | Semáforo de carros e pedestre, matriz de LED como placa, buzzer e leitor de cartão (Bilhete Único Idoso ou Especial, como o Green Man+ de Singapura). Recebe o modo e decide sozinho o ciclo; quem já atravessa nunca é cortado. | `src/esp32/` (Wokwi) |
 | **Plataforma** | Login com convite e código de aplicativo (TOTP), perfis Trânsito, Saúde e Gestão, câmeras com registro de ocorrência e print do momento, sala de controle, central de demonstrações (cartão e alerta no celular), leitura em voz e tema claro ou escuro. | `src/operador/` |
 | **Banco** | SQLite com atropelamentos, pontos críticos, eventos do nó, ocorrências e histórico, relatórios e prints, leituras de cartão, usuários (senha em hash scrypt) e acessos às câmeras. | `data/processed/seguranca_viaria.db` (fora do Git) |
-| **AWS** | Bucket S3 privado com o pacote da plataforma e a cópia dos prints dos relatórios; instância EC2 que roda a plataforma, com a função do laboratório (sem chaves dentro do servidor). | `deploy/aws/` |
 
 ### Privacidade e rastreabilidade
 
@@ -117,7 +111,6 @@ flowchart LR
 * **`src/central/`** decisão do modo, fontes (chuva, escola, visão), contrato MQTT e roteiro de demonstração.
 * **`src/esp32/`** firmware do nó para o Wokwi.
 * **`src/operador/`** a plataforma BetterWay (Streamlit).
-* **`deploy/aws/`** implantação no AWS Academy (S3 e EC2).
 * **`docs/`** especificações, planos, roteiro da demonstração e `evidencias/` (métricas, cenas, avaliações).
 * **`tests/`** 331 testes rápidos e 13 lentos (SUMO e modelos).
 
@@ -136,9 +129,6 @@ python -m pytest tests -m "not slow"             # testes rápidos
 
 **Nó ESP32 no Wokwi:** ver `src/esp32/README.md` e o roteiro `docs/roteiro_demonstracao_esp32.md`. Sem o Wokwi, a
 Sala de controle tem um plano B que simula os sinais do nó.
-
-**AWS Academy:** com as credenciais do Learner Lab em `~/.aws/credentials`, `python deploy/aws/implantar.py` cria o
-bucket, sobe o pacote e lança a instância; `--status` mostra o endereço e `--encerrar` desliga a instância.
 
 ## 📎 Links e Observações
 
