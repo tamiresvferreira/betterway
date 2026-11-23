@@ -1,5 +1,47 @@
+# Ambiente
 .venv/
 __pycache__/
+*.pyc
 .ipynb_checkpoints/
-**/data/raw/dados_infosiga.zip
+.env
+
+# Dados brutos grandes (baixar conforme data/README.md)
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/Infosiga_dicionario_dados.zip
+data/processed/*.db
+
+# Modelos e saídas pesadas
+*.pt
+runs/
+src/simulacao/saidas/
+*.mp4
+
+# vídeo de demonstração: o arquivo fica fora do Git, a ficha de fonte e licença entra
+!data/raw/video/
+data/raw/video/*
+!data/raw/video/FONTE.md
+
+# imagens do conjunto de avaliação de PCD: só fontes e rótulos vão para o Git (LGPD)
+data/avaliacao_pcd/img/
+
+# SUMO: rede do mapa real (gerada a partir do OSM, descartada no Estudo A)
+src/simulacao/rede/largo_concordia*.net.xml
+
+# vídeos servidos pela interface (cópias de data/processed, fora do Git)
+src/operador/static/
+
+# visão dos clipes Veo 3: detecções, eventos e vídeos anotados (fora do Git)
+data/processed/veo3/
+
+# quadros anexados aos relatórios das câmeras (imagens, mesmo borradas, ficam fora do Git)
+data/processed/registros/
+
+# vídeo de fundo do login (versão leve, 1080p sem áudio, ~3,6 MB); o original em 4K fica fora
+!assets/marca/login-video-1080.mp4
+
+# Ferramentas locais (testes de navegador, cache, planos de sessão)
+.playwright-mcp/
 .pytest_cache/
+.superpowers/
+data/raw/dados_infosiga.zip
